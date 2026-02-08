@@ -1,0 +1,65 @@
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { updateProfile } from "@/app/actions"
+import { useTransition, useState } from "react"
+import { useRouter } from "next/navigation"
+
+export function ProfileForm({ profile }: { profile: any }) {
+    const [isPending, startTransition] = useTransition()
+    const [theme, setTheme] = useState(profile?.theme || 'dark')
+
+    // Optimistic toggle for theme?
+    // We need to apply theme class to document.
+    // Ideally this is handled by a ThemeProvider, but simple imperative logic works for MVP.
+
+    const handleSubmit = (formData: FormData) => {
+        startTransition(async () => {
+            const result = await updateProfile(formData)
+            if (result?.success) {
+                // Force refresh to apply theme if server-rendered layout depends on it
+                // Or manually toggle class
+                const newTheme = formData.get('theme') as string
+                if (newTheme === 'dark') {
+                    document.documentElement.classList.add('dark')
+                } else {
+                    document.documentElement.classList.remove('dark')
+                }
+                setTheme(newTheme)
+            }
+        })
+    }
+
+    return (
+        <form action={handleSubmit} className="rounded-lg border border-gray-800 bg-gray-900/50 p-6 space-y-6">
+            <div className="space-y-2">
+                <Label htmlFor="units">Units</Label>
+                <select
+                    id="units"
+                    name="units"
+                    defaultValue={profile?.units || 'metric'}
+                    className="flex h-10 w-full rounded-md border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                    <option value="metric">Metric (km)</option>
+                    <option value="imperial">Imperial (mi)</option>
+                </select>
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="theme">Theme</Label>
+                <select
+                    id="theme"
+                    name="theme"
+                    defaultValue={profile?.theme || 'dark'}
+                    className="flex h-10 w-full rounded-md border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                </select>
+            </div>
+
+            <Button type="submit" isLoading={isPending}>Save Preferences</Button>
+        </form>
+    )
+}
