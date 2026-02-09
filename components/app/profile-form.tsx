@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 export function ProfileForm({ profile }: { profile: any }) {
     const [isPending, startTransition] = useTransition()
     const [theme, setTheme] = useState(profile?.theme || 'dark')
+    const [units, setUnits] = useState(profile?.units || 'metric')
 
     // Optimistic toggle for theme?
     // We need to apply theme class to document.
@@ -24,12 +25,15 @@ export function ProfileForm({ profile }: { profile: any }) {
                 // Force refresh to apply theme if server-rendered layout depends on it
                 // Or manually toggle class
                 const newTheme = formData.get('theme') as string
+                const newUnits = formData.get('units') as string
+
                 if (newTheme === 'dark') {
                     document.documentElement.classList.add('dark')
                 } else {
                     document.documentElement.classList.remove('dark')
                 }
                 setTheme(newTheme)
+                setUnits(newUnits)
                 setSuccess(true)
                 // Hide success message after 3 seconds
                 setTimeout(() => setSuccess(false), 3000)
@@ -44,7 +48,8 @@ export function ProfileForm({ profile }: { profile: any }) {
                 <select
                     id="units"
                     name="units"
-                    defaultValue={profile?.units || 'metric'}
+                    value={units}
+                    onChange={(e) => setUnits(e.target.value)}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                     <option value="metric">Metric (km)</option>
@@ -57,7 +62,8 @@ export function ProfileForm({ profile }: { profile: any }) {
                 <select
                     id="theme"
                     name="theme"
-                    defaultValue={profile?.theme || 'dark'}
+                    value={theme}
+                    onChange={(e) => setTheme(e.target.value)}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                     <option value="dark">Dark</option>

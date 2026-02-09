@@ -19,7 +19,7 @@ interface AddEditWorkoutModalProps {
     raceDate: string
 }
 
-const WORKOUT_TYPES = ["Swim", "Bike", "Run", "Strength", "Rest", "Stretching", "Other"]
+const WORKOUT_TYPES = ["Swim", "Bike", "Run", "Strength", "Rest", "Other"]
 
 export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, raceDate }: AddEditWorkoutModalProps) {
     const [isPending, startTransition] = useTransition()
@@ -121,7 +121,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
                         <select
                             id="type"
                             name="type"
-                            className="flex h-10 w-full rounded-md border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                             value={type}
                             onChange={handleTypeChange}
                         >

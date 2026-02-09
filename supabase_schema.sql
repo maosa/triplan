@@ -34,7 +34,8 @@ create table workouts (
   distance numeric,
   intensity numeric check (intensity >= 0 and intensity <= 10),
   details text,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 -- ROW LEVEL SECURITY

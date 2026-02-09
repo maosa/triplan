@@ -120,6 +120,7 @@ export async function createWorkout(raceId: string, formData: FormData) {
         distance,
         intensity: finalIntensity,
         details,
+        // created_at and updated_at default to now()
     })
 
     if (error) {
@@ -164,6 +165,7 @@ export async function updateWorkout(workoutId: string, raceId: string, formData:
         distance,
         intensity: finalIntensity,
         details,
+        updated_at: new Date().toISOString()
     }).eq('id', workoutId)
 
     if (error) {
@@ -225,6 +227,7 @@ export async function duplicateWorkout(workout: Database['public']['Tables']['wo
         distance: workout.distance,
         intensity: workout.intensity,
         details: workout.details,
+        // created_at and updated_at default to now() which is correct for new duplicate
     })
 
     if (error) {

@@ -49,7 +49,9 @@ export default async function RacePage({ params }: PageProps) {
         .from('workouts')
         .select('*')
         .eq('race_id', raceId)
-        .order('date', { ascending: true })
+        .order('date', { ascending: false })
+        .order('updated_at', { ascending: false })
+        .order('created_at', { ascending: false })
 
     if (workoutError) {
         console.error(workoutError)
