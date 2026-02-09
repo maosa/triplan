@@ -138,7 +138,8 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
                         <Input
                             id="duration"
                             name="duration"
-                            placeholder="01:30"
+                            placeholder="00:00"
+                            disabled={type === "Rest"}
                             defaultValue={existingWorkout?.duration || ''}
                         />
                     </div>
@@ -150,6 +151,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
                             type="number"
                             step="0.01"
                             placeholder="0"
+                            disabled={type === "Rest"}
                             defaultValue={existingWorkout?.distance || ''}
                         />
                     </div>

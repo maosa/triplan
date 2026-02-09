@@ -23,7 +23,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
       <main className="container mx-auto px-4 py-8 sm:px-8 space-y-12">
         <RaceList initialRaces={races || []} />

@@ -56,17 +56,17 @@ export default async function RacePage({ params }: PageProps) {
     }
 
     return (
-        <div className="min-h-screen bg-black text-white">
+        <div className="min-h-screen bg-background text-foreground">
             {/* Header should NOT include Profile link according to requirements? 
           "The Profile / Account page is accessible only from the Race page 
            (e.g., via user avatar or “Account” button in the Race page header).
            Do not link to Profile from the Training Plan page."
            So we should make a custom header or just back button here.
       */}
-            <header className="sticky top-0 z-40 border-b border-gray-800 bg-gray-950/80 backdrop-blur-md">
+            <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
                 <div className="container flex h-16 items-center px-4 sm:px-8">
                     <Link href="/">
-                        <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white pl-0">
+                        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground pl-0">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Back to Races
                         </Button>
@@ -78,8 +78,8 @@ export default async function RacePage({ params }: PageProps) {
 
                 {/* Race Header */}
                 <div className="space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-white">{race.name}</h1>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 text-gray-400">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">{race.name}</h1>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 text-muted-foreground">
                         <div className="flex items-center">
                             <Calendar className="mr-2 h-4 w-4" />
                             {format(new Date(race.date), "MMMM d, yyyy")}

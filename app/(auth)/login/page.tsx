@@ -24,7 +24,7 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-black">
+        <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
             <div className="w-full max-w-md space-y-8 px-4">
                 <div className="text-center">
                     <h1 className="text-3xl font-bold tracking-tight text-white">TriPlan</h1>
@@ -34,7 +34,7 @@ export default function LoginPage() {
                 <form action={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" name="email" type="email" required placeholder="m@example.com" />
+                        <Input id="email" name="email" type="email" required placeholder="Please enter your email" />
                     </div>
 
                     <div className="space-y-2">
@@ -47,20 +47,20 @@ export default function LoginPage() {
                             <Checkbox id="rememberMe" name="rememberMe" />
                             <label
                                 htmlFor="rememberMe"
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-muted-foreground"
                             >
                                 Remember me
                             </label>
                         </div>
                         <div className="text-sm">
-                            <Link href="/auth/forgot-password" className="font-medium text-white hover:text-gray-300">
+                            <Link href="/auth/forgot-password" className="font-medium text-primary hover:text-primary/80">
                                 Forgot your password?
                             </Link>
                         </div>
                     </div>
 
                     {error && (
-                        <div className="text-sm text-red-500">
+                        <div className="text-sm text-destructive">
                             {error}
                         </div>
                     )}
@@ -70,9 +70,9 @@ export default function LoginPage() {
                     </Button>
                 </form>
 
-                <div className="text-center text-sm text-gray-400">
+                <div className="text-center text-sm text-muted-foreground">
                     Don&apos;t have an account?{" "}
-                    <Link href="/signup" className="font-medium text-white hover:text-gray-300">
+                    <Link href="/signup" className="font-medium text-primary hover:text-primary/80">
                         Sign up
                     </Link>
                 </div>

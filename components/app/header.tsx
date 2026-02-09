@@ -7,25 +7,24 @@ import { logout } from "@/app/(auth)/actions"
 
 export function Header() {
     return (
-        <header className="sticky top-0 z-40 border-b border-gray-800 bg-gray-950/80 backdrop-blur-md">
+        <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
             <div className="container flex h-16 items-center justify-between px-4 sm:px-8">
-                <div className="flex items-center gap-2">
-                    <Link href="/" className="text-xl font-bold tracking-tight text-white hover:opacity-80 transition-opacity">
+                <div className="flex items-center gap-4">
+                    <Link href="/" className="text-xl font-bold tracking-tight text-foreground hover:opacity-80 transition-opacity">
                         TriPlan
                     </Link>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
                     <Link href="/profile">
-                        <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                             <User className="mr-2 h-4 w-4" />
                             Account
                         </Button>
                     </Link>
                     <form action={logout}>
-                        <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white" title="Log out">
+                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" title="Log out">
                             <LogOut className="h-4 w-4" />
-                            <span className="sr-only">Log out</span>
                         </Button>
                     </form>
                 </div>

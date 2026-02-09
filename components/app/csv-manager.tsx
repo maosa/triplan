@@ -26,10 +26,10 @@ export function CsvManager() {
     }
 
     return (
-        <div className="hidden md:block space-y-4 rounded-lg border border-gray-800 bg-gray-900/50 p-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h3 className="text-lg font-semibold text-white">Data Management</h3>
+        <div className="rounded-lg border border-border bg-card p-6">
+            <div className="flex items-center justify-between mb-4">
+                <div className="space-y-1">
+                    <h3 className="text-lg font-semibold text-foreground">Data Management</h3>
                     <p className="text-sm text-gray-400">Export or import your training data (CSV).</p>
                 </div>
                 <a href="/api/export" download>

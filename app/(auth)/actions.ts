@@ -66,7 +66,7 @@ export async function signup(formData: FormData) {
         redirect('/')
     } else {
         // Email confirmation required case
-        return { success: 'Please checks your email to confirm your account.' }
+        return { success: 'Please check your email to confirm your account.' }
     }
 }
 

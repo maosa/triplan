@@ -14,7 +14,10 @@ export function ProfileForm({ profile }: { profile: any }) {
     // We need to apply theme class to document.
     // Ideally this is handled by a ThemeProvider, but simple imperative logic works for MVP.
 
+    const [success, setSuccess] = useState(false)
+
     const handleSubmit = (formData: FormData) => {
+        setSuccess(false)
         startTransition(async () => {
             const result = await updateProfile(formData)
             if (result?.success) {
@@ -27,19 +30,22 @@ export function ProfileForm({ profile }: { profile: any }) {
                     document.documentElement.classList.remove('dark')
                 }
                 setTheme(newTheme)
+                setSuccess(true)
+                // Hide success message after 3 seconds
+                setTimeout(() => setSuccess(false), 3000)
             }
         })
     }
 
     return (
-        <form action={handleSubmit} className="rounded-lg border border-gray-800 bg-gray-900/50 p-6 space-y-6">
+        <form action={handleSubmit} className="rounded-lg border border-border bg-card p-6 space-y-6">
             <div className="space-y-2">
                 <Label htmlFor="units">Units</Label>
                 <select
                     id="units"
                     name="units"
                     defaultValue={profile?.units || 'metric'}
-                    className="flex h-10 w-full rounded-md border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                     <option value="metric">Metric (km)</option>
                     <option value="imperial">Imperial (mi)</option>
@@ -52,7 +58,7 @@ export function ProfileForm({ profile }: { profile: any }) {
                     id="theme"
                     name="theme"
                     defaultValue={profile?.theme || 'dark'}
-                    className="flex h-10 w-full rounded-md border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                     <option value="dark">Dark</option>
                     <option value="light">Light</option>
@@ -60,6 +66,12 @@ export function ProfileForm({ profile }: { profile: any }) {
             </div>
 
             <Button type="submit" isLoading={isPending}>Save Preferences</Button>
+
+            {success && (
+                <div className="text-sm font-medium text-green-500 animate-in fade-in slide-in-from-top-2">
+                    Your preferences have been saved.
+                </div>
+            )}
         </form>
     )
 }

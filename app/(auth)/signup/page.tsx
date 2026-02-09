@@ -26,7 +26,7 @@ export default function SignupPage() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-black">
+        <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
             <div className="w-full max-w-md space-y-8 px-4">
                 <div className="text-center">
                     <h1 className="text-3xl font-bold tracking-tight text-white">Create an account</h1>
@@ -56,7 +56,7 @@ export default function SignupPage() {
                     </div>
 
                     {error && (
-                        <div className="text-sm text-red-500">
+                        <div className="text-sm text-destructive">
                             {error}
                         </div>
                     )}
@@ -72,9 +72,9 @@ export default function SignupPage() {
                     </Button>
                 </form>
 
-                <div className="text-center text-sm text-gray-400">
+                <div className="text-center text-sm text-muted-foreground">
                     Already have an account?{" "}
-                    <Link href="/login" className="font-medium text-white hover:text-gray-300">
+                    <Link href="/login" className="font-medium text-primary hover:text-primary/80">
                         Log in
                     </Link>
                 </div>
