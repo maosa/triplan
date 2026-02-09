@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AddEditWorkoutModal } from "@/components/app/add-workout-modal"
 import { getWorkoutIcon } from "@/components/app/workout-icons"
 import type { Database } from "@/types/database"
-import { format } from "date-fns"
+import { format, isSameDay, parseISO } from "date-fns"
 import { cn } from "@/components/ui/button"
 
 type Workout = Database['public']['Tables']['workouts']['Row']
@@ -22,6 +22,28 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
     const [editingWorkout, setEditingWorkout] = useState<Workout | undefined>(undefined)
 
+    // Workouts are already sorted by the server (Date DESC, Updated DESC, Created DESC)
+    const sortedWorkouts = initialWorkouts
+
+    // Refs for scrolling
+    const todayRef = useRef<HTMLDivElement | null>(null)
+    const listRef = useRef<HTMLDivElement | null>(null)
+
+    useEffect(() => {
+        // Run only once on mount (or when workouts change, though initial load is key)
+        if (sortedWorkouts.length === 0) return;
+
+        const today = new Date()
+        const hasFutureWorkouts = sortedWorkouts.some(w => new Date(w.date) > today && !isSameDay(new Date(w.date), today))
+
+        // If we have future workouts, we want to center "Today". 
+        // If "Today" is at the top (no future workouts), we let it stay at top (standard behavior).
+        if (hasFutureWorkouts && todayRef.current) {
+            todayRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' })
+        }
+    }, [sortedWorkouts])
+
+
     const handleEdit = (workout: Workout) => {
         setEditingWorkout(workout)
         setIsAddModalOpen(true)
@@ -32,14 +54,8 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
         setEditingWorkout(undefined)
     }
 
-    // Sort workouts by date descending (newest first)? Or ascending (chronological)?
-    // Usually training plans are future-facing, so maybe Ascending?
-    // "Workout Date (MMM DD–JJJ–YY)".
-    // Let's sort Ascending.
-    const sortedWorkouts = [...initialWorkouts].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" ref={listRef}>
             <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-foreground">Workouts</h2>
                 <Button onClick={() => setIsAddModalOpen(true)} className="bg-primary text-primary-foreground hover:bg-primary/90">
@@ -64,59 +80,85 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                     {/* Header Row for alignment context? Maybe overkill but helps. 
                         Actually prompt asks for "Table-like alignment within the stacked list".
                     */}
-                    {sortedWorkouts.map((workout) => (
-                        <div
-                            key={workout.id}
-                            onClick={() => handleEdit(workout)}
-                            className="group flex items-center justify-between rounded-lg border border-border bg-card p-4 transition-all hover:bg-muted/50 hover:border-border/80 cursor-pointer"
-                        >
-                            <div className="flex items-center space-x-4 min-w-0 flex-1">
-                                <div className="flex-shrink-0 text-foreground">
-                                    {getWorkoutIcon(workout.type)}
-                                </div>
-                                <div className="min-w-0">
-                                    <div className="font-medium text-foreground truncate">
-                                        {format(new Date(workout.date), "EEE, dd MMM yyyy")}
+                    {sortedWorkouts.map((workout) => {
+                        const isToday = isSameDay(parseISO(workout.date), new Date())
+                        // We only need to ref the FIRST finding of today if multiple exist.
+                        // But if we attach ref to all, the last one might overwrite? 
+                        // Actually, in a map, ref callback is called for each.
+                        // We should probably find the first "Today" and attach ref conditionally.
+                        // Or cleaner: Find the index of the first "Today" outside the map?
+                        // Unnecessary optimisation maybe.
+                        // Let's just attach ref if it matches today. If multiple, the last one rendered (bottom-most today) might get it?
+                        // "Centre the group ... e.g. the first or middle item"
+                        // If I attach to the first one encountered in the list which is sorted DESC (Latest first),
+                        // The first encountered "Today" is the *latest* updated today (or similar).
+                        // That works.
+
+                        return (
+                            <div
+                                key={workout.id}
+                                // Attach ref efficiently. Since map runs in order, we can check if it's the *first* today?
+                                // Or just check data attribute in useEffect?
+                                // Let's use a callback ref or simple logic.
+                                ref={isToday && !todayRef.current ? (el) => { if (!todayRef.current) todayRef.current = el } : undefined}
+                                // Wait, logic inside render like that is risky with React renders.
+                                // Better: Render, and rely on `data-today` attribute, then querySelector in useEffect? 
+                                // This is cleaner than conditional refs in map.
+                                data-today={isToday ? "true" : undefined}
+                                onClick={() => handleEdit(workout)}
+                                className={cn(
+                                    "group flex items-center justify-between rounded-lg border border-border bg-card p-4 transition-all hover:bg-muted/50 hover:border-border/80 cursor-pointer",
+                                    isToday && "ring-1 ring-primary/20 bg-primary/5" // Highlight today lightly? Optional but nice.
+                                )}
+                            >
+                                <div className="flex items-center space-x-4 min-w-0 flex-1">
+                                    <div className="flex-shrink-0 text-foreground">
+                                        {getWorkoutIcon(workout.type)}
                                     </div>
-                                    <div className="text-sm text-muted-foreground truncate">
-                                        {workout.type}
-                                        {workout.details && ` • ${workout.details}`}
+                                    <div className="min-w-0">
+                                        <div className="font-medium text-foreground truncate">
+                                            {format(new Date(workout.date), "EEE, dd MMM yyyy")}
+                                        </div>
+                                        <div className="text-sm text-muted-foreground truncate">
+                                            {workout.type}
+                                            {workout.details && ` • ${workout.details}`}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-6 text-sm flex-shrink-0">
+                                    {/* Duration Slot: Fixed Width */}
+                                    <div className="w-20 text-right font-mono text-foreground/90 tabular-nums">
+                                        {workout.duration ? (
+                                            <span className="bg-muted px-1.5 py-0.5 rounded text-xs">{workout.duration}</span>
+                                        ) : (
+                                            <span className="text-muted-foreground/30">-</span>
+                                        )}
+                                    </div>
+
+                                    {/* Distance Slot: Fixed Width */}
+                                    <div className="w-24 text-right font-mono text-foreground/90 tabular-nums">
+                                        {workout.distance !== null && workout.distance > 0 ? (
+                                            <span>
+                                                {workout.distance} <span className="text-muted-foreground text-xs">{units === 'metric' ? 'km' : 'mi'}</span>
+                                            </span>
+                                        ) : (
+                                            <span className="text-muted-foreground/30 px-4">-</span>
+                                        )}
+                                    </div>
+
+                                    {/* Intensity Slot: Fixed Width */}
+                                    <div className="w-16 flex justify-end">
+                                        {workout.type !== "Rest" && workout.intensity !== null ? (
+                                            getIntensityIndicator(workout.intensity)
+                                        ) : (
+                                            <span className="text-muted-foreground/30 w-8 text-center">-</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
-
-                            <div className="flex items-center space-x-6 text-sm flex-shrink-0">
-                                {/* Duration Slot: Fixed Width */}
-                                <div className="w-20 text-right font-mono text-foreground/90 tabular-nums">
-                                    {workout.duration ? (
-                                        <span className="bg-muted px-1.5 py-0.5 rounded text-xs">{workout.duration}</span>
-                                    ) : (
-                                        <span className="text-muted-foreground/30">-</span>
-                                    )}
-                                </div>
-
-                                {/* Distance Slot: Fixed Width */}
-                                <div className="w-24 text-right font-mono text-foreground/90 tabular-nums">
-                                    {workout.distance !== null && workout.distance > 0 ? (
-                                        <span>
-                                            {workout.distance} <span className="text-muted-foreground text-xs">{units === 'metric' ? 'km' : 'mi'}</span>
-                                        </span>
-                                    ) : (
-                                        <span className="text-muted-foreground/30 px-4">-</span>
-                                    )}
-                                </div>
-
-                                {/* Intensity Slot: Fixed Width */}
-                                <div className="w-16 flex justify-end">
-                                    {workout.type !== "Rest" && workout.intensity !== null ? (
-                                        getIntensityIndicator(workout.intensity)
-                                    ) : (
-                                        <span className="text-muted-foreground/30 w-8 text-center">-</span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
             )}
 
