@@ -260,7 +260,9 @@ export async function updateProfile(formData: FormData) {
         return { error: error.message }
     }
 
-    revalidatePath('/', 'layout')
+    // Do NOT revalidate path to prevent client component remount/snap-back.
+    // Client side state is updated optimistically.
+    // revalidatePath('/', 'layout')
     return { success: true }
 }
 

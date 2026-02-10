@@ -1,11 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { WorkoutList } from '@/components/app/workout-list'
-import { Header } from '@/components/app/header'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, Calendar } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, User, LogOut } from 'lucide-react'
 import { format } from 'date-fns'
+import { logout } from '@/app/(auth)/actions'
 
 interface PageProps {
     params: Promise<{ raceId: string }>;
@@ -59,20 +59,28 @@ export default async function RacePage({ params }: PageProps) {
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            {/* Header should NOT include Profile link according to requirements? 
-          "The Profile / Account page is accessible only from the Race page 
-           (e.g., via user avatar or “Account” button in the Race page header).
-           Do not link to Profile from the Training Plan page."
-           So we should make a custom header or just back button here.
-      */}
             <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
-                <div className="container flex h-16 items-center px-4 sm:px-8">
+                <div className="container flex h-16 items-center justify-between px-4 sm:px-8">
                     <Link href="/">
                         <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground pl-0">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Back to Races
                         </Button>
                     </Link>
+
+                    <div className="flex items-center gap-2">
+                        <Link href="/profile">
+                            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                                <User className="mr-2 h-4 w-4" />
+                                Account
+                            </Button>
+                        </Link>
+                        <form action={logout}>
+                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" title="Log out">
+                                <LogOut className="h-4 w-4" />
+                            </Button>
+                        </form>
+                    </div>
                 </div>
             </header>
 

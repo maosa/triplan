@@ -41,7 +41,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
         if (hasFutureWorkouts && todayRef.current) {
             todayRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' })
         }
-    }, [sortedWorkouts])
+    }, [])
 
 
     const handleEdit = (workout: Workout) => {
