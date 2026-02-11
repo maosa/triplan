@@ -66,7 +66,7 @@ export default async function RacePage({ params }: PageProps) {
                             TriPlan
                         </Link>
 
-                        <Link href="/">
+                        <Link href="/" className="-ml-3">
                             <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 Back to Races
@@ -81,8 +81,8 @@ export default async function RacePage({ params }: PageProps) {
                                 Account
                             </Button>
                         </Link>
-                        <form action={logout}>
-                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground -mr-2" title="Log out">
+                        <form action={logout} className="-mr-2">
+                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" title="Log out">
                                 <LogOut className="h-4 w-4" />
                             </Button>
                         </form>

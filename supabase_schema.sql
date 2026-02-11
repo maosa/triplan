@@ -46,37 +46,38 @@ alter table workouts enable row level security;
 -- POLICIES
 
 -- Profiles: Users can view/edit their own profile
+-- Profiles: Users can view/edit their own profile
 create policy "Users can view own profile" on profiles
-  for select using (auth.uid() = id);
+  for select using (id = (select auth.uid()));
 
 create policy "Users can update own profile" on profiles
-  for update using (auth.uid() = id);
+  for update using (id = (select auth.uid()));
 
 -- Races: Users can view/insert/update/delete their own races
 create policy "Users can view own races" on races
-  for select using (auth.uid() = user_id);
+  for select using (user_id = (select auth.uid()));
 
 create policy "Users can insert own races" on races
-  for insert with check (auth.uid() = user_id);
+  for insert with check (user_id = (select auth.uid()));
 
 create policy "Users can update own races" on races
-  for update using (auth.uid() = user_id);
+  for update using (user_id = (select auth.uid()));
 
 create policy "Users can delete own races" on races
-  for delete using (auth.uid() = user_id);
+  for delete using (user_id = (select auth.uid()));
 
 -- Workouts: Users can view/insert/update/delete their own workouts
 create policy "Users can view own workouts" on workouts
-  for select using (auth.uid() = user_id);
+  for select using (user_id = (select auth.uid()));
 
 create policy "Users can insert own workouts" on workouts
-  for insert with check (auth.uid() = user_id);
+  for insert with check (user_id = (select auth.uid()));
 
 create policy "Users can update own workouts" on workouts
-  for update using (auth.uid() = user_id);
+  for update using (user_id = (select auth.uid()));
 
 create policy "Users can delete own workouts" on workouts
-  for delete using (auth.uid() = user_id);
+  for delete using (user_id = (select auth.uid()));
 
 -- TRIGGER for Profile Creation
 -- Automatically create a profile entry when a new user signs up via Supabase Auth
