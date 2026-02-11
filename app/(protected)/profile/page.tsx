@@ -58,7 +58,7 @@ export default async function ProfilePage() {
                             </Button>
                         </Link>
                         <form action={logout}>
-                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" title="Log out">
+                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground -mr-2" title="Log out">
                                 <LogOut className="h-4 w-4" />
                             </Button>
                         </form>
