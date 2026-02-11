@@ -61,9 +61,18 @@ export default async function RacePage({ params }: PageProps) {
         <div className="min-h-screen bg-background text-foreground">
             <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
                 <div className="container flex h-16 items-center justify-between px-4 sm:px-8">
-                    <Link href="/" className="text-xl font-bold tracking-tight text-foreground hover:opacity-80 transition-opacity">
-                        TriPlan
-                    </Link>
+                    <div className="flex items-center gap-4">
+                        <Link href="/" className="text-xl font-bold tracking-tight text-foreground hover:opacity-80 transition-opacity">
+                            TriPlan
+                        </Link>
+
+                        <Link href="/">
+                            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Back to Races
+                            </Button>
+                        </Link>
+                    </div>
 
                     <div className="flex items-center gap-2">
                         <Link href="/profile">
@@ -82,15 +91,6 @@ export default async function RacePage({ params }: PageProps) {
             </header>
 
             <main className="container mx-auto px-4 py-8 sm:px-8 space-y-8">
-                {/* Back Button - Moved to Main for alignment with content */}
-                <div>
-                    <Link href="/">
-                        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground -ml-3">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Races
-                        </Button>
-                    </Link>
-                </div>
 
                 {/* Race Header */}
                 <div className="space-y-2">
