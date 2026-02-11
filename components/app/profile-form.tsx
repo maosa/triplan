@@ -50,7 +50,7 @@ export function ProfileForm({ profile }: { profile: any }) {
                     name="units"
                     value={units}
                     onChange={(e) => setUnits(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-8 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                     <option value="metric">Metric (km)</option>
                     <option value="imperial">Imperial (mi)</option>
@@ -64,7 +64,7 @@ export function ProfileForm({ profile }: { profile: any }) {
                     name="theme"
                     value={theme}
                     onChange={(e) => setTheme(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-8 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                     <option value="dark">Dark</option>
                     <option value="light">Light</option>

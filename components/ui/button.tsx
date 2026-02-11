@@ -18,11 +18,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ({ className, variant = "primary", size = "default", isLoading, children, disabled, ...props }, ref) => {
 
         const variants = {
-            primary: "bg-white text-black hover:bg-gray-200 disabled:opacity-50",
-            secondary: "bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-50",
-            outline: "border border-gray-700 bg-transparent hover:bg-gray-800 text-white disabled:opacity-50",
-            ghost: "hover:bg-gray-800 text-gray-300 hover:text-white disabled:opacity-50",
-            destructive: "bg-red-900 text-red-100 hover:bg-red-800 disabled:opacity-50",
+            primary: "bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50",
+            secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50",
+            outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50",
+            ghost: "hover:bg-accent hover:text-accent-foreground disabled:opacity-50",
+            destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50",
         }
 
         const sizes = {

@@ -1,5 +1,5 @@
 "use client"
-import { format } from "date-fns"
+import { format, differenceInCalendarDays } from "date-fns"
 import { Calendar, MapPin, Pencil } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,13 @@ export function RaceCard({ race, onEdit }: RaceCardProps) {
         e.stopPropagation()
         onEdit(race)
     }
+
+    const today = new Date()
+    const raceDate = new Date(race.date)
+    // We use differenceInCalendarDays to ignore time. 
+    // If result is 0, it's today. Positive means future.
+    const daysLeft = differenceInCalendarDays(raceDate, today)
+    const isFuture = daysLeft >= 0
 
     return (
         <div
@@ -46,10 +53,18 @@ export function RaceCard({ race, onEdit }: RaceCardProps) {
                 </div>
 
                 <div className="space-y-2 text-sm text-muted-foreground">
-                    <div className="flex items-center">
-                        <Calendar className="mr-1.5 h-4 w-4" />
-                        {format(new Date(race.date), "MMM d, yyyy")}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                            <Calendar className="mr-1.5 h-4 w-4" />
+                            {format(new Date(race.date), "MMM d, yyyy")}
+                        </div>
+                        {isFuture && (
+                            <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                                {daysLeft === 0 ? "Race Day!" : `${daysLeft} day${daysLeft === 1 ? '' : 's'} left`}
+                            </span>
+                        )}
                     </div>
+
                     {race.location && (
                         <div className="flex items-center">
                             <MapPin className="mr-1.5 h-4 w-4" />
