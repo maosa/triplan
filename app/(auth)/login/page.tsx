@@ -24,10 +24,16 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
-            <div className="w-full max-w-md space-y-8 px-4">
+        <div className="flex min-h-screen items-center justify-center bg-background text-foreground relative">
+            {/* Standard Header Logo Position */}
+            <div className="absolute top-0 left-0 w-full border-b border-transparent">
+                <div className="container mx-auto flex h-16 items-center px-4 sm:px-8">
+                    <span className="text-xl font-bold tracking-tight text-foreground">TriPlan</span>
+                </div>
+            </div>
+
+            <div className="w-full max-w-md space-y-8 px-4 pt-16">
                 <div className="text-center">
-                    <h1 className="text-3xl font-bold tracking-tight text-white">TriPlan</h1>
                     <p className="mt-2 text-sm text-gray-400">Sign in to your account</p>
                 </div>
 

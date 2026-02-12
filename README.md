@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TriPlan
+
+**The vibe-coded, race-centric triathlon planner for athletes who hate spreadsheets.**
+
+TriPlan is a modern, minimalist training log built for triathletes who want to focus on the work, not the admin. It’s designed to be clean, fast, and strictly race-focused. No clutter, no social feeds, just your race and the path to get there.
+
+## Features
+
+- **Race-Centric Planning**: Everything revolves around your "A" race. The countdown is always on.
+- **Vibe-Coded UI**: Dark mode by default (but Light mode ready), with semantic colors and slick interactions.
+- **Strict Data Isolation**: Your data is yours. Multi-user support with Row Level Security (RLS) ensures total privacy.
+- **Mobile First**: Add workouts from your phone without zooming, pinching, or squinting.
+- **Data Freedom**: Simple CSV import and export. We don't lock you in.
 
 ## Getting Started
 
-First, run the development server:
+1. **Clone the repo**
+2. **Install dependencies**: `npm install`
+3. **Set up Supabase**:
+   - Create a project at [supabase.com](https://supabase.com)
+   - Run the schema migration in SQL Editor
+   - Add credentials to `.env.local`
+4. **Run it**: `npm run dev`
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Tech Stack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Next.js 15 (App Router)**
+- **Supabase (Auth & Database)**
+- **Tailwind CSS**
+- **Lucide Icons**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built for speed. Built for PRs.
