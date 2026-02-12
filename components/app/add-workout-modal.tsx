@@ -163,7 +163,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
 
                 <div className="space-y-2">
                     <div className="flex justify-between">
-                        <Label htmlFor="intensity">Intensity ({intensity})</Label>
+                        <Label htmlFor="intensity">Intensity ({intensity.toFixed(1)})</Label>
                     </div>
                     <input
                         id="intensity"
