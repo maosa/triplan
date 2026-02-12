@@ -39,8 +39,8 @@ export default async function ProfilePage() {
                             TriPlan
                         </Link>
 
-                        <Link href="/" className="-ml-3">
-                            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                        <Link href="/">
+                            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground px-3">
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 Back to Races
                             </Button>
@@ -57,7 +57,7 @@ export default async function ProfilePage() {
                                 Account
                             </Button>
                         </Link>
-                        <form action={logout} className="-mr-2">
+                        <form action={logout} className="flex m-0 p-0">
                             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" title="Log out">
                                 <LogOut className="h-4 w-4" />
                             </Button>

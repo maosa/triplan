@@ -43,7 +43,7 @@ export function RaceCard({ race, onEdit }: RaceCardProps) {
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="z-10 relative opacity-0 group-hover:opacity-100 transition-opacity -mr-2 -mt-2 text-muted-foreground hover:text-foreground"
+                        className="z-10 relative opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity -mr-2 -mt-2 text-muted-foreground hover:text-foreground"
                         onClick={handleEditClick}
                         title="Edit Race"
                     >
