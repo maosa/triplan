@@ -126,21 +126,21 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                                     </div>
                                 </div>
 
-                                <div className="flex items-center space-x-2 sm:space-x-6 text-xs sm:text-sm flex-shrink-0">
-                                    {/* Duration Slot: Fixed Width */}
-                                    <div className="w-12 sm:w-20 text-right font-mono text-foreground/90 tabular-nums">
+                                <div className="flex items-center space-x-1 sm:space-x-6 text-[10px] sm:text-sm flex-shrink-0">
+                                    {/* Duration Slot: Fixed Width - compact on mobile */}
+                                    <div className="w-[3.5rem] sm:w-20 text-right font-mono text-foreground/90 tabular-nums">
                                         {workout.duration ? (
-                                            <span className="bg-muted px-1.5 py-0.5 rounded text-[10px] sm:text-xs">{workout.duration}</span>
+                                            <span className="bg-muted px-1 py-0.5 rounded text-[10px] sm:text-xs tracking-tight">{workout.duration}</span>
                                         ) : (
                                             <span className="text-muted-foreground/30">-</span>
                                         )}
                                     </div>
 
-                                    {/* Distance Slot: Fixed Width */}
-                                    <div className="w-14 sm:w-24 text-right font-mono text-foreground/90 tabular-nums">
+                                    {/* Distance Slot: Fixed Width - compact on mobile */}
+                                    <div className="w-[3.5rem] sm:w-24 text-right font-mono text-foreground/90 tabular-nums leading-tight">
                                         {workout.distance !== null && workout.distance > 0 ? (
                                             <span>
-                                                {workout.distance} <span className="text-muted-foreground text-[10px] sm:text-xs">{units === 'metric' ? 'km' : 'mi'}</span>
+                                                {workout.distance}<span className="text-muted-foreground text-[9px] sm:text-xs ml-[1px]">{units === 'metric' ? 'km' : 'mi'}</span>
                                             </span>
                                         ) : (
                                             <span className="text-muted-foreground/30 px-2 sm:px-4">-</span>

@@ -69,10 +69,13 @@
   --ring: #d4d4d8;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
-  scrollbar-gutter: stable;
 }
 
 /* Fix Date Picker Icon in Dark Mode */

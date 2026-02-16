@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { User, LogOut, ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button, cn } from "@/components/ui/button"
 import { logout } from "@/app/(auth)/actions"
 
 interface HeaderProps {
@@ -14,7 +14,7 @@ export function Header({ backLink, isProfilePage = false }: HeaderProps) {
     return (
         <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
             <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-8">
-                <div className="flex items-center gap-4">
+                <div className={cn("flex items-center", backLink && "gap-4")}>
                     <Link href="/" className="text-xl font-bold tracking-tight text-foreground hover:opacity-80 transition-opacity">
                         TriPlan
                     </Link>
