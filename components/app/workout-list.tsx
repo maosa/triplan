@@ -126,29 +126,29 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                                     </div>
                                 </div>
 
-                                <div className="flex items-center space-x-6 text-sm flex-shrink-0">
+                                <div className="flex items-center space-x-2 sm:space-x-6 text-xs sm:text-sm flex-shrink-0">
                                     {/* Duration Slot: Fixed Width */}
-                                    <div className="w-20 text-right font-mono text-foreground/90 tabular-nums">
+                                    <div className="w-12 sm:w-20 text-right font-mono text-foreground/90 tabular-nums">
                                         {workout.duration ? (
-                                            <span className="bg-muted px-1.5 py-0.5 rounded text-xs">{workout.duration}</span>
+                                            <span className="bg-muted px-1.5 py-0.5 rounded text-[10px] sm:text-xs">{workout.duration}</span>
                                         ) : (
                                             <span className="text-muted-foreground/30">-</span>
                                         )}
                                     </div>
 
                                     {/* Distance Slot: Fixed Width */}
-                                    <div className="w-24 text-right font-mono text-foreground/90 tabular-nums">
+                                    <div className="w-14 sm:w-24 text-right font-mono text-foreground/90 tabular-nums">
                                         {workout.distance !== null && workout.distance > 0 ? (
                                             <span>
-                                                {workout.distance} <span className="text-muted-foreground text-xs">{units === 'metric' ? 'km' : 'mi'}</span>
+                                                {workout.distance} <span className="text-muted-foreground text-[10px] sm:text-xs">{units === 'metric' ? 'km' : 'mi'}</span>
                                             </span>
                                         ) : (
-                                            <span className="text-muted-foreground/30 px-4">-</span>
+                                            <span className="text-muted-foreground/30 px-2 sm:px-4">-</span>
                                         )}
                                     </div>
 
                                     {/* Intensity Slot: Fixed Width */}
-                                    <div className="w-16 flex justify-end">
+                                    <div className="w-8 sm:w-16 flex justify-end">
                                         {workout.type !== "Rest" && workout.intensity !== null ? (
                                             getIntensityIndicator(workout.intensity)
                                         ) : (

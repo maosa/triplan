@@ -6,8 +6,6 @@ import { Label } from '@/components/ui/label'
 import { updateProfile, deleteAccount } from '@/app/actions'
 import { Header } from '@/components/app/header'
 import Link from 'next/link'
-import { ArrowLeft, User, LogOut } from 'lucide-react'
-import { logout } from '@/app/(auth)/actions'
 import { ProfileForm } from '@/components/app/profile-form'
 
 export default async function ProfilePage() {
@@ -32,39 +30,7 @@ export default async function ProfilePage() {
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
-                <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-8">
-                    <div className="flex items-center gap-4">
-                        <Link href="/" className="text-xl font-bold tracking-tight text-foreground hover:opacity-80 transition-opacity">
-                            TriPlan
-                        </Link>
-
-                        <Link href="/">
-                            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground px-3">
-                                <ArrowLeft className="mr-2 h-4 w-4" />
-                                Back to Races
-                            </Button>
-                        </Link>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        {/* Optional: Highlight we are on Account or disable link? 
-                            User asked for "Log Out button... Account button...". 
-                            I'll render them standard. */}
-                        <Link href="/profile">
-                            <Button variant="ghost" size="sm" className="text-foreground bg-accent/50">
-                                <User className="mr-2 h-4 w-4" />
-                                Account
-                            </Button>
-                        </Link>
-                        <form action={logout} className="flex m-0 p-0">
-                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" title="Log out">
-                                <LogOut className="h-4 w-4" />
-                            </Button>
-                        </form>
-                    </div>
-                </div>
-            </header>
+            <Header backLink="/" isProfilePage={true} />
 
             <main className="container max-w-2xl mx-auto px-4 py-8 sm:px-8 space-y-8">
                 <div className="space-y-2">

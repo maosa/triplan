@@ -1,5 +1,7 @@
 # TriPlan
 
+[**Use the live app**](https://triathlonplan.vercel.app/)
+
 **The vibe-coded, race-centric triathlon planner for athletes who hate spreadsheets.**
 
 TriPlan is a modern, minimalist training log built for triathletes who want to focus on the work, not the admin. It’s designed to be clean, fast, and strictly race-focused. No clutter, no social feeds, just your race and the path to get there.
@@ -12,21 +14,11 @@ TriPlan is a modern, minimalist training log built for triathletes who want to f
 - **Mobile First**: Add workouts from your phone without zooming, pinching, or squinting.
 - **Data Freedom**: Simple CSV import and export. We don't lock you in.
 
-## Getting Started
+## Check out TriCalc
 
-1. **Clone the repo**
-2. **Install dependencies**: `npm install`
-3. **Set up Supabase**:
-   - Create a project at [supabase.com](https://supabase.com)
-   - Run the schema migration in SQL Editor
-   - Add credentials to `.env.local`
-4. **Run it**: `npm run dev`
+Looking for a simple way to calculate your splits? Try **TriCalc**.
 
-## Tech Stack
-
-- **Next.js 15 (App Router)**
-- **Supabase (Auth & Database)**
-- **Tailwind CSS**
-- **Lucide Icons**
+- [**Live App**](https://triathloncalc.netlify.app/)
+- [**GitHub**](https://github.com/maosa/tricalc)
 
 Built for speed. Built for PRs.
