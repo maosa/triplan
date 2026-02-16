@@ -128,7 +128,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
 
                                 <div className="flex items-center space-x-1 sm:space-x-6 text-[10px] sm:text-sm flex-shrink-0">
                                     {/* Duration Slot: Fixed Width - compact on mobile */}
-                                    <div className="w-[3.5rem] sm:w-20 text-right font-mono text-foreground/90 tabular-nums">
+                                    <div className="w-[3rem] sm:w-20 text-right font-mono text-foreground/90 tabular-nums">
                                         {workout.duration ? (
                                             <span className="bg-muted px-1 py-0.5 rounded text-[10px] sm:text-xs tracking-tight">{workout.duration}</span>
                                         ) : (
@@ -137,7 +137,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                                     </div>
 
                                     {/* Distance Slot: Fixed Width - compact on mobile */}
-                                    <div className="w-[3.5rem] sm:w-24 text-right font-mono text-foreground/90 tabular-nums leading-tight">
+                                    <div className="w-[3rem] sm:w-24 text-right font-mono text-foreground/90 tabular-nums leading-tight">
                                         {workout.distance !== null && workout.distance > 0 ? (
                                             <span>
                                                 {workout.distance}<span className="text-muted-foreground text-[9px] sm:text-xs ml-[1px]">{units === 'metric' ? 'km' : 'mi'}</span>
@@ -148,7 +148,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                                     </div>
 
                                     {/* Intensity Slot: Fixed Width */}
-                                    <div className="w-8 sm:w-16 flex justify-end">
+                                    <div className="w-9 sm:w-16 flex justify-end">
                                         {workout.type !== "Rest" && workout.intensity !== null ? (
                                             getIntensityIndicator(workout.intensity)
                                         ) : (
@@ -178,14 +178,16 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
 function getIntensityIndicator(intensity: number | null) {
     if (intensity === null) return null;
 
-    let colorClass = "bg-green-500"
-    if (intensity > 4) colorClass = "bg-yellow-500"
-    if (intensity > 7) colorClass = "bg-red-500"
+    let colorClass = "bg-emerald-400" // Greenish
+    if (intensity > 4) colorClass = "bg-amber-400" // Yellowish
+    if (intensity > 7) colorClass = "bg-rose-500" // Reddish
 
+    // Use Black text for contrast on these bright colors
     return (
-        <div className="flex items-center space-x-2" title={`Intensity: ${intensity}`}>
-            <span className={cn("h-2 w-2 rounded-full ring-1 ring-offset-1 ring-offset-card ring-transparent", colorClass)} />
-            <span className="text-muted-foreground font-mono text-xs w-6 text-right">{intensity.toFixed(1)}</span>
+        <div className="flex justify-end" title={`Intensity: ${intensity}`}>
+            <span className={cn("px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-mono font-bold text-black tabular-nums", colorClass)}>
+                {intensity.toFixed(1)}
+            </span>
         </div>
     )
 }

@@ -7,6 +7,7 @@ import { updateProfile, deleteAccount } from '@/app/actions'
 import { Header } from '@/components/app/header'
 import Link from 'next/link'
 import { ProfileForm } from '@/components/app/profile-form'
+import { CsvManager } from '@/components/app/csv-manager'
 
 export default async function ProfilePage() {
     const supabase = await createClient()
@@ -43,6 +44,10 @@ export default async function ProfilePage() {
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-foreground">Preferences</h2>
                     <ProfileForm profile={profile} />
+                </div>
+
+                <div className="space-y-6">
+                    <CsvManager />
                 </div>
 
                 <div className="space-y-6">

@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { RaceList } from '@/components/app/race-list'
 import { Header } from '@/components/app/header'
-import { CsvManager } from '@/components/app/csv-manager'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -27,8 +26,6 @@ export default async function Home() {
       <Header />
       <main className="container mx-auto px-4 py-8 sm:px-8 space-y-12">
         <RaceList initialRaces={races || []} />
-
-        <CsvManager />
       </main>
     </div>
   )
