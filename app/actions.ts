@@ -311,6 +311,49 @@ export async function importCsvData(formData: FormData) {
         return { error: `CSV columns should be: "Race Name, Race Location, Race Date, Race Details, Workout Date, Workout Type, Workout Duration, Workout Distance, Workout Intensity, Workout Details."` }
     }
 
+    // Detect Date Trend and Reverse if needed
+    // We need to look at "Workout Date"
+    // "If the workouts in the CSV are listed from latest to earliest [Descending]... reverse."
+
+    let firstDate: Date | null = null
+    let lastDate: Date | null = null
+
+    // Find first valid date
+    for (let i = 0; i < rows.length; i++) {
+        const dStr = rows[i]['Workout Date']?.trim()
+        if (dStr) {
+            const d = parseDate(dStr) // YYYY-MM-DD
+            if (d) {
+                firstDate = new Date(d)
+                break
+            }
+        }
+    }
+
+    // Find last valid date
+    for (let i = rows.length - 1; i >= 0; i--) {
+        const dStr = rows[i]['Workout Date']?.trim()
+        if (dStr) {
+            const d = parseDate(dStr)
+            if (d) {
+                lastDate = new Date(d)
+                break
+            }
+        }
+    }
+
+    // If we have a range, check trend
+    if (firstDate && lastDate) {
+        // If First > Last, it's Descending (Newest to Oldest)
+        // User wants "Top of File" (Newest) to be "Top of List".
+        // Our Insertion Order -> Sort DESC logic requires Newest to be inserted LAST (highest created_at).
+        // Standard (Top -> Bottom) inserts Top first (Lower created_at). 
+        // So we need to REVERSE processing (Bottom -> Top) so Top gets inserted Last.
+        if (firstDate > lastDate) {
+            rows.reverse()
+        }
+    }
+
     // 2. Race Consistency Check
     const firstRow = rows[0]
     const raceNameRef = firstRow['Race Name']?.trim()

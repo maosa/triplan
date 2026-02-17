@@ -347,6 +347,15 @@ Thanks! I have some additional feedback. Please help me refine this, and have it
 
 Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
 
+* When importing / uploading a CSV file, let's make sure the workouts are added exactly in the order they are listed in the CSV. This is particularly important for workouts that have the same date. If the workouts in the CSV are listed from earliest to latest, and certain workouts have the same date, then the workout(s) appearing in later row(s) in the CSV file, should be positioned higher up in the workout list. Similarly, if the workouts in the CSV are listed from latest to earliest, and certain workouts have the same date, then the workout(s) appearing in earlier row(s) in the CSV file, should be positioned higher up in the workout list. Do not change the sorting logic implemented in the workout list.
+
+* In the workout list, when updating certain workouts, I noticed this causes the sorting in other workouts to change. This is specific to groups of workouts that have the same date. For example, I may update one of two workouts that have the same date, which will cause the workout updated last to be positioned above the other (as per the workout list sorting logic we currently have). This sorting logic is correct - do not change it! However, I noticed this may also trigger the reordering of other groups of workouts that between them have the same date, but this date is different to the one of the workout updated initially
+
+#####
+
+
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
 * 
 
 #####
