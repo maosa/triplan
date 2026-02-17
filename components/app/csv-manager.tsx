@@ -27,17 +27,26 @@ export function CsvManager() {
     }
 
     return (
-        <div className="rounded-lg border border-border bg-card p-6">
-            <div className="flex items-center justify-end mb-4">
+        <div className="rounded-lg border border-border bg-card p-6 space-y-6">
+
+            {/* Export Section */}
+            <div className="flex items-end gap-4">
+                <div className="flex-1 space-y-2">
+                    <label className="text-sm font-medium text-gray-300">Export CSV</label>
+                    <div className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground items-center">
+                        Export your data as a single CSV file
+                    </div>
+                </div>
                 <a href="/api/export" download>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" className="w-[100px]">
                         <Download className="mr-2 h-4 w-4" />
-                        Export CSV
+                        Export
                     </Button>
                 </a>
             </div>
 
-            <div className="pt-0">
+            {/* Import Section */}
+            <div className="pt-6 border-t border-gray-800">
                 <form action={handleImport} className="flex items-end gap-4">
                     <div className="flex-1 space-y-2">
                         <label htmlFor="file" className="text-sm font-medium text-gray-300">Import CSV</label>
@@ -64,11 +73,12 @@ export function CsvManager() {
                             </div>
                         </div>
                     </div>
-                    <Button type="submit" isLoading={isPending} disabled={isPending}>
+                    <Button type="submit" isLoading={isPending} disabled={isPending} className="w-[100px]">
                         <Upload className="mr-2 h-4 w-4" />
                         Import
                     </Button>
                 </form>
+                {/* Status Messages */}
                 {error && (
                     <div className="mt-2 flex items-center text-sm text-red-500">
                         <AlertCircle className="mr-2 h-4 w-4" />

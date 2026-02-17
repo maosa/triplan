@@ -307,9 +307,17 @@ export async function importCsvData(formData: FormData) {
 
     for (const row of rows) {
         const raceName = row['Race Name']?.trim()
-        const raceDate = row['Race Date']?.trim()
+        const raceDateRaw = row['Race Date']?.trim()
 
-        if (!raceName || !raceDate) continue; // Skip invalid rows
+        if (!raceName || !raceDateRaw) continue; // Skip invalid rows
+
+        const raceDate = parseDate(raceDateRaw)
+        if (!raceDate) {
+            // If date is invalid, maybe skip or error? 
+            // Let's skip and maybe log/return error?
+            // For now, skip row.
+            continue
+        }
 
         const key = `${raceName}|${raceDate}`
 
@@ -323,8 +331,9 @@ export async function importCsvData(formData: FormData) {
             })
         }
 
-        const workoutDate = row['Workout Date']?.trim()
+        const workoutDateRaw = row['Workout Date']?.trim()
         const workoutType = row['Workout Type']?.trim()
+        const workoutDate = workoutDateRaw ? parseDate(workoutDateRaw) : null
 
         if (workoutDate && workoutType) {
             racesMap.get(key)!.workouts.push({
@@ -398,4 +407,26 @@ export async function importCsvData(formData: FormData) {
 
     revalidatePath('/')
     return { success: true }
+}
+
+function parseDate(dateStr: string): string | null {
+    if (!dateStr) return null
+
+    // Check if YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr
+
+    // Check if DD/MM/YYYY
+    // Parts: [day, month, year]
+    const parts = dateStr.split('/')
+    if (parts.length === 3) {
+        const day = parts[0].padStart(2, '0')
+        const month = parts[1].padStart(2, '0')
+        const year = parts[2]
+        // Basic validation
+        if (year.length === 4) {
+            return `${year}-${month}-${day}`
+        }
+    }
+
+    return null
 }

@@ -271,4 +271,20 @@ Thanks! I have some additional feedback. Please help me refine this, and have it
 
 Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
 
+* In the Account page, in the Data Management section, let's make sure the system interprets dates in the CSV files using the European/International format (DD/MM/YYYY)
+
+* In the Account page, in the Data Management section, let's make sure the Export and Import functions look consistent:
+
+- Let's make sure the Export CSV button looks exactly the same in terms of style and size to the Import button, and the two are exactly horizontally aligned. Trim the text inside the button to just say "Export"
+
+- Similar to the div containing the text "No file chosen" that allows users to select a file to upload, let's have a div of the same size and horizontally aligned, that is just text (no border) saying something like "Export your data as a single CSV file". This should be on the left of the Export CSV button. Above this, there should be a label (similar to the one saying "Import CSV") saying "Export CSV"
+
+- The goal is to ensure as much visual consistency between the Export and Import functions
+
+#####
+
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
 * 
+
+#####
