@@ -28,11 +28,7 @@ export function CsvManager() {
 
     return (
         <div className="rounded-lg border border-border bg-card p-6">
-            <div className="flex items-center justify-between mb-4">
-                <div className="space-y-1">
-                    <h3 className="text-lg font-semibold text-foreground">Data Management</h3>
-                    <p className="text-sm text-gray-400">Export or import your training data (CSV).</p>
-                </div>
+            <div className="flex items-center justify-end mb-4">
                 <a href="/api/export" download>
                     <Button variant="outline" size="sm">
                         <Download className="mr-2 h-4 w-4" />
@@ -41,7 +37,7 @@ export function CsvManager() {
                 </a>
             </div>
 
-            <div className="pt-4 border-t border-gray-800">
+            <div className="pt-0">
                 <form action={handleImport} className="flex items-end gap-4">
                     <div className="flex-1 space-y-2">
                         <label htmlFor="file" className="text-sm font-medium text-gray-300">Import CSV</label>

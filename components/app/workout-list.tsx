@@ -126,29 +126,31 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                                     </div>
                                 </div>
 
-                                <div className="flex items-center space-x-1 sm:space-x-6 text-[10px] sm:text-sm flex-shrink-0">
-                                    {/* Duration Slot: Fixed Width - compact on mobile */}
-                                    <div className="w-[3rem] sm:w-20 text-right font-mono text-foreground/90 tabular-nums">
+                                <div className="flex items-center space-x-2 sm:space-x-6 text-xs sm:text-sm flex-shrink-0">
+                                    {/* Duration Slot: Badge */}
+                                    <div className="w-[3.5rem] sm:w-20 text-right flex justify-end">
                                         {workout.duration ? (
-                                            <span className="bg-muted px-1 py-0.5 rounded text-[10px] sm:text-xs tracking-tight">{workout.duration}</span>
+                                            <span className="flex items-center justify-center h-6 min-w-[3rem] bg-muted rounded px-1 text-xs font-mono tracking-tight text-foreground/90">
+                                                {workout.duration}
+                                            </span>
                                         ) : (
-                                            <span className="text-muted-foreground/30">-</span>
+                                            <span className="text-muted-foreground/30 font-mono">-</span>
                                         )}
                                     </div>
 
-                                    {/* Distance Slot: Fixed Width - compact on mobile */}
-                                    <div className="w-[3rem] sm:w-24 text-right font-mono text-foreground/90 tabular-nums leading-tight">
+                                    {/* Distance Slot: Text (Same font size) */}
+                                    <div className="w-[3.5rem] sm:w-24 text-right font-mono text-foreground/90 tabular-nums leading-tight flex items-center justify-end h-6">
                                         {workout.distance !== null && workout.distance > 0 ? (
-                                            <span>
-                                                {workout.distance}<span className="text-muted-foreground text-[9px] sm:text-xs ml-[1px]">{units === 'metric' ? 'km' : 'mi'}</span>
+                                            <span className="text-xs">
+                                                {workout.distance}<span className="text-muted-foreground text-[10px] ml-[1px]">{units === 'metric' ? 'km' : 'mi'}</span>
                                             </span>
                                         ) : (
                                             <span className="text-muted-foreground/30 px-2 sm:px-4">-</span>
                                         )}
                                     </div>
 
-                                    {/* Intensity Slot: Fixed Width */}
-                                    <div className="w-9 sm:w-16 flex justify-end">
+                                    {/* Intensity Slot: Badge */}
+                                    <div className="w-10 sm:w-16 flex justify-end">
                                         {workout.type !== "Rest" && workout.intensity !== null ? (
                                             getIntensityIndicator(workout.intensity)
                                         ) : (
@@ -178,14 +180,14 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
 function getIntensityIndicator(intensity: number | null) {
     if (intensity === null) return null;
 
-    let colorClass = "bg-emerald-400" // Greenish
-    if (intensity > 4) colorClass = "bg-amber-400" // Yellowish
-    if (intensity > 7) colorClass = "bg-rose-500" // Reddish
+    let colorClass = "bg-emerald-400"
+    if (intensity > 4) colorClass = "bg-amber-400"
+    if (intensity > 7) colorClass = "bg-rose-500"
 
-    // Use Black text for contrast on these bright colors
+    // Unified Badge Style: h-6, min-w-[3rem] matches Duration
     return (
         <div className="flex justify-end" title={`Intensity: ${intensity}`}>
-            <span className={cn("px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-mono font-bold text-black tabular-nums", colorClass)}>
+            <span className={cn("flex items-center justify-center h-6 min-w-[3rem] rounded px-1 text-xs font-mono font-bold text-black tabular-nums", colorClass)}>
                 {intensity.toFixed(1)}
             </span>
         </div>

@@ -47,6 +47,12 @@ export default async function ProfilePage() {
                 </div>
 
                 <div className="space-y-6">
+                    <div className="space-y-1">
+                        <h2 className="text-xl font-semibold text-foreground">Data Management</h2>
+                        <p className="text-sm text-muted-foreground">
+                            Export or import your training data (CSV).
+                        </p>
+                    </div>
                     <CsvManager />
                 </div>
 
