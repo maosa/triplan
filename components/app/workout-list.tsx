@@ -107,11 +107,11 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                                 data-today={isToday ? "true" : undefined}
                                 onClick={() => handleEdit(workout)}
                                 className={cn(
-                                    "group flex items-center justify-between rounded-lg border border-border bg-card p-4 transition-all hover:bg-muted/50 hover:border-border/80 cursor-pointer",
-                                    isToday && "ring-1 ring-primary/20 bg-primary/5" // Highlight today lightly? Optional but nice.
+                                    "group flex items-center justify-between rounded-lg border border-border bg-card px-3 py-3 transition-all hover:bg-muted/50 hover:border-border/80 cursor-pointer",
+                                    isToday && "ring-1 ring-primary/20 bg-primary/5"
                                 )}
                             >
-                                <div className="flex items-center space-x-4 min-w-0 flex-1">
+                                <div className="flex items-center space-x-3 min-w-0 flex-1">
                                     <div className="flex-shrink-0 text-foreground">
                                         {getWorkoutIcon(workout.type)}
                                     </div>
@@ -126,35 +126,35 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                                     </div>
                                 </div>
 
-                                <div className="flex items-center space-x-2 sm:space-x-6 text-xs sm:text-sm flex-shrink-0">
+                                <div className="flex items-center space-x-1 sm:space-x-6 text-xs sm:text-sm flex-shrink-0">
                                     {/* Duration Slot: Badge */}
-                                    <div className="w-[3.5rem] sm:w-20 text-right flex justify-end">
+                                    <div className="w-[3rem] sm:w-20 text-right flex justify-end">
                                         {workout.duration ? (
-                                            <span className="flex items-center justify-center h-6 min-w-[3rem] bg-muted rounded px-1 text-xs font-mono tracking-tight text-foreground/90">
+                                            <span className="flex items-center justify-center h-6 w-11 bg-muted rounded px-1 text-xs font-mono tracking-tight text-foreground/90">
                                                 {workout.duration}
                                             </span>
                                         ) : (
-                                            <span className="text-muted-foreground/30 font-mono">-</span>
+                                            <span className="flex items-center justify-center h-6 w-11 text-muted-foreground/30 font-mono">-</span>
                                         )}
                                     </div>
 
-                                    {/* Distance Slot: Text (Same font size) */}
+                                    {/* Distance Slot: Text */}
                                     <div className="w-[3.5rem] sm:w-24 text-right font-mono text-foreground/90 tabular-nums leading-tight flex items-center justify-end h-6">
                                         {workout.distance !== null && workout.distance > 0 ? (
                                             <span className="text-xs">
                                                 {workout.distance}<span className="text-muted-foreground text-[10px] ml-[1px]">{units === 'metric' ? 'km' : 'mi'}</span>
                                             </span>
                                         ) : (
-                                            <span className="text-muted-foreground/30 px-2 sm:px-4">-</span>
+                                            <span className="flex items-center justify-center h-6 w-11 text-muted-foreground/30 font-mono">-</span>
                                         )}
                                     </div>
 
                                     {/* Intensity Slot: Badge */}
-                                    <div className="w-10 sm:w-16 flex justify-end">
+                                    <div className="w-11 sm:w-16 flex justify-end">
                                         {workout.type !== "Rest" && workout.intensity !== null ? (
                                             getIntensityIndicator(workout.intensity)
                                         ) : (
-                                            <span className="text-muted-foreground/30 w-8 text-center">-</span>
+                                            <span className="flex items-center justify-center h-6 w-11 text-muted-foreground/30 font-mono">-</span>
                                         )}
                                     </div>
                                 </div>
@@ -184,10 +184,10 @@ function getIntensityIndicator(intensity: number | null) {
     if (intensity > 4) colorClass = "bg-amber-400"
     if (intensity > 7) colorClass = "bg-rose-500"
 
-    // Unified Badge Style: h-6, min-w-[3rem] matches Duration
+    // Unified Badge Style: h-6, w-11 (approx 2.75rem) matches Duration
     return (
         <div className="flex justify-end" title={`Intensity: ${intensity}`}>
-            <span className={cn("flex items-center justify-center h-6 min-w-[3rem] rounded px-1 text-xs font-mono font-bold text-black tabular-nums", colorClass)}>
+            <span className={cn("flex items-center justify-center h-6 w-11 rounded px-1 text-xs font-mono font-bold text-black tabular-nums", colorClass)}>
                 {intensity.toFixed(1)}
             </span>
         </div>

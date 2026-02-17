@@ -285,6 +285,28 @@ Thanks! I have some additional feedback. Please help me refine this, and have it
 
 Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
 
+* In the Account page, in the Data Management section, the Export button should have the same fill colour and font colour as the Import button
+
+* In the Account page, in the Data Management section, the div on the left of the Export button containing the text reading "Export your data as a single CSV file" should not have a visible border
+
+#####
+
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
+* When accessing the app through a smartphone, in the workout list, the elements with workout-specific information inside each workout div still seem a bit crowded and some of them are clashing. We may need to revisit some of the changes we previously made
+
+* Let's reduce the spacing and padding across all those elements. That is, have the workout icon slightly closer to the left div edge, the workout intensity badge slightly closer to the right div edge - this will allow for more spacing within each workout div
+
+* Let's also make the workout duration and workout intensity badges slightly narrower
+
+* Let's have the dashes representing missing data all be the same width across workout duration, distance, and intensity
+
+* Let's have the dashes representing missing data be horizontally entered within their respective elements (i.e., workout duration, distance, and intensity)
+
+#####
+
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
 * 
 
 #####

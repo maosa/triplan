@@ -33,12 +33,12 @@ export function CsvManager() {
             <div className="flex items-end gap-4">
                 <div className="flex-1 space-y-2">
                     <label className="text-sm font-medium text-gray-300">Export CSV</label>
-                    <div className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground items-center">
+                    <div className="flex h-10 w-full rounded-md bg-background px-3 py-2 text-sm text-muted-foreground items-center">
                         Export your data as a single CSV file
                     </div>
                 </div>
                 <a href="/api/export" download>
-                    <Button variant="outline" className="w-[100px]">
+                    <Button variant="primary" className="w-[100px]">
                         <Download className="mr-2 h-4 w-4" />
                         Export
                     </Button>
@@ -73,7 +73,7 @@ export function CsvManager() {
                             </div>
                         </div>
                     </div>
-                    <Button type="submit" isLoading={isPending} disabled={isPending} className="w-[100px]">
+                    <Button type="submit" isLoading={isPending} disabled={isPending} variant="primary" className="w-[100px]">
                         <Upload className="mr-2 h-4 w-4" />
                         Import
                     </Button>
