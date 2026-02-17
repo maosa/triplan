@@ -128,7 +128,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
 
                                 <div className="flex items-center space-x-1 sm:space-x-6 text-xs sm:text-sm flex-shrink-0">
                                     {/* Duration Slot: Badge */}
-                                    <div className="w-14 sm:w-20 flex justify-center sm:justify-end">
+                                    <div className="w-14 sm:w-24 flex justify-center">
                                         {workout.duration ? (
                                             <span className="flex items-center justify-center h-6 w-11 bg-muted rounded px-1 text-xs font-mono tracking-tight text-foreground/90">
                                                 {workout.duration}
@@ -139,7 +139,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                                     </div>
 
                                     {/* Distance Slot: Text */}
-                                    <div className="w-14 sm:w-24 font-mono text-foreground/90 tabular-nums leading-tight flex items-center justify-center sm:justify-end h-6">
+                                    <div className="w-14 sm:w-24 font-mono text-foreground/90 tabular-nums leading-tight flex items-center justify-center h-6">
                                         {workout.distance !== null && workout.distance > 0 ? (
                                             <span className="text-xs">
                                                 {workout.distance}<span className="text-muted-foreground text-[10px] ml-[1px]">{units === 'metric' ? 'km' : 'mi'}</span>
@@ -150,7 +150,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                                     </div>
 
                                     {/* Intensity Slot: Badge */}
-                                    <div className="w-14 sm:w-16 flex justify-center sm:justify-end">
+                                    <div className="w-14 sm:w-24 flex justify-center">
                                         {workout.type !== "Rest" && workout.intensity !== null ? (
                                             getIntensityIndicator(workout.intensity)
                                         ) : (

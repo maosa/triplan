@@ -341,6 +341,12 @@ Thanks! I have some additional feedback. Please help me refine this, and have it
 
 Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
 
+* When accessing the app through a laptop web browser, in the workout list, the workout distance elements appear closer to the workout intensity than workout duration. Let's make sure the distance / spacing is equal between these elements (i.e., workout duration, distance, and intensity). We fixed this already in the smartphone view, so let's make we do the same for laptops
+
+#####
+
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
 * 
 
 #####
