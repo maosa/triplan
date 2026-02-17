@@ -284,124 +284,177 @@ export async function importCsvData(formData: FormData) {
     if (!file) return { error: 'No file provided' }
 
     const text = await file.text()
-    const { data, errors } = Papa.parse(text, { header: true, skipEmptyLines: true })
+    const { data, meta, errors } = Papa.parse(text, { header: true, skipEmptyLines: true })
 
     if (errors.length > 0) return { error: 'CSV parsing error. Please check format.' }
 
     const rows = data as any[]
     if (rows.length === 0) return { error: 'CSV is empty.' }
 
+    // 1. Validate Headers
+    const expectedHeaders = [
+        "Race Name", "Race Location", "Race Date", "Race Details",
+        "Workout Date", "Workout Type", "Workout Duration",
+        "Workout Distance", "Workout Intensity", "Workout Details"
+    ]
+
+    // Papa parse meta.fields contains the detected headers
+    const headers = meta.fields || []
+    // Check if lengths match and every expected header is present strictly (case sensitive based on prompt, though prompt has mixed case in description, likely exact match needed)
+    // Prompt: "Race Name, Race Location, Race Date, Race Details, Workout Date, Workout Type, Workout Duration, Workout Distance, Workout Intensity, Workout Details"
+    // Let's allow for slight flexibility or just be strict? "naming, spelling or order differs" -> Strict order and spelling.
+
+    const isValidHeaders = headers.length === expectedHeaders.length &&
+        headers.every((h, i) => h.trim() === expectedHeaders[i])
+
+    if (!isValidHeaders) {
+        return { error: `CSV columns should be: "Race Name, Race Location, Race Date, Race Details, Workout Date, Workout Type, Workout Duration, Workout Distance, Workout Intensity, Workout Details."` }
+    }
+
+    // 2. Race Consistency Check
+    const firstRow = rows[0]
+    const raceNameRef = firstRow['Race Name']?.trim()
+    const raceLocationRef = firstRow['Race Location']?.trim()
+    const raceDateRef = firstRow['Race Date']?.trim()
+    const raceDetailsRef = firstRow['Race Details']?.trim()
+
+    // We can check all rows for consistency relative to the first row (or just uniqueness across set)
+    for (const row of rows) {
+        if (row['Race Name']?.trim() !== raceNameRef) return { error: "Race Name should be the same across all rows." }
+        if (row['Race Location']?.trim() !== raceLocationRef) return { error: "Race Location should be the same across all rows." }
+        if (row['Race Date']?.trim() !== raceDateRef) return { error: "Race Date should be the same across all rows" }
+        if (row['Race Details']?.trim() !== raceDetailsRef) return { error: "Race Details should be the same across all rows." }
+    }
+
+    // 3. Data Validation per Row
+    const validTypes = new Set(["Swim", "Bike", "Run", "Strength", "Rest", "Other"])
+
+    for (const row of rows) {
+        // Workout Date: DD/MM/YYYY
+        const wDate = row['Workout Date']?.trim()
+        if (!/^\d{2}\/\d{2}\/\d{4}$/.test(wDate)) {
+            return { error: "Workout Date should be formatted as DD/MM/YYYY." }
+        }
+
+        // Workout Type
+        const wType = row['Workout Type']?.trim()
+        if (!validTypes.has(wType)) {
+            return { error: "Workout Type should be one of the following: Swim, Bike, Run, Strength, Rest, Other." }
+        }
+
+        // Workout Duration: HH:MM, max 99:99
+        const wDuration = row['Workout Duration']?.trim()
+        if (wDuration) {
+            if (!/^\d{2}:\d{2}$/.test(wDuration)) {
+                return { error: "Workout Duration should be formatted as HH:MM." }
+            }
+            const [hours, minutes] = wDuration.split(':').map(Number)
+            // "cannot be larger than 99:99" implies strict string check or value check? 
+            // 99 hours 99 minutes is technically valid in the prompt's loose restriction, 
+            // but normally MM < 60. However, prompt specific error: "cannot be larger than 99:99"
+            // Regex \d{2}:\d{2} ensures max 99:99 physically.
+        }
+
+        // Workout Distance: max 999.9
+        const wDistRaw = row['Workout Distance']?.trim()
+        if (wDistRaw) {
+            const wDist = parseFloat(wDistRaw)
+            if (isNaN(wDist) || wDist > 999.9) {
+                return { error: "Workout Distance cannot be larger than 999.9." }
+            }
+        }
+
+        // Workout Intensity: 0-10, max 1 decimal
+        const wIntRaw = row['Workout Intensity']?.trim()
+        if (wIntRaw) {
+            const wInt = parseFloat(wIntRaw)
+            // Check range
+            if (isNaN(wInt) || wInt < 0 || wInt > 10) {
+                return { error: "Workout Intensity should be between 0 and 10, and only have up to 1 decimal place." }
+            }
+            // Check decimal places: allow "10", "10.0", "5.5", but not "5.55"
+            if (!/^\d+(\.\d{1})?$/.test(wIntRaw)) {
+                return { error: "Workout Intensity should be between 0 and 10, and only have up to 1 decimal place." }
+            }
+        }
+    }
+
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) throw new Error('User not authenticated')
 
-    // Group by race
-    const racesMap = new Map<string, {
-        name: string,
-        location: string,
-        date: string,
-        details: string,
-        workouts: any[]
-    }>()
+    // Parse logic (Re-use existing structure but now simplified since consistency is guaranteed)
+    // We only have ONE race to import per CSV now based on the consistency check.
 
+    // Parse Race Date (strictly DD/MM/YYYY as per prompts context? No, Race Date row check earlier didn't check format, just consistency.
+    // NOTE: Prompt only explicitly asked for "Workout Date" format check. 
+    // BUT, subsequent logic needs valid date for DB.
+    // Let's assume Race Date also needs to be parsable. 
+    // Using `parseDate` helper which supports DD/MM/YYYY.
+
+    const raceDate = parseDate(raceDateRef)
+    if (!raceDate) {
+        // Fallback error if race date is garbage, though not explicitly requested.
+        return { error: "Race Date is invalid." }
+    }
+
+    // Check if race exists
+    const { data: existing } = await supabase
+        .from('races')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('name', raceNameRef)
+        .eq('date', raceDate)
+        .maybeSingle()
+
+    if (existing) {
+        return { error: `Import blocked: Race "${raceNameRef}" on ${raceDate} already exists.` }
+    }
+
+    // Insert Race
+    const { data: race, error: raceError } = await supabase.from('races').insert({
+        user_id: user.id,
+        name: raceNameRef,
+        location: raceLocationRef,
+        date: raceDate,
+        details: raceDetailsRef,
+    }).select().single()
+
+    if (raceError || !race) {
+        return { error: `Failed to insert race: ${raceError?.message}` }
+    }
+
+    // Prepare Workouts
+    const workoutsToInsert = []
     for (const row of rows) {
-        const raceName = row['Race Name']?.trim()
-        const raceDateRaw = row['Race Date']?.trim()
+        const wDateRaw = row['Workout Date']?.trim()
+        // We validated format earlier, so we can assume it parses correctly with our helper
+        const wDate = parseDate(wDateRaw)!
 
-        if (!raceName || !raceDateRaw) continue; // Skip invalid rows
+        const wType = row['Workout Type']?.trim()
+        const wDuration = row['Workout Duration']?.trim() || null
+        const wDist = row['Workout Distance'] ? parseFloat(row['Workout Distance']) : null
+        const wInt = row['Workout Intensity'] ? parseFloat(row['Workout Intensity']) : null
+        const wDetails = row['Workout Details']?.trim() || ''
 
-        const raceDate = parseDate(raceDateRaw)
-        if (!raceDate) {
-            // If date is invalid, maybe skip or error? 
-            // Let's skip and maybe log/return error?
-            // For now, skip row.
-            continue
-        }
-
-        const key = `${raceName}|${raceDate}`
-
-        if (!racesMap.has(key)) {
-            racesMap.set(key, {
-                name: raceName,
-                location: row['Race Location']?.trim() || '',
-                date: raceDate,
-                details: row['Race Details']?.trim() || '',
-                workouts: []
-            })
-        }
-
-        const workoutDateRaw = row['Workout Date']?.trim()
-        const workoutType = row['Workout Type']?.trim()
-        const workoutDate = workoutDateRaw ? parseDate(workoutDateRaw) : null
-
-        if (workoutDate && workoutType) {
-            racesMap.get(key)!.workouts.push({
-                date: workoutDate,
-                type: workoutType,
-                duration: row['Workout Duration']?.trim() || null,
-                distance: row['Workout Distance'] ? Number(row['Workout Distance']) : null,
-                intensity: row['Workout Intensity'] ? Number(row['Workout Intensity']) : null,
-                details: row['Workout Details']?.trim() || ''
-            })
-        }
-    }
-
-    // Validate existing races
-    const raceKeys = Array.from(racesMap.keys())
-    if (raceKeys.length === 0) return { error: 'No valid races found in CSV.' }
-
-    // Check all potential races
-    for (const key of raceKeys) {
-        const [name, date] = key.split('|')
-        const { data: existing } = await supabase
-            .from('races')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('name', name)
-            .eq('date', date)
-            .maybeSingle()
-
-        if (existing) {
-            return { error: `Import blocked: Race "${name}" on ${date} already exists.` }
-        }
-    }
-
-    // Insert Races and Workouts
-    // We do them one by one preferably to map IDs
-    for (const raceData of racesMap.values()) {
-        const { data: race, error: raceError } = await supabase.from('races').insert({
+        workoutsToInsert.push({
+            race_id: race.id,
             user_id: user.id,
-            name: raceData.name,
-            location: raceData.location,
-            date: raceData.date,
-            details: raceData.details,
-        }).select().single()
+            date: wDate,
+            type: wType,
+            duration: wDuration,
+            distance: wDist,
+            intensity: wInt,
+            details: wDetails
+        })
+    }
 
-        if (raceError || !race) {
-            return { error: `Failed to insert race ${raceData.name}: ${raceError?.message}` }
-        }
-
-        if (raceData.workouts.length > 0) {
-            const workoutsToInsert = raceData.workouts.map(w => ({
-                race_id: race.id,
-                user_id: user.id,
-                date: w.date,
-                type: w.type,
-                duration: w.duration,
-                distance: w.distance,
-                intensity: w.intensity,
-                details: w.details
-            }))
-
-            const { error: wError } = await supabase.from('workouts').insert(workoutsToInsert)
-            if (wError) {
-                // Potentially leave partial state (race without workouts)?
-                // Transaction would be better but simple inserts logic for now.
-                // If failure, we might want to cleanup?
-                // For MVP, return error.
-                return { error: `Failed to insert workouts for ${raceData.name}: ${wError.message}` }
-            }
+    if (workoutsToInsert.length > 0) {
+        const { error: wError } = await supabase.from('workouts').insert(workoutsToInsert)
+        if (wError) {
+            return { error: `Failed to insert workouts: ${wError.message}` }
         }
     }
 

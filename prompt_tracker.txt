@@ -307,6 +307,40 @@ Thanks! I have some additional feedback. Please help me refine this, and have it
 
 Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
 
+* When accessing the app through a smartphone, in the workout list, the workout distance elements appear closer to the workout intensity than workout duration. Let's make sure the distance / spacing is equal between these elements (i.e., workout duration, distance, and intensity)
+
+#####
+
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
+* Let's implement some checks to ensure the uploaded CSV file is in the correct format. For each check, if the check fails, we'll show a relevant error message:
+
+- The CSV column names should be: Race Name, Race Location, Race Date, Race Details, Workout Date, Workout Type, Workout Duration, Workout Distance, Workout Intensity, Workout Details. If the naming, spelling or order differs, show an error message that reads "CSV columns should be: "Race Name, Race Location, Race Date, Race Details, Workout Date, Workout Type, Workout Duration, Workout Distance, Workout Intensity, Workout Details."
+
+- The Race Name column should have no variation. All rows should have the same race name. Otherwise, show an error message that reads "Race Name should be the same across all rows."
+
+- The Race Location column should have no variation. All rows should have the same race location. Otherwise, show an error message that reads "Race Location should be the same across all rows."
+
+- The Race Date column should have no variation. All rows should have the same race date. Otherwise, show an error message that reads "Race Date should be the same across all rows"
+
+- The Race Details column should have no variation. All rows should have the same race details. Otherwise, show an error message that reads "Race Details should be the same across all rows."
+
+- Workout Date should be formatted as DD/MM/YYYY. Otherwise, show an error message that reads "Workout Date should be formatted as DD/MM/YYYY."
+
+- Workout Type should be one of the following: Swim, Bike, Run, Strength, Rest, Other. Otherwise, show an error message that reads "Workout Type should be one of the following: Swim, Bike, Run, Strength, Rest, Other."
+
+- Workout Duration should be formatted as HH:MM. Otherwise, show an error message that reads "Workout Duration should be formatted as HH:MM."
+
+- Workout Duration should have a maximum value of 99:99. Otherwise, show an error message that reads "Workout Duration cannot be larger than 99:99."
+
+- Workout Distance should have a maximum value of 999.9. Otherwise, show an error message that reads "Workout Distance cannot be larger than 999.9."
+
+- Workout Intensity should be between 0 and 10, and only have up to 1 decimal place. Otherwise, show an error message that reads "Workout Intensity should be between 0 and 10, and only have up to 1 decimal place."
+
+#####
+
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
 * 
 
 #####
