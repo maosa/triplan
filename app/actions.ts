@@ -141,20 +141,8 @@ export async function updateWorkout(workoutId: string, raceId: string, formData:
 
     const supabase = await createClient()
 
-    // Fetch race to validate date
-    const { data: race, error: raceError } = await supabase
-        .from('races')
-        .select('date')
-        .eq('id', raceId)
-        .single()
-
-    if (raceError || !race) {
-        return { error: 'Race not found' }
-    }
-
-    if (new Date(date) > new Date(race.date)) {
-        return { error: 'Workout date cannot be after race date' }
-    }
+    const dateCheck = await validateWorkoutDate(supabase, raceId, date)
+    if (dateCheck.error) return { error: dateCheck.error }
 
     const finalIntensity = type === 'Rest' ? 0 : intensity
 
@@ -198,24 +186,11 @@ export async function duplicateWorkout(workout: Database['public']['Tables']['wo
     }
 
     // Clone with date = today
-    const today = new Date().toISOString().split('T')[0]
+    const finalDate = new Date().toISOString().split('T')[0]
 
-    // Need to check if today > race date?
-    // Fetch race
-    const { data: race } = await supabase.from('races').select('date').eq('id', workout.race_id).single()
-
-    let finalDate = today
-    if (race && new Date(today) > new Date(race.date)) {
-        // If today is after race, maybe just use the original date or fail?
-        // Prompt says: "Clone workout, Date set to today, Saved immediately"
-        // But also "cannot exceed race date".
-        // If today > race date, duplication might fail validation if we strictly enforce it.
-        // But let's try to set to today. If it fails, user can edit. 
-        // Actually, createWorkout logic checks date.
-        // Let's assume strict check.
-        if (new Date(today) > new Date(race.date)) {
-            return { error: 'Cannot duplicate: Today is after the race date.' }
-        }
+    const dateCheck = await validateWorkoutDate(supabase, workout.race_id, finalDate)
+    if (dateCheck.error) {
+        return { error: 'Cannot duplicate: Today is after the race date.' }
     }
 
     const { error } = await supabase.from('workouts').insert({
@@ -298,11 +273,7 @@ export async function importCsvData(formData: FormData) {
         "Workout Distance", "Workout Intensity", "Workout Details"
     ]
 
-    // Papa parse meta.fields contains the detected headers
     const headers = meta.fields || []
-    // Check if lengths match and every expected header is present strictly (case sensitive based on prompt, though prompt has mixed case in description, likely exact match needed)
-    // Prompt: "Race Name, Race Location, Race Date, Race Details, Workout Date, Workout Type, Workout Duration, Workout Distance, Workout Intensity, Workout Details"
-    // Let's allow for slight flexibility or just be strict? "naming, spelling or order differs" -> Strict order and spelling.
 
     const isValidHeaders = headers.length === expectedHeaders.length &&
         headers.every((h, i) => h.trim() === expectedHeaders[i])
@@ -345,10 +316,7 @@ export async function importCsvData(formData: FormData) {
     // If we have a range, check trend
     if (firstDate && lastDate) {
         // If First > Last, it's Descending (Newest to Oldest)
-        // User wants "Top of File" (Newest) to be "Top of List".
-        // Our Insertion Order -> Sort DESC logic requires Newest to be inserted LAST (highest created_at).
-        // Standard (Top -> Bottom) inserts Top first (Lower created_at). 
-        // So we need to REVERSE processing (Bottom -> Top) so Top gets inserted Last.
+        // Reverse processing (Bottom -> Top) so Newest gets inserted Last and floats to the top of the UI.
         if (firstDate > lastDate) {
             rows.reverse()
         }
@@ -385,124 +353,109 @@ export async function importCsvData(formData: FormData) {
             return { error: "Workout Type should be one of the following: Swim, Bike, Run, Strength, Rest, Other." }
         }
 
-        // Workout Duration: HH:MM, max 99:99
         const wDuration = row['Workout Duration']?.trim()
         if (wDuration) {
             if (!/^\d{2}:\d{2}$/.test(wDuration)) {
                 return { error: "Workout Duration should be formatted as HH:MM." }
             }
-            const [hours, minutes] = wDuration.split(':').map(Number)
-            // "cannot be larger than 99:99" implies strict string check or value check? 
-            // 99 hours 99 minutes is technically valid in the prompt's loose restriction, 
-            // but normally MM < 60. However, prompt specific error: "cannot be larger than 99:99"
-            // Regex \d{2}:\d{2} ensures max 99:99 physically.
-        }
 
-        // Workout Distance: max 999.9
-        const wDistRaw = row['Workout Distance']?.trim()
-        if (wDistRaw) {
-            const wDist = parseFloat(wDistRaw)
-            if (isNaN(wDist) || wDist > 999.9) {
-                return { error: "Workout Distance cannot be larger than 999.9." }
+            // Workout Distance: max 999.9
+            const wDistRaw = row['Workout Distance']?.trim()
+            if (wDistRaw) {
+                const wDist = parseFloat(wDistRaw)
+                if (isNaN(wDist) || wDist > 999.9) {
+                    return { error: "Workout Distance cannot be larger than 999.9." }
+                }
+            }
+
+            // Workout Intensity: 0-10, max 1 decimal
+            const wIntRaw = row['Workout Intensity']?.trim()
+            if (wIntRaw) {
+                const wInt = parseFloat(wIntRaw)
+                // Check range
+                if (isNaN(wInt) || wInt < 0 || wInt > 10) {
+                    return { error: "Workout Intensity should be between 0 and 10, and only have up to 1 decimal place." }
+                }
+                // Check decimal places: allow "10", "10.0", "5.5", but not "5.55"
+                if (!/^\d+(\.\d{1})?$/.test(wIntRaw)) {
+                    return { error: "Workout Intensity should be between 0 and 10, and only have up to 1 decimal place." }
+                }
             }
         }
 
-        // Workout Intensity: 0-10, max 1 decimal
-        const wIntRaw = row['Workout Intensity']?.trim()
-        if (wIntRaw) {
-            const wInt = parseFloat(wIntRaw)
-            // Check range
-            if (isNaN(wInt) || wInt < 0 || wInt > 10) {
-                return { error: "Workout Intensity should be between 0 and 10, and only have up to 1 decimal place." }
-            }
-            // Check decimal places: allow "10", "10.0", "5.5", but not "5.55"
-            if (!/^\d+(\.\d{1})?$/.test(wIntRaw)) {
-                return { error: "Workout Intensity should be between 0 and 10, and only have up to 1 decimal place." }
-            }
+
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) throw new Error('User not authenticated')
+
+        const raceDate = parseDate(raceDateRef)
+        if (!raceDate) {
+            // Fallback error if race date is garbage, though not explicitly requested.
+            return { error: "Race Date is invalid." }
         }
-    }
 
+        // Check if race exists
+        const { data: existing } = await supabase
+            .from('races')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('name', raceNameRef)
+            .eq('date', raceDate)
+            .maybeSingle()
 
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+        if (existing) {
+            return { error: `Import blocked: Race "${raceNameRef}" on ${raceDate} already exists.` }
+        }
 
-    if (!user) throw new Error('User not authenticated')
-
-    // Parse logic (Re-use existing structure but now simplified since consistency is guaranteed)
-    // We only have ONE race to import per CSV now based on the consistency check.
-
-    // Parse Race Date (strictly DD/MM/YYYY as per prompts context? No, Race Date row check earlier didn't check format, just consistency.
-    // NOTE: Prompt only explicitly asked for "Workout Date" format check. 
-    // BUT, subsequent logic needs valid date for DB.
-    // Let's assume Race Date also needs to be parsable. 
-    // Using `parseDate` helper which supports DD/MM/YYYY.
-
-    const raceDate = parseDate(raceDateRef)
-    if (!raceDate) {
-        // Fallback error if race date is garbage, though not explicitly requested.
-        return { error: "Race Date is invalid." }
-    }
-
-    // Check if race exists
-    const { data: existing } = await supabase
-        .from('races')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('name', raceNameRef)
-        .eq('date', raceDate)
-        .maybeSingle()
-
-    if (existing) {
-        return { error: `Import blocked: Race "${raceNameRef}" on ${raceDate} already exists.` }
-    }
-
-    // Insert Race
-    const { data: race, error: raceError } = await supabase.from('races').insert({
-        user_id: user.id,
-        name: raceNameRef,
-        location: raceLocationRef,
-        date: raceDate,
-        details: raceDetailsRef,
-    }).select().single()
-
-    if (raceError || !race) {
-        return { error: `Failed to insert race: ${raceError?.message}` }
-    }
-
-    // Prepare Workouts
-    const workoutsToInsert = []
-    for (const row of rows) {
-        const wDateRaw = row['Workout Date']?.trim()
-        // We validated format earlier, so we can assume it parses correctly with our helper
-        const wDate = parseDate(wDateRaw)!
-
-        const wType = row['Workout Type']?.trim()
-        const wDuration = row['Workout Duration']?.trim() || null
-        const wDist = row['Workout Distance'] ? parseFloat(row['Workout Distance']) : null
-        const wInt = row['Workout Intensity'] ? parseFloat(row['Workout Intensity']) : null
-        const wDetails = row['Workout Details']?.trim() || ''
-
-        workoutsToInsert.push({
-            race_id: race.id,
+        // Insert Race
+        const { data: race, error: raceError } = await supabase.from('races').insert({
             user_id: user.id,
-            date: wDate,
-            type: wType,
-            duration: wDuration,
-            distance: wDist,
-            intensity: wInt,
-            details: wDetails
-        })
-    }
+            name: raceNameRef,
+            location: raceLocationRef,
+            date: raceDate,
+            details: raceDetailsRef,
+        }).select().single()
 
-    if (workoutsToInsert.length > 0) {
-        const { error: wError } = await supabase.from('workouts').insert(workoutsToInsert)
-        if (wError) {
-            return { error: `Failed to insert workouts: ${wError.message}` }
+        if (raceError || !race) {
+            return { error: `Failed to insert race: ${raceError?.message}` }
         }
-    }
 
-    revalidatePath('/')
-    return { success: true }
+        // Prepare Workouts
+        const workoutsToInsert = []
+        for (const row of rows) {
+            const wDateRaw = row['Workout Date']?.trim()
+            // We validated format earlier, so we can assume it parses correctly with our helper
+            const wDate = parseDate(wDateRaw)!
+
+            const wType = row['Workout Type']?.trim()
+            const wDuration = row['Workout Duration']?.trim() || null
+            const wDist = row['Workout Distance'] ? parseFloat(row['Workout Distance']) : null
+            const wInt = row['Workout Intensity'] ? parseFloat(row['Workout Intensity']) : null
+            const wDetails = row['Workout Details']?.trim() || ''
+
+            workoutsToInsert.push({
+                race_id: race.id,
+                user_id: user.id,
+                date: wDate,
+                type: wType,
+                duration: wDuration,
+                distance: wDist,
+                intensity: wInt,
+                details: wDetails
+            })
+        }
+
+        if (workoutsToInsert.length > 0) {
+            const { error: wError } = await supabase.from('workouts').insert(workoutsToInsert)
+            if (wError) {
+                return { error: `Failed to insert workouts: ${wError.message}` }
+            }
+        }
+
+        revalidatePath('/')
+        return { success: true }
+    }
 }
 
 function parseDate(dateStr: string): string | null {
@@ -512,17 +465,33 @@ function parseDate(dateStr: string): string | null {
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr
 
     // Check if DD/MM/YYYY
-    // Parts: [day, month, year]
     const parts = dateStr.split('/')
     if (parts.length === 3) {
         const day = parts[0].padStart(2, '0')
         const month = parts[1].padStart(2, '0')
         const year = parts[2]
-        // Basic validation
         if (year.length === 4) {
             return `${year}-${month}-${day}`
         }
     }
 
     return null
+}
+
+async function validateWorkoutDate(supabase: any, raceId: string, workoutDate: string) {
+    const { data: race, error: raceError } = await supabase
+        .from('races')
+        .select('date')
+        .eq('id', raceId)
+        .single()
+
+    if (raceError || !race) {
+        return { error: 'Race not found' }
+    }
+
+    if (new Date(workoutDate) > new Date(race.date)) {
+        return { error: 'Workout date cannot be after race date' }
+    }
+
+    return { success: true }
 }

@@ -30,14 +30,11 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
     const listRef = useRef<HTMLDivElement | null>(null)
 
     useEffect(() => {
-        // Run only once on mount (or when workouts change, though initial load is key)
         if (sortedWorkouts.length === 0) return;
 
         const today = new Date()
         const hasFutureWorkouts = sortedWorkouts.some(w => new Date(w.date) > today && !isSameDay(new Date(w.date), today))
 
-        // If we have future workouts, we want to center "Today". 
-        // If "Today" is at the top (no future workouts), we let it stay at top (standard behavior).
         if (hasFutureWorkouts && todayRef.current) {
             todayRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' })
         }
@@ -77,33 +74,13 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {/* Header Row for alignment context? Maybe overkill but helps. 
-                        Actually prompt asks for "Table-like alignment within the stacked list".
-                    */}
                     {sortedWorkouts.map((workout) => {
                         const isToday = isSameDay(parseISO(workout.date), new Date())
-                        // We only need to ref the FIRST finding of today if multiple exist.
-                        // But if we attach ref to all, the last one might overwrite? 
-                        // Actually, in a map, ref callback is called for each.
-                        // We should probably find the first "Today" and attach ref conditionally.
-                        // Or cleaner: Find the index of the first "Today" outside the map?
-                        // Unnecessary optimisation maybe.
-                        // Let's just attach ref if it matches today. If multiple, the last one rendered (bottom-most today) might get it?
-                        // "Centre the group ... e.g. the first or middle item"
-                        // If I attach to the first one encountered in the list which is sorted DESC (Latest first),
-                        // The first encountered "Today" is the *latest* updated today (or similar).
-                        // That works.
 
                         return (
                             <div
                                 key={workout.id}
-                                // Attach ref efficiently. Since map runs in order, we can check if it's the *first* today?
-                                // Or just check data attribute in useEffect?
-                                // Let's use a callback ref or simple logic.
                                 ref={isToday && !todayRef.current ? (el) => { if (!todayRef.current) todayRef.current = el } : undefined}
-                                // Wait, logic inside render like that is risky with React renders.
-                                // Better: Render, and rely on `data-today` attribute, then querySelector in useEffect? 
-                                // This is cleaner than conditional refs in map.
                                 data-today={isToday ? "true" : undefined}
                                 onClick={() => handleEdit(workout)}
                                 className={cn(

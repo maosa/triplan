@@ -8,28 +8,28 @@ export function Footer() {
                     &copy; 2026 TriPlan. Created by Andreas Maos. All rights reserved.
                 </div>
                 <div className="flex items-center space-x-6 text-muted-foreground">
-                    <a 
-                        href="https://www.instagram.com/maos.andreas" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
+                    <a
+                        href="https://www.instagram.com/maos.andreas"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="hover:text-foreground transition-colors"
                         aria-label="Instagram"
                     >
                         <Instagram className="h-4 w-4" />
                     </a>
-                    <a 
-                        href="https://www.linkedin.com/in/andreas-maos/" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
+                    <a
+                        href="https://www.linkedin.com/in/andreas-maos/"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="hover:text-foreground transition-colors"
                         aria-label="LinkedIn"
                     >
                         <Linkedin className="h-4 w-4" />
                     </a>
-                    <a 
-                        href="https://github.com/maosa/tricalc/tree/main" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
+                    <a
+                        href="https://github.com/maosa/triplan"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="hover:text-foreground transition-colors"
                         aria-label="GitHub"
                     >
