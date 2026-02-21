@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
+import { Footer } from "@/components/app/footer";
+import Script from "next/script";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -10,7 +12,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "TriPlan",
-  description: "Race-centric triathlon training planning and tracking",
+  description: "Plan and track your triathlon training for Ironman, T100, and other races with TriPlan. Built for serious endurance athletes to organise races, track workouts, and stay race-ready.",
 };
 
 export default async function RootLayout({
@@ -35,8 +37,26 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={theme}>
-      <body className={`${inter.variable} antialiased`}>
-        {children}
+      <head>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-HD03HER1E2"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-HD03HER1E2');
+          `}
+        </Script>
+      </head>
+      <body className={`${inter.variable} antialiased flex flex-col min-h-screen`}>
+        <div className="flex-1 flex flex-col">
+          {children}
+        </div>
+        <Footer />
       </body>
     </html>
   );

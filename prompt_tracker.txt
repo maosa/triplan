@@ -353,9 +353,32 @@ Thanks! I have some additional feedback. Please help me refine this, and have it
 
 #####
 
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
+* Let's add a footer on all app pages. The footer should look the same across all pages. The font size should be smaller than that in the rest of the app so it's subtle and doesn't take up much space. It should be able to change appearance to accommodate theme changes (i.e., light vs. dark). It should consist of 2 rows:
+- The first row should contain the copyright symbol and then the text "2026 TriPlan. Created by Andreas Maos. All rights reserved."
+- The second row should contain hyperlinks to my social media profiles, along with the relevant icons - icons should be relatively small, but sized properly so they are recognisable on both laptop and smartphone screens. Let's have the Instagram, LinkedIn, and GitHub icons on the same row, next to each other, with a bit of spacing in between, and hyperlinked to "https://www.instagram.com/maos.andreas", "https://www.linkedin.com/in/andreas-maos/", and "https://github.com/maosa/tricalc/tree/main" respectively
+
+* Let's add a <meta> description tag to enhance SEO. You can use the following:
+
+<meta name="description" content="Plan and track your triathlon training for Ironman, T100, and other races with TriPlan. Built for serious endurance athletes to organise races, track workouts, and stay race-ready.">
+
+* Let's add an Add a Google Analytics 4 property. I've already set up an Account and Property in my Google Analytics account. To establish a connection between the TriPlan website and Google Analytics, copy and paste the entire Google tag below in the code of every page of the website, immediately after the <head> element. Don’t add more than one Google tag to each page.
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HD03HER1E2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HD03HER1E2');
+</script>
+
+#####
 
 Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
 
-* 
+* This is by far the most important task so far - be very careful! Do not make any changes to how the app looks, works or feels. No changes to UX/UI, functionality, features - nothing! I want the app to look and behave exactly as it does now - this is very important! I want you to carefully review all the files and code, and check if there are parts that are written inefficiently or suboptimally. For example, can a part of the code be written in fewer lines, or in a smarter way, while maintaining exactly the same look, feel, and functionality? If you identify any such cases, feel free to make improvements. If the improvements / changes are challenging to implement or introduce risks with regards to how the app looks, feels, and functions, then do not implement those
 
 #####
