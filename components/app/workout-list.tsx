@@ -8,6 +8,7 @@ import { getWorkoutIcon } from "@/components/app/workout-icons"
 import type { Database } from "@/types/database"
 import { format, isSameDay, parseISO } from "date-fns"
 import { cn } from "@/components/ui/button"
+import { getIntensityColor } from "@/lib/colors"
 
 type Workout = Database['public']['Tables']['workouts']['Row']
 
@@ -157,14 +158,15 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
 function getIntensityIndicator(intensity: number | null) {
     if (intensity === null) return null;
 
-    let colorClass = "bg-emerald-400"
-    if (intensity > 4) colorClass = "bg-amber-400"
-    if (intensity > 7) colorClass = "bg-rose-500"
+    const bgColor = getIntensityColor(intensity);
 
     // Unified Badge Style: h-6, w-11 (approx 2.75rem) matches Duration
     return (
         <div className="flex justify-end" title={`Intensity: ${intensity}`}>
-            <span className={cn("flex items-center justify-center h-6 w-11 rounded px-1 text-xs font-mono font-bold text-black tabular-nums", colorClass)}>
+            <span
+                className="flex items-center justify-center h-6 w-11 rounded px-1 text-xs font-mono font-bold text-black tabular-nums"
+                style={{ backgroundColor: bgColor }}
+            >
                 {intensity.toFixed(1)}
             </span>
         </div>

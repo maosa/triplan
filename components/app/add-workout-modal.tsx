@@ -9,6 +9,7 @@ import { createWorkout, updateWorkout, deleteWorkout, duplicateWorkout } from "@
 import type { Database } from "@/types/database"
 import { format } from "date-fns"
 import { ChevronDown } from "lucide-react"
+import { getDiscreteGradient } from "@/lib/colors"
 
 type Workout = Database['public']['Tables']['workouts']['Row']
 
@@ -177,7 +178,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
                         onChange={(e) => setIntensity(Number(e.target.value))}
                         className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer disabled:opacity-50"
                         style={{
-                            background: type === "Rest" ? undefined : `linear-gradient(to right, #4ade80 0%, #facc15 50%, #ef4444 100%)`
+                            background: type === "Rest" ? undefined : getDiscreteGradient()
                         }}
                     />
                     <div className="flex justify-between text-xs text-gray-400 px-1">

@@ -382,3 +382,9 @@ Thanks! I have some additional feedback. Please help me refine this, and have it
 * This is by far the most important task I've asked you up to this point - be very careful! Do not make any changes to how the app looks, works or feels. No changes to UX/UI, functionality, features - nothing! I want the app to look and behave exactly as it does now - this is very important! I want you to carefully review all the files and code, and check if there are parts that have been developed / written inefficiently or suboptimally. For example, can a part of the code be written in fewer lines, or in a smarter way, while maintaining exactly the same look, feel, and functionality? If you identify any such cases, feel free to make improvements. If the improvements / changes are challenging to implement or may introduce risks with regards to how the app looks, feels, and functions, then do not implement those
 
 #####
+
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
+In both laptop and smartphone views, I see very limited to no difference between workout intensity badge colouring. For example, 5.0, 5.5, 6.0, 6.5, and 7.0 all look exactly the same colour. Let's make sure each intensity value is coloured distinctly. To achieve this, let's define a separate colour for each value in the workout intensity scale (i.e., 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, ..., 8.5, 9.0, 9.5, 10.0). If possible, let's also have this reflected on the intensity slider. That is, instead of the slider being coloured as a smooth gradient, it can be coloured by discrete segments
+
+#####
