@@ -25,7 +25,6 @@ export function RaceCard({ race, onEdit }: RaceCardProps) {
     // We use differenceInCalendarDays to ignore time. 
     // If result is 0, it's today. Positive means future.
     const daysLeft = differenceInCalendarDays(raceDate, today)
-    const isFuture = daysLeft >= 0
 
     return (
         <div
@@ -58,9 +57,16 @@ export function RaceCard({ race, onEdit }: RaceCardProps) {
                             <Calendar className="mr-1.5 h-4 w-4" />
                             {format(new Date(race.date), "MMM d, yyyy")}
                         </div>
-                        {isFuture && (
+                        {daysLeft < 0 ? (
+                            <span
+                                className="text-xs font-medium px-2 py-0.5 rounded-full"
+                                style={{ color: 'hsl(78, 85%, 25%)', backgroundColor: 'hsl(78, 85%, 90%)' }}
+                            >
+                                Race completed
+                            </span>
+                        ) : (
                             <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                                {daysLeft === 0 ? "Race Day!" : `${daysLeft} day${daysLeft === 1 ? '' : 's'} left`}
+                                {daysLeft === 0 ? "Race day" : `${daysLeft} day${daysLeft === 1 ? '' : 's'} left`}
                             </span>
                         )}
                     </div>

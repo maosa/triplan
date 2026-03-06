@@ -403,7 +403,7 @@ Thanks! I have some additional feedback. Please help me refine this, and have it
 
 * For both laptop and smartphone screens, in the Race page, let's have the race cards ordered by date, in descending order. So older races will appear later, and recent or upcoming races will appear earlier
 
-* Race cards have some text to say "DD days left", "1 day left", or "Race Day!" depending on how many days are left for the race. Let's make a few changes, for both laptop and smartphone screens:
+* Race cards have some text to say "DD days left", "1 day left", or "Race Day!" depending on how many days are left for a race. Let's make a few changes to these, for both laptop and smartphone screens:
 - Let's update "Race Day!" to "Race day"
 - Let's include "Race completed" if the current date is past the Race Date
 - If the race has been completed (i.e., if the current date is past the Race Date), let's colour the "Race completed" badge in a light green colour. This can be the same green colour we use for Workout Intensity = 3.5

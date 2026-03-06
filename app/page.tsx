@@ -15,7 +15,7 @@ export default async function Home() {
   const { data: races, error } = await supabase
     .from('races')
     .select('*')
-    .order('date', { ascending: true })
+    .order('date', { ascending: false })
 
   if (error) {
     console.error('Error fetching races:', error)
