@@ -3,9 +3,8 @@ import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { updateProfile, deleteAccount } from '@/app/actions'
+import { deleteAccount } from '@/app/actions'
 import { Header } from '@/components/app/header'
-import Link from 'next/link'
 import { ProfileForm } from '@/components/app/profile-form'
 import { CsvManager } from '@/components/app/csv-manager'
 
@@ -23,11 +22,6 @@ export default async function ProfilePage() {
         .select('*')
         .eq('id', user.id)
         .single()
-
-    const handleDeleteAccount = async () => {
-        "use server"
-        await deleteAccount(new FormData())
-    }
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -105,7 +99,7 @@ export default async function ProfilePage() {
                 <section className="space-y-4">
                     <h2 className="text-xl font-semibold text-red-500">Danger Zone</h2>
                     <div className="rounded-lg border border-red-900/20 bg-red-950/10 p-6 space-y-4">
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-muted-foreground">
                             Deleting your account will permanently delete all your races and workouts. This cannot be undone.
                         </p>
                         <form action={async (formData) => {

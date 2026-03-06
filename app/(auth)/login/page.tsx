@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
     const [isPending, startTransition] = useTransition()
@@ -34,7 +33,7 @@ export default function LoginPage() {
 
             <div className="w-full max-w-md space-y-8 px-4 pt-16">
                 <div className="text-center">
-                    <p className="mt-2 text-sm text-gray-400">Sign in to your account</p>
+                    <p className="mt-2 text-sm text-muted-foreground">Sign in to your account</p>
                 </div>
 
                 <form action={handleSubmit} className="space-y-6">

@@ -7,7 +7,7 @@ import { AddEditWorkoutModal } from "@/components/app/add-workout-modal"
 import { getWorkoutIcon } from "@/components/app/workout-icons"
 import type { Database } from "@/types/database"
 import { format, isSameDay, parseISO } from "date-fns"
-import { cn } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { getIntensityColor } from "@/lib/colors"
 
 type Workout = Database['public']['Tables']['workouts']['Row']

@@ -181,7 +181,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
                             background: type === "Rest" ? undefined : getDiscreteGradient()
                         }}
                     />
-                    <div className="flex justify-between text-xs text-gray-400 px-1">
+                    <div className="flex justify-between text-xs text-muted-foreground px-1">
                         <span>Easy</span>
                         <span>Moderate</span>
                         <span>Hard</span>

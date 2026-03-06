@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { User, LogOut, ArrowLeft } from "lucide-react"
-import { Button, cn } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { logout } from "@/app/(auth)/actions"
 
 interface HeaderProps {

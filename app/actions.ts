@@ -93,20 +93,8 @@ export async function createWorkout(raceId: string, formData: FormData) {
         throw new Error('User not authenticated')
     }
 
-    // Fetch race to validate date
-    const { data: race, error: raceError } = await supabase
-        .from('races')
-        .select('date')
-        .eq('id', raceId)
-        .single()
-
-    if (raceError || !race) {
-        return { error: 'Race not found' }
-    }
-
-    if (new Date(date) > new Date(race.date)) {
-        return { error: 'Workout date cannot be after race date' }
-    }
+    const dateCheck = await validateWorkoutDate(supabase, raceId, date)
+    if (dateCheck.error) return { error: dateCheck.error }
 
     // Force intensity to 0 if Rest
     const finalIntensity = type === 'Rest' ? 0 : intensity
@@ -353,109 +341,104 @@ export async function importCsvData(formData: FormData) {
             return { error: "Workout Type should be one of the following: Swim, Bike, Run, Strength, Rest, Other." }
         }
 
+        // Workout Duration: HH:MM
         const wDuration = row['Workout Duration']?.trim()
-        if (wDuration) {
-            if (!/^\d{2}:\d{2}$/.test(wDuration)) {
-                return { error: "Workout Duration should be formatted as HH:MM." }
-            }
+        if (wDuration && !/^\d{2}:\d{2}$/.test(wDuration)) {
+            return { error: "Workout Duration should be formatted as HH:MM." }
+        }
 
-            // Workout Distance: max 999.9
-            const wDistRaw = row['Workout Distance']?.trim()
-            if (wDistRaw) {
-                const wDist = parseFloat(wDistRaw)
-                if (isNaN(wDist) || wDist > 999.9) {
-                    return { error: "Workout Distance cannot be larger than 999.9." }
-                }
-            }
-
-            // Workout Intensity: 0-10, max 1 decimal
-            const wIntRaw = row['Workout Intensity']?.trim()
-            if (wIntRaw) {
-                const wInt = parseFloat(wIntRaw)
-                // Check range
-                if (isNaN(wInt) || wInt < 0 || wInt > 10) {
-                    return { error: "Workout Intensity should be between 0 and 10, and only have up to 1 decimal place." }
-                }
-                // Check decimal places: allow "10", "10.0", "5.5", but not "5.55"
-                if (!/^\d+(\.\d{1})?$/.test(wIntRaw)) {
-                    return { error: "Workout Intensity should be between 0 and 10, and only have up to 1 decimal place." }
-                }
+        // Workout Distance: max 999.9
+        const wDistRaw = row['Workout Distance']?.trim()
+        if (wDistRaw) {
+            const wDist = parseFloat(wDistRaw)
+            if (isNaN(wDist) || wDist > 999.9) {
+                return { error: "Workout Distance cannot be larger than 999.9." }
             }
         }
 
-
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-
-        if (!user) throw new Error('User not authenticated')
-
-        const raceDate = parseDate(raceDateRef)
-        if (!raceDate) {
-            // Fallback error if race date is garbage, though not explicitly requested.
-            return { error: "Race Date is invalid." }
-        }
-
-        // Check if race exists
-        const { data: existing } = await supabase
-            .from('races')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('name', raceNameRef)
-            .eq('date', raceDate)
-            .maybeSingle()
-
-        if (existing) {
-            return { error: `Import blocked: Race "${raceNameRef}" on ${raceDate} already exists.` }
-        }
-
-        // Insert Race
-        const { data: race, error: raceError } = await supabase.from('races').insert({
-            user_id: user.id,
-            name: raceNameRef,
-            location: raceLocationRef,
-            date: raceDate,
-            details: raceDetailsRef,
-        }).select().single()
-
-        if (raceError || !race) {
-            return { error: `Failed to insert race: ${raceError?.message}` }
-        }
-
-        // Prepare Workouts
-        const workoutsToInsert = []
-        for (const row of rows) {
-            const wDateRaw = row['Workout Date']?.trim()
-            // We validated format earlier, so we can assume it parses correctly with our helper
-            const wDate = parseDate(wDateRaw)!
-
-            const wType = row['Workout Type']?.trim()
-            const wDuration = row['Workout Duration']?.trim() || null
-            const wDist = row['Workout Distance'] ? parseFloat(row['Workout Distance']) : null
-            const wInt = row['Workout Intensity'] ? parseFloat(row['Workout Intensity']) : null
-            const wDetails = row['Workout Details']?.trim() || ''
-
-            workoutsToInsert.push({
-                race_id: race.id,
-                user_id: user.id,
-                date: wDate,
-                type: wType,
-                duration: wDuration,
-                distance: wDist,
-                intensity: wInt,
-                details: wDetails
-            })
-        }
-
-        if (workoutsToInsert.length > 0) {
-            const { error: wError } = await supabase.from('workouts').insert(workoutsToInsert)
-            if (wError) {
-                return { error: `Failed to insert workouts: ${wError.message}` }
+        // Workout Intensity: 0-10, max 1 decimal
+        const wIntRaw = row['Workout Intensity']?.trim()
+        if (wIntRaw) {
+            const wInt = parseFloat(wIntRaw)
+            if (isNaN(wInt) || wInt < 0 || wInt > 10) {
+                return { error: "Workout Intensity should be between 0 and 10, and only have up to 1 decimal place." }
+            }
+            if (!/^\d+(\.\d{1})?$/.test(wIntRaw)) {
+                return { error: "Workout Intensity should be between 0 and 10, and only have up to 1 decimal place." }
             }
         }
-
-        revalidatePath('/')
-        return { success: true }
     }
+
+    // 4. Insert Race and Workouts
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('User not authenticated')
+
+    const raceDate = parseDate(raceDateRef)
+    if (!raceDate) {
+        return { error: "Race Date is invalid." }
+    }
+
+    // Check if race exists
+    const { data: existing } = await supabase
+        .from('races')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('name', raceNameRef)
+        .eq('date', raceDate)
+        .maybeSingle()
+
+    if (existing) {
+        return { error: `Import blocked: Race "${raceNameRef}" on ${raceDate} already exists.` }
+    }
+
+    // Insert Race
+    const { data: race, error: raceError } = await supabase.from('races').insert({
+        user_id: user.id,
+        name: raceNameRef,
+        location: raceLocationRef,
+        date: raceDate,
+        details: raceDetailsRef,
+    }).select().single()
+
+    if (raceError || !race) {
+        return { error: `Failed to insert race: ${raceError?.message}` }
+    }
+
+    // Prepare Workouts
+    const workoutsToInsert = []
+    for (const row of rows) {
+        const wDateRaw = row['Workout Date']?.trim()
+        const wDate = parseDate(wDateRaw)!
+
+        const wType = row['Workout Type']?.trim()
+        const wDuration = row['Workout Duration']?.trim() || null
+        const wDist = row['Workout Distance'] ? parseFloat(row['Workout Distance']) : null
+        const wInt = row['Workout Intensity'] ? parseFloat(row['Workout Intensity']) : null
+        const wDetails = row['Workout Details']?.trim() || ''
+
+        workoutsToInsert.push({
+            race_id: race.id,
+            user_id: user.id,
+            date: wDate,
+            type: wType,
+            duration: wDuration,
+            distance: wDist,
+            intensity: wInt,
+            details: wDetails
+        })
+    }
+
+    if (workoutsToInsert.length > 0) {
+        const { error: wError } = await supabase.from('workouts').insert(workoutsToInsert)
+        if (wError) {
+            return { error: `Failed to insert workouts: ${wError.message}` }
+        }
+    }
+
+    revalidatePath('/')
+    return { success: true }
 }
 
 function parseDate(dateStr: string): string | null {

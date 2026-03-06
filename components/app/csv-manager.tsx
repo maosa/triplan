@@ -32,7 +32,7 @@ export function CsvManager() {
             {/* Export Section */}
             <div className="flex items-end gap-4">
                 <div className="flex-1 space-y-2">
-                    <label className="text-sm font-medium text-gray-300">Export CSV</label>
+                    <label className="text-sm font-medium text-muted-foreground">Export CSV</label>
                     <div className="flex h-10 w-full rounded-md bg-background px-3 py-2 text-sm text-muted-foreground items-center">
                         Export your data as a single CSV file
                     </div>
@@ -46,10 +46,10 @@ export function CsvManager() {
             </div>
 
             {/* Import Section */}
-            <div className="pt-6 border-t border-gray-800">
+            <div className="pt-6 border-t border-border">
                 <form action={handleImport} className="flex items-end gap-4">
                     <div className="flex-1 space-y-2">
-                        <label htmlFor="file" className="text-sm font-medium text-gray-300">Import CSV</label>
+                        <label htmlFor="file" className="text-sm font-medium text-muted-foreground">Import CSV</label>
                         <div className="relative">
                             <Input
                                 id="file"

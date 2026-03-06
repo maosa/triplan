@@ -1,9 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { WorkoutList } from '@/components/app/workout-list'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { ArrowLeft, MapPin, Calendar, User, LogOut } from 'lucide-react'
+import { MapPin, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 import { Header } from '@/components/app/header'
 

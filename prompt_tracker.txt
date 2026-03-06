@@ -388,3 +388,22 @@ Thanks! I have some additional feedback. Please help me refine this, and have it
 In both laptop and smartphone views, I see very limited to no difference between workout intensity badge colouring. For example, 5.0, 5.5, 6.0, 6.5, and 7.0 all look exactly the same colour. Let's make sure each intensity value is coloured distinctly. To achieve this, let's define a separate colour for each value in the workout intensity scale (i.e., 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, ..., 8.5, 9.0, 9.5, 10.0). If possible, let's also have this reflected on the intensity slider. That is, instead of the slider being coloured as a smooth gradient, it can be coloured by discrete segments
 
 #####
+
+You have been granted access to the project folder for my TriPlan web application. This app was developed by Gemini 3.1 Pro using the Antigravity IDE. Now it's your time to take over the project.
+
+I want you to take your time to thoroughly review all folders, files and code, in order to understand how the app was developed, what it looks like, and how it functions. If anything is unclear, feel free to ask clarifying questions.
+
+Once you are comfortable with the app's design and functionality, you are tasked with something of the utmost importance - so be very careful! Do not make any changes to how the app looks, works or feels. No changes to UX/UI, functionality, features - nothing! I want the app to look and behave exactly as it does now - this is very important! I want you to carefully review all the files and code, and check if there are parts that have been developed or written inefficiently or suboptimally. For example, can part of the code be written in fewer lines, or in a smarter way, while maintaining exactly the same look, feel, and functionality? If you identify any such cases, highlight them to me, and I will decide whether to proceed with any achanges. If the improvements / changes are challenging to implement or may introduce risks with regards to how the app looks, feels, and functions, then flag these, but do not implement any changes
+
+#####
+
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
+* Let's make a small edit to the README.md file to explain that initial platform development took place using Gemini 3.1 Pro and the Antigravity IDE, development is now managed by Claude Code
+
+* For both laptop and smartphone screens, in the Race page, let's have the race cards ordered by date, in descending order. So older races will appear later, and recent or upcoming races will appear earlier
+
+* Race cards have some text to say "DD days left", "1 day left", or "Race Day!" depending on how many days are left for the race. Let's make a few changes, for both laptop and smartphone screens:
+- Let's update "Race Day!" to "Race day"
+- Let's include "Race completed" if the current date is past the Race Date
+- If the race has been completed (i.e., if the current date is past the Race Date), let's colour the "Race completed" badge in a light green colour. This can be the same green colour we use for Workout Intensity = 3.5

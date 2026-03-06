@@ -38,8 +38,8 @@ export function RaceList({ initialRaces }: RaceListProps) {
             </div>
 
             {initialRaces.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-800 p-12 text-center">
-                    <p className="text-gray-400">No races tracked</p>
+                <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-12 text-center">
+                    <p className="text-muted-foreground">No races tracked</p>
                     <Button
                         variant="ghost"
                         className="mt-4 text-blue-400 hover:text-blue-300"

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { X } from "lucide-react"
-import { cn } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface ModalProps {
     isOpen: boolean
