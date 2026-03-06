@@ -1,26 +1,21 @@
 "use client"
 
-import Link from "next/link"
-import { resetPassword } from "../actions"
+import { updatePassword } from "../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState, useTransition } from "react"
 
-export default function ForgotPasswordPage() {
+export default function ResetPasswordPage() {
     const [isPending, startTransition] = useTransition()
     const [error, setError] = useState<string | null>(null)
-    const [success, setSuccess] = useState<string | null>(null)
 
     async function handleSubmit(formData: FormData) {
         setError(null)
-        setSuccess(null)
         startTransition(async () => {
-            const result = await resetPassword(formData)
+            const result = await updatePassword(formData)
             if (result?.error) {
                 setError(result.error)
-            } else if (result?.success) {
-                setSuccess(result.success)
             }
         })
     }
@@ -36,14 +31,19 @@ export default function ForgotPasswordPage() {
 
             <div className="w-full max-w-md space-y-8 px-4 pt-16">
                 <div className="text-center">
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Reset Password</h1>
-                    <p className="mt-2 text-sm text-muted-foreground">Enter your email to receive a reset link</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Set New Password</h1>
+                    <p className="mt-2 text-sm text-muted-foreground">Enter your new password below</p>
                 </div>
 
                 <form action={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" name="email" type="email" required placeholder="email@domain.com" />
+                        <Label htmlFor="password">New Password</Label>
+                        <Input id="password" name="password" type="password" required placeholder="At least 6 characters" />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Confirm Password</Label>
+                        <Input id="confirmPassword" name="confirmPassword" type="password" required />
                     </div>
 
                     {error && (
@@ -52,22 +52,10 @@ export default function ForgotPasswordPage() {
                         </div>
                     )}
 
-                    {success && (
-                        <div className="text-sm font-medium text-green-500">
-                            {success}
-                        </div>
-                    )}
-
                     <Button type="submit" className="w-full" isLoading={isPending}>
-                        Send Reset Link
+                        Update Password
                     </Button>
                 </form>
-
-                <div className="text-center text-sm">
-                    <Link href="/login" className="font-medium text-primary hover:text-primary/80">
-                        Back to login
-                    </Link>
-                </div>
             </div>
         </div>
     )

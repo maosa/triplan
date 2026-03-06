@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 
 export async function login(formData: FormData) {
     const email = formData.get('email') as string
@@ -68,6 +69,46 @@ export async function signup(formData: FormData) {
         // Email confirmation required case
         return { success: 'Please check your email to confirm your account.' }
     }
+}
+
+export async function resetPassword(formData: FormData) {
+    const email = formData.get('email') as string
+
+    const supabase = await createClient()
+    const headersList = await headers()
+    const origin = headersList.get('origin') || 'https://triathlonplan.vercel.app'
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${origin}/auth/callback?next=/reset-password`,
+    })
+
+    if (error) {
+        return { error: error.message }
+    }
+
+    return { success: 'Check your email for a password reset link.' }
+}
+
+export async function updatePassword(formData: FormData) {
+    const password = formData.get('password') as string
+    const confirmPassword = formData.get('confirmPassword') as string
+
+    if (password !== confirmPassword) {
+        return { error: 'Passwords do not match.' }
+    }
+
+    if (password.length < 6) {
+        return { error: 'Password must be at least 6 characters.' }
+    }
+
+    const supabase = await createClient()
+    const { error } = await supabase.auth.updateUser({ password })
+
+    if (error) {
+        return { error: error.message }
+    }
+
+    redirect('/login')
 }
 
 export async function logout() {

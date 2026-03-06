@@ -407,3 +407,18 @@ Thanks! I have some additional feedback. Please help me refine this, and have it
 - Let's update "Race Day!" to "Race day"
 - Let's include "Race completed" if the current date is past the Race Date
 - If the race has been completed (i.e., if the current date is past the Race Date), let's colour the "Race completed" badge in a light green colour. This can be the same green colour we use for Workout Intensity = 3.5
+
+#####
+
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
+* The "Forgot your password?" page now loads, but there are still a few things that seem odd:
+- Under the "Reset Password" title there is a text that reads "This is a placeholder page.". I don't think we need this piece of text
+- The button to send the rest link has the text "Send Reset Link (Not Implemented)". Why do we say "(Not Implemented)"? Is that needed? If not, remove it
+- The Send Reset Link button is initially greyed out. I assumed it would turn active once a user enters n email address but that doesn't seem to be the case i.e., it stays greyed out
+- Under the Send Reset Link button there is a text that reads "Functionality would go here.". I don't think we need this piece of text
+- The TriPlan logo disappears from the top left corner. Let's make sure this remains in the "Forgot your password?" page, the same way it is shows on the log in page
+
+* In the "Sign up" and "Forgot your password?" pages, the placeholder text in the email fields reads "m@example.com". Let's change this to "email@domain.com" for both
+
+* The TriPlan logo disappears from the top left corner of the "Sign Up" page. Let's make sure this shows the same way it does on the "Log In" page
