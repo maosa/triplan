@@ -11,9 +11,10 @@ type Race = Database['public']['Tables']['races']['Row']
 
 interface RaceListProps {
     initialRaces: Race[]
+    workoutCounts: Record<string, Record<string, number>>
 }
 
-export function RaceList({ initialRaces }: RaceListProps) {
+export function RaceList({ initialRaces, workoutCounts }: RaceListProps) {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
     const [editingRace, setEditingRace] = useState<Race | undefined>(undefined)
 
@@ -51,7 +52,7 @@ export function RaceList({ initialRaces }: RaceListProps) {
             ) : (
                 <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                     {initialRaces.map((race) => (
-                        <RaceCard key={race.id} race={race} onEdit={handleEdit} />
+                        <RaceCard key={race.id} race={race} onEdit={handleEdit} workoutCounts={workoutCounts[race.id]} />
                     ))}
                 </div>
             )}

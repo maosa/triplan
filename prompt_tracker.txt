@@ -422,3 +422,14 @@ Thanks! I have some additional feedback. Please help me refine this, and have it
 * In the "Sign up" and "Forgot your password?" pages, the placeholder text in the email fields reads "m@example.com". Let's change this to "email@domain.com" for both
 
 * The TriPlan logo disappears from the top left corner of the "Sign Up" page. Let's make sure this shows the same way it does on the "Log In" page
+
+#####
+
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
+* Let's add some additional information to the race cards:
+- Under the badge showing how many days are left for a race, or saying "Race completed", being right aligned to the badge, and being vertically aligned with the race location, let's add the total count of each workout type within that race training plan
+- To keep it short, let's use only the icon per workout type. So for every workout type (swim, bike, run, strength, rest, other), let's have the relevant icon and the number of workouts of that type next to it
+- Make sure this fits well and does not clash with other elements of the race card, for both laptop and smartphone screens
+- Let's have all the icons coloured the same way the Rest icon is coloured in the training plan page
+- If a race training plan is empty (i.e., has no workouts), then let's not show anything (i.e., let's have that race card be as it is now)

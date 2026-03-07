@@ -1,6 +1,6 @@
 "use client"
 import { format, differenceInCalendarDays } from "date-fns"
-import { Calendar, MapPin, Pencil } from "lucide-react"
+import { Calendar, MapPin, Pencil, Waves, Bike, Footprints, Dumbbell, BedDouble, Activity } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import type { Database } from "@/types/database"
@@ -8,12 +8,25 @@ import { MouseEvent } from "react"
 
 type Race = Database['public']['Tables']['races']['Row']
 
+const WORKOUT_TYPE_ORDER = ['Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Stretching', 'Other'] as const
+
+const WORKOUT_TYPE_ICONS: Record<string, typeof Waves> = {
+    Swim: Waves,
+    Bike: Bike,
+    Run: Footprints,
+    Strength: Dumbbell,
+    Rest: BedDouble,
+    Stretching: Activity,
+    Other: Activity,
+}
+
 interface RaceCardProps {
     race: Race
     onEdit: (race: Race) => void
+    workoutCounts?: Record<string, number>
 }
 
-export function RaceCard({ race, onEdit }: RaceCardProps) {
+export function RaceCard({ race, onEdit, workoutCounts }: RaceCardProps) {
     const handleEditClick = (e: MouseEvent) => {
         e.preventDefault() // Prevent navigation
         e.stopPropagation()
@@ -75,6 +88,20 @@ export function RaceCard({ race, onEdit }: RaceCardProps) {
                         <div className="flex items-center">
                             <MapPin className="mr-1.5 h-4 w-4" />
                             {race.location}
+                        </div>
+                    )}
+
+                    {workoutCounts && Object.keys(workoutCounts).length > 0 && (
+                        <div className="flex items-center justify-end gap-3 flex-wrap">
+                            {WORKOUT_TYPE_ORDER.filter(type => workoutCounts[type]).map(type => {
+                                const Icon = WORKOUT_TYPE_ICONS[type]
+                                return (
+                                    <div key={type} className="flex items-center gap-0.5 text-xs text-gray-400" title={type}>
+                                        <Icon className="h-3.5 w-3.5" />
+                                        <span>{workoutCounts[type]}</span>
+                                    </div>
+                                )
+                            })}
                         </div>
                     )}
                 </div>
