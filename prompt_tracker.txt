@@ -47,6 +47,7 @@ I thought of a few other stuff to add. So please refine the plan to include thes
 #####
 
 Awesome - thanks! A couple more additions please:
+
 * On the log in page, have a "Remember me" option. This improves user convenience by storing a persistent cookie or username in the browser, allowing users to avoid re-entering credentials for future visits. It keeps users logged in even after closing the browser or session
 * At the very end, let's make it clear for the agent to not write any code before we confirm the final questions
 
@@ -425,11 +426,16 @@ Thanks! I have some additional feedback. Please help me refine this, and have it
 
 #####
 
-Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
-
 * Let's add some additional information to the race cards:
 - Under the badge showing how many days are left for a race, or saying "Race completed", being right aligned to the badge, and being vertically aligned with the race location, let's add the total count of each workout type within that race training plan
 - To keep it short, let's use only the icon per workout type. So for every workout type (swim, bike, run, strength, rest, other), let's have the relevant icon and the number of workouts of that type next to it
 - Make sure this fits well and does not clash with other elements of the race card, for both laptop and smartphone screens
 - Let's have all the icons coloured the same way the Rest icon is coloured in the training plan page
 - If a race training plan is empty (i.e., has no workouts), then let's not show anything (i.e., let's have that race card be as it is now)
+
+#####
+
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
+* The information and icons look correct, but that row is not aligned with the race card element containing the race location (see attached image). This is the case in both laptop and smartphone screens
+* Also, on a smartphone screen, the row with workout type count clashes / overlaps with the race location. Could we reduce the spacing between workout type counts, as well as reduce the space between the race card border and elements inside the race card to maximise space and avoid clashes?

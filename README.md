@@ -14,6 +14,10 @@ TriPlan is a modern, minimalist training log built for triathletes who want to f
 - **Mobile First**: Add workouts from your phone without zooming, pinching, or squinting.
 - **Data Freedom**: Simple CSV import and export. We don't lock you in.
 
+## Development
+
+Initial platform development was done using **Gemini 3.1 Pro** and the **Antigravity IDE**. Ongoing development is now managed with **Claude Code**.
+
 ## Check out TriCalc
 
 Looking for a simple way to calculate your splits? Try **TriCalc**.
@@ -22,7 +26,3 @@ Looking for a simple way to calculate your splits? Try **TriCalc**.
 - [**GitHub**](https://github.com/maosa/tricalc)
 
 Built for speed. Built for PRs.
-
-## Development
-
-Initial platform development was done using **Gemini 3.1 Pro** and the **Antigravity IDE**. Ongoing development is now managed with **Claude Code**.
