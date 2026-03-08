@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 import { Footer } from "@/components/app/footer";
 import Script from "next/script";
 
@@ -20,20 +20,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let theme = 'dark'
-
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { data: profile } = await supabase.from('profiles').select('theme').eq('id', user.id).single()
-      if (profile?.theme) {
-        theme = profile.theme
-      }
-    }
-  } catch (e) {
-    // Ignore auth errors on layout if any
-  }
+  // Read theme from cookie — no DB query needed on every navigation
+  const cookieStore = await cookies()
+  const theme = cookieStore.get('theme')?.value || 'dark'
 
   return (
     <html lang="en" className={theme}>

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { updateProfile } from "@/app/actions"
 import { useTransition, useState } from "react"
-import { useRouter } from "next/navigation"
 import { ChevronDown } from "lucide-react"
 
 export function ProfileForm({ profile }: { profile: any }) {
@@ -23,20 +22,22 @@ export function ProfileForm({ profile }: { profile: any }) {
         startTransition(async () => {
             const result = await updateProfile(formData)
             if (result?.success) {
-                // Force refresh to apply theme if server-rendered layout depends on it
-                // Or manually toggle class
                 const newTheme = formData.get('theme') as string
                 const newUnits = formData.get('units') as string
 
+                // Apply theme class immediately
                 if (newTheme === 'dark') {
                     document.documentElement.classList.add('dark')
                 } else {
                     document.documentElement.classList.remove('dark')
                 }
+
+                // Sync theme cookie so the root layout reads it on next navigation
+                document.cookie = `theme=${newTheme};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`
+
                 setTheme(newTheme)
                 setUnits(newUnits)
                 setSuccess(true)
-                // Hide success message after 3 seconds
                 setTimeout(() => setSuccess(false), 3000)
             }
         })

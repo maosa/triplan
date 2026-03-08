@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { Database } from '@/types/database'
 import Papa from 'papaparse'
 
@@ -223,6 +224,14 @@ export async function updateProfile(formData: FormData) {
         return { error: error.message }
     }
 
+    // Sync theme to cookie so the root layout can read it without a DB query
+    const cookieStore = await cookies()
+    cookieStore.set('theme', theme, {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 365, // 1 year
+        sameSite: 'lax',
+    })
+
     // Do NOT revalidate path to prevent client component remount/snap-back.
     // Client side state is updated optimistically.
     // revalidatePath('/', 'layout')
@@ -240,6 +249,33 @@ export async function deleteAccount(formData: FormData) {
 
     await supabase.auth.signOut()
     redirect('/login')
+}
+
+export async function updateSecuritySettings(currentEmail: string, formData: FormData) {
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        throw new Error('User not authenticated')
+    }
+
+    const updates: Record<string, string> = {}
+    if (email && email !== currentEmail) updates.email = email
+    if (password) updates.password = password
+
+    if (Object.keys(updates).length === 0) {
+        return { error: 'No changes to update.' }
+    }
+
+    const { error } = await supabase.auth.updateUser(updates)
+    if (error) {
+        return { error: error.message }
+    }
+
+    return { success: 'Security settings updated successfully.' }
 }
 
 export async function importCsvData(formData: FormData) {

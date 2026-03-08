@@ -67,7 +67,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                     <p className="text-muted-foreground">No workouts tracked</p>
                     <Button
                         variant="ghost"
-                        className="mt-4 text-blue-400 hover:text-blue-300"
+                        className="mt-4 text-primary hover:text-primary/80"
                         onClick={() => setIsAddModalOpen(true)}
                     >
                         Log your first session
@@ -149,6 +149,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                     existingWorkout={editingWorkout}
                     raceId={raceId}
                     raceDate={raceDate}
+                    units={units}
                 />
             )}
         </div>

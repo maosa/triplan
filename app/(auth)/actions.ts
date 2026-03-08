@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { headers } from 'next/headers'
+import { headers, cookies } from 'next/headers'
 
 export async function login(formData: FormData) {
     const email = formData.get('email') as string
@@ -11,21 +11,32 @@ export async function login(formData: FormData) {
 
     const supabase = await createClient()
 
-    // Supabase Auth handles logic.
-    // By default, Supabase generic auth with cookie storage is persistent.
-    // Standard session is long-lived refresh token.
-    // If "Remember Me" is UNCHECKED, we might want to use a session-scoped cookie,
-    // but Supabase SSR helper sets cookies with reasonable defaults.
-    // For simplicity and standard behavior, we'll stick to default persistence.
-    // If we really need transient sessions, we'd have to tweak the cookie options.
-
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
     })
 
     if (error) {
         return { error: error.message }
+    }
+
+    // Bootstrap theme cookie from user's profile so the root layout
+    // can render the correct theme without a DB query on every navigation
+    if (data.user) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('theme')
+            .eq('id', data.user.id)
+            .single()
+
+        if (profile?.theme) {
+            const cookieStore = await cookies()
+            cookieStore.set('theme', profile.theme, {
+                path: '/',
+                maxAge: 60 * 60 * 24 * 365,
+                sameSite: 'lax',
+            })
+        }
     }
 
     redirect('/')
@@ -114,5 +125,10 @@ export async function updatePassword(formData: FormData) {
 export async function logout() {
     const supabase = await createClient()
     await supabase.auth.signOut()
+
+    // Clear theme cookie so the next user starts fresh
+    const cookieStore = await cookies()
+    cookieStore.delete('theme')
+
     redirect('/login')
 }

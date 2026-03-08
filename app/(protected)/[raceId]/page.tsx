@@ -20,37 +20,33 @@ export default async function RacePage({ params }: PageProps) {
         redirect('/login')
     }
 
-    // Fetch Race + Profile (for units)
-    // We can fetch profile separately or use a join if we had relationship, 
-    // but profile is 1:1 with user, not race.
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('units')
-        .eq('id', user.id)
-        .single()
+    // Fetch profile, race, and workouts in parallel
+    const [{ data: profile }, { data: race, error: raceError }, { data: workouts, error: workoutError }] = await Promise.all([
+        supabase
+            .from('profiles')
+            .select('units')
+            .eq('id', user.id)
+            .single(),
+        supabase
+            .from('races')
+            .select('*')
+            .eq('id', raceId)
+            .single(),
+        supabase
+            .from('workouts')
+            .select('*')
+            .eq('race_id', raceId)
+            .order('date', { ascending: false })
+            .order('updated_at', { ascending: false })
+            .order('created_at', { ascending: false })
+            .order('id', { ascending: false }),
+    ])
 
     const userUnits = profile?.units || 'metric'
 
-    const { data: race, error: raceError } = await supabase
-        .from('races')
-        .select('*')
-        .eq('id', raceId)
-        .single()
-
     if (raceError || !race) {
-        // If error is 406 (Not Acceptable) or empty result, it means RLS blocked it or it doesn't exist
         notFound()
     }
-
-    const { data: workouts, error: workoutError } = await supabase
-        .from('workouts')
-        .select('*')
-        .eq('race_id', raceId)
-        .order('date', { ascending: false })
-        .order('updated_at', { ascending: false })
-        .order('created_at', { ascending: false })
-        .order('id', { ascending: false })
 
     if (workoutError) {
         console.error(workoutError)
@@ -77,6 +73,9 @@ export default async function RacePage({ params }: PageProps) {
                             </div>
                         )}
                     </div>
+                    {race.details && (
+                        <p className="text-sm text-muted-foreground mt-2">{race.details}</p>
+                    )}
                 </div>
 
                 <WorkoutList

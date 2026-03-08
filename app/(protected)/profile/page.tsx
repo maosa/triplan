@@ -1,12 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { deleteAccount } from '@/app/actions'
 import { Header } from '@/components/app/header'
 import { ProfileForm } from '@/components/app/profile-form'
 import { CsvManager } from '@/components/app/csv-manager'
+import { SecurityForm } from '@/components/app/security-form'
+import { DeleteAccountSection } from '@/components/app/delete-account-section'
 
 export default async function ProfilePage() {
     const supabase = await createClient()
@@ -52,64 +50,10 @@ export default async function ProfilePage() {
 
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-foreground">Security</h2>
-                    <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-                        <p className="text-sm text-muted-foreground">
-                            To change your email or password, please use the update form below.
-                            Note: Changing email may require confirmation.
-                        </p>
-                        {/* 
-                    Ideally separate forms for Email and Password. 
-                    For MVP, let's standard Next.js form action.
-                    I haven't implemented updateUserAuth yet in actions.ts, 
-                    I'll add it or simple logic here. 
-                */}
-                        <form action={async (formData) => {
-                            "use server"
-                            const email = formData.get('email') as string
-                            const password = formData.get('password') as string
-                            const supabase = await createClient()
-
-                            const updates: any = {}
-                            if (email && email !== user.email) updates.email = email
-                            if (password) updates.password = password
-
-                            if (Object.keys(updates).length > 0) {
-                                const { error } = await supabase.auth.updateUser(updates)
-                                if (error) {
-                                    console.error(error)
-                                    // Ideally show error toast
-                                } else {
-                                    // Success
-                                }
-                            }
-                        }} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
-                                <Input id="email" name="email" type="email" defaultValue={user.email} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="password">New Password</Label>
-                                <Input id="password" name="password" type="password" placeholder="Leave blank to keep current" />
-                            </div>
-                            <Button type="submit">Update Security Settings</Button>
-                        </form>
-                    </div>
+                    <SecurityForm currentEmail={user.email || ''} />
                 </div>
 
-                <section className="space-y-4">
-                    <h2 className="text-xl font-semibold text-red-500">Danger Zone</h2>
-                    <div className="rounded-lg border border-red-900/20 bg-red-950/10 p-6 space-y-4">
-                        <p className="text-sm text-muted-foreground">
-                            Deleting your account will permanently delete all your races and workouts. This cannot be undone.
-                        </p>
-                        <form action={async (formData) => {
-                            "use server"
-                            await deleteAccount(formData)
-                        }}>
-                            <Button variant="destructive" type="submit">Delete Account</Button>
-                        </form>
-                    </div>
-                </section>
+                <DeleteAccountSection />
             </main>
         </div>
     )

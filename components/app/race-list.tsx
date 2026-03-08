@@ -43,7 +43,7 @@ export function RaceList({ initialRaces, workoutCounts }: RaceListProps) {
                     <p className="text-muted-foreground">No races tracked</p>
                     <Button
                         variant="ghost"
-                        className="mt-4 text-blue-400 hover:text-blue-300"
+                        className="mt-4 text-primary hover:text-primary/80"
                         onClick={() => setIsAddModalOpen(true)}
                     >
                         Add your first race

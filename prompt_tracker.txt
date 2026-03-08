@@ -439,3 +439,19 @@ Thanks! I have some additional feedback. Please help me refine this, and have it
 
 * The information and icons look correct, but that row is not aligned with the race card element containing the race location (see attached image). This is the case in both laptop and smartphone screens
 * Also, on a smartphone screen, the row with workout type count clashes / overlaps with the race location. Could we reduce the spacing between workout type counts, as well as reduce the space between the race card border and elements inside the race card to maximise space and avoid clashes?
+
+#####
+
+Thanks! I have some additional feedback. Please help me refine this, and have it as a single prompt that I can pass on to the agentic AI developer. At the end, generate, a short git commit message and description, both as text, not code. Do not include emojis / icons in your response.
+
+* I've realised something. If we have a count for all 6 workout types, the row inevitably will get long. Also, race location names can vary significantly in length (e.g., country being "UK" vs. "Switzerland"). So it's challenging to ensure there will never be any clashes between race location and workout type count
+* To mitigate this, let's have the workout type count under race location. Let's have it left aligned with race date and race location
+* This may make the race cards a bit taller, but that's ok - let's make sure things aren't very crowded. It also allows for slightly more padding on smartphones, which we previously reduced
+
+#####
+
+I don't want to change any of the functionality, just looking to make improvements where possible. Take a close look at the entire codebase. Are there any UX / UI improvements you would make?
+
+#####
+
+I noticed that when I click on a race card to see that race's training plan, the training plan page may take 1-2 seconds to load. A similar delay exists when navigating from the training plan page back to the races page. That delay is not terribly long, but i'm used to almost instant loading / page switching when using other web apps. What's the reason behind this, and is there anything to be done about it?

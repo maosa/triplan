@@ -41,7 +41,7 @@ export function RaceCard({ race, onEdit, workoutCounts }: RaceCardProps) {
 
     return (
         <div
-            className="group relative flex flex-col justify-between rounded-lg border border-border bg-card p-4 sm:p-6 transition-all hover:bg-muted/50 hover:border-border/80"
+            className="group relative flex flex-col justify-between rounded-lg border border-border bg-card p-5 sm:p-6 transition-all hover:bg-muted/50 hover:border-border/80"
         >
             <div className="space-y-4">
                 <div className="flex items-start justify-between">
@@ -84,30 +84,24 @@ export function RaceCard({ race, onEdit, workoutCounts }: RaceCardProps) {
                         )}
                     </div>
 
-                    {(race.location || (workoutCounts && Object.keys(workoutCounts).length > 0)) && (
-                        <div className="flex items-center justify-between gap-2">
-                            {race.location ? (
-                                <div className="flex items-center shrink-0">
-                                    <MapPin className="mr-1.5 h-4 w-4" />
-                                    {race.location}
-                                </div>
-                            ) : (
-                                <div />
-                            )}
+                    {race.location && (
+                        <div className="flex items-center">
+                            <MapPin className="mr-1.5 h-4 w-4" />
+                            {race.location}
+                        </div>
+                    )}
 
-                            {workoutCounts && Object.keys(workoutCounts).length > 0 && (
-                                <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-                                    {WORKOUT_TYPE_ORDER.filter(type => workoutCounts[type]).map(type => {
-                                        const Icon = WORKOUT_TYPE_ICONS[type]
-                                        return (
-                                            <div key={type} className="flex items-center gap-0.5 text-xs text-gray-400" title={type}>
-                                                <Icon className="h-3.5 w-3.5" />
-                                                <span>{workoutCounts[type]}</span>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            )}
+                    {workoutCounts && Object.keys(workoutCounts).length > 0 && (
+                        <div className="flex items-center gap-3 flex-wrap">
+                            {WORKOUT_TYPE_ORDER.filter(type => workoutCounts[type]).map(type => {
+                                const Icon = WORKOUT_TYPE_ICONS[type]
+                                return (
+                                    <div key={type} className="flex items-center gap-0.5 text-xs text-muted-foreground" title={type}>
+                                        <Icon className="h-3.5 w-3.5" />
+                                        <span>{workoutCounts[type]}</span>
+                                    </div>
+                                )
+                            })}
                         </div>
                     )}
                 </div>

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createRace, deleteRace, updateRace } from "@/app/actions"
-// We would import the Race type here if shared, or define partial
 import type { Database } from "@/types/database"
 
 type Race = Database['public']['Tables']['races']['Row']
@@ -20,6 +19,13 @@ interface AddEditRaceModalProps {
 export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceModalProps) {
     const [isPending, startTransition] = useTransition()
     const [error, setError] = useState<string | null>(null)
+    const [confirmAction, setConfirmAction] = useState<'delete' | null>(null)
+
+    const handleClose = () => {
+        setConfirmAction(null)
+        setError(null)
+        onClose()
+    }
 
     async function handleSubmit(formData: FormData) {
         setError(null)
@@ -34,87 +40,103 @@ export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceM
             if (result?.error) {
                 setError(result.error)
             } else {
-                onClose()
+                handleClose()
             }
         })
     }
 
-    async function handleDelete() {
-        if (!existingRace) return;
-        if (!confirm("Deleting this race will permanently delete all associated workouts. Continue?")) return;
+    async function handleDeleteConfirm() {
+        if (!existingRace) return
 
         startTransition(async () => {
             const result = await deleteRace(existingRace.id)
             if (result?.error) {
                 setError(result.error)
+                setConfirmAction(null)
             } else {
-                onClose()
+                handleClose()
             }
         })
     }
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={existingRace ? "Edit Race" : "Add Race"}>
-            <form action={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor="name">Race Name</Label>
-                    <Input
-                        id="name"
-                        name="name"
-                        required
-                        defaultValue={existingRace?.name}
-                        placeholder="Ironman 70.3"
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
-                    <Input
-                        id="location"
-                        name="location"
-                        defaultValue={existingRace?.location || ''}
-                        placeholder="City, Country"
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input
-                        id="date"
-                        name="date"
-                        type="date"
-                        required
-                        defaultValue={existingRace?.date}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="details">Details (Optional)</Label>
-                    <Input
-                        id="details"
-                        name="details"
-                        defaultValue={existingRace?.details || ''}
-                        placeholder="Goals, notes..."
-                    />
-                    {/* Using Input for simplicity, ideally Textarea but prompt didn't strictly require it */}
-                </div>
-
-                {error && <p className="text-red-500 text-sm">{error}</p>}
-
-                <div className="flex justify-between pt-4">
-                    {existingRace ? (
-                        <Button type="button" variant="destructive" onClick={handleDelete} disabled={isPending}>
-                            Delete
-                        </Button>
-                    ) : <div />} {/* Spacer */}
-
-                    <div className="flex space-x-2">
-                        <Button type="button" variant="ghost" onClick={onClose} disabled={isPending}>
+        <Modal isOpen={isOpen} onClose={handleClose} title={existingRace ? "Edit Race" : "Add Race"}>
+            {confirmAction === 'delete' ? (
+                <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                        Deleting this race will permanently delete all associated workouts. This cannot be undone.
+                    </p>
+                    {error && <p className="text-destructive text-sm">{error}</p>}
+                    <div className="flex justify-end space-x-2">
+                        <Button type="button" variant="ghost" onClick={() => setConfirmAction(null)} disabled={isPending}>
                             Cancel
                         </Button>
-                        <Button type="submit" isLoading={isPending}>
-                            Save
+                        <Button type="button" variant="destructive" onClick={handleDeleteConfirm} isLoading={isPending}>
+                            Delete Race
                         </Button>
                     </div>
                 </div>
-            </form>
+            ) : (
+                <form action={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Race Name</Label>
+                        <Input
+                            id="name"
+                            name="name"
+                            required
+                            defaultValue={existingRace?.name}
+                            placeholder="Ironman 70.3"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="location">Location</Label>
+                        <Input
+                            id="location"
+                            name="location"
+                            defaultValue={existingRace?.location || ''}
+                            placeholder="City, Country"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="date">Date</Label>
+                        <Input
+                            id="date"
+                            name="date"
+                            type="date"
+                            required
+                            defaultValue={existingRace?.date}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="details">Details (Optional)</Label>
+                        <Input
+                            id="details"
+                            name="details"
+                            defaultValue={existingRace?.details || ''}
+                            placeholder="Goals, notes..."
+                        />
+                    </div>
+
+                    {error && <p className="text-destructive text-sm">{error}</p>}
+
+                    <div className="flex justify-between pt-4">
+                        {existingRace ? (
+                            <Button type="button" variant="destructive" onClick={() => setConfirmAction('delete')} disabled={isPending}>
+                                Delete
+                            </Button>
+                        ) : <div />}
+
+                        <div className="flex space-x-2">
+                            <Button type="button" variant="ghost" onClick={handleClose} disabled={isPending}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" isLoading={isPending}>
+                                Save
+                            </Button>
+                        </div>
+                    </div>
+                </form>
+            )}
         </Modal>
     )
 }
