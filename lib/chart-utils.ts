@@ -7,7 +7,7 @@ export type WorkoutType = 'Swim' | 'Bike' | 'Run' | 'Strength' | 'Rest' | 'Other
 
 export interface WeeklyDataPoint {
     week: string   // formatted label, e.g. "10-Mar-2025"
-    value: number  // minutes for duration, raw float for distance
+    value: number  // minutes for duration, raw float for distance, integer for count
 }
 
 /** Parse "HH:MM" string to total minutes. Returns 0 for null/empty. */
@@ -38,56 +38,90 @@ export function formatWeekLabel(date: Date): string {
 }
 
 /**
+ * Returns the Monday of the earliest workout (across ALL types) and the Monday
+ * of the race week. Used to enforce a consistent x-axis across all chart cells.
+ * Returns null if there are no workouts.
+ */
+export function buildGlobalWeekRange(
+    workouts: Workout[],
+    raceDate: string
+): { from: Date; to: Date } | null {
+    if (workouts.length === 0) return null
+    const dates = workouts.map(w => parseISO(w.date))
+    const earliestMonday = getWeekMonday(new Date(Math.min(...dates.map(d => d.getTime()))))
+    const raceMonday = getWeekMonday(parseISO(raceDate))
+    return { from: earliestMonday, to: raceMonday }
+}
+
+/**
  * Build weekly chart data for a given workout type and field.
  *
- * The week range spans from the Monday of the earliest workout
- * up to and including the Monday of the race week.
+ * field:
+ *   'duration' — sum of parsed HH:MM values (in minutes)
+ *   'distance' — sum of raw distance floats
+ *   'count'    — number of matching workouts per week (integer)
  *
- * Returns [] (empty array) if there is no data at all for the
- * given type + field combination — the chart cell should be left blank.
+ * forcedRange — when provided, the x-axis spans exactly from forcedRange.from
+ *   to forcedRange.to (both Mondays). This keeps all charts aligned regardless
+ *   of when each workout type first appears in the training plan.
+ *   When omitted, the range is derived from the earliest workout of this type.
+ *
+ * Returns [] (empty array) if there is no data at all for the given type +
+ * field combination — the chart cell should be left blank.
  */
 export function buildWeeklyData(
     workouts: Workout[],
     type: WorkoutType,
-    field: 'duration' | 'distance',
-    raceDate: string
+    field: 'duration' | 'distance' | 'count',
+    raceDate: string,
+    forcedRange?: { from: Date; to: Date }
 ): WeeklyDataPoint[] {
     const typeWorkouts = workouts.filter(w => w.type === type)
 
     if (typeWorkouts.length === 0) return []
 
     // Check if there's any actual data for this field
-    const hasData = typeWorkouts.some(w =>
-        field === 'duration'
-            ? parseHHMM(w.duration) > 0
-            : w.distance !== null && w.distance > 0
-    )
-    if (!hasData) return []
+    if (field !== 'count') {
+        const hasData = typeWorkouts.some(w =>
+            field === 'duration'
+                ? parseHHMM(w.duration) > 0
+                : w.distance !== null && w.distance > 0
+        )
+        if (!hasData) return []
+    }
 
     // Determine week range
-    const dates = typeWorkouts.map(w => parseISO(w.date))
-    const earliestMonday = getWeekMonday(new Date(Math.min(...dates.map(d => d.getTime()))))
-    const raceMonday = getWeekMonday(parseISO(raceDate))
+    let from: Date
+    let to: Date
+    if (forcedRange) {
+        from = forcedRange.from
+        to = forcedRange.to
+    } else {
+        const dates = typeWorkouts.map(w => parseISO(w.date))
+        from = getWeekMonday(new Date(Math.min(...dates.map(d => d.getTime()))))
+        to = getWeekMonday(parseISO(raceDate))
+    }
 
-    // Build a map of weekLabel → summed value
+    // Build a map of weekLabel → summed/counted value
     const weekMap = new Map<string, number>()
 
     // Populate all weeks in range with 0
-    let cursor = earliestMonday
-    while (cursor <= raceMonday) {
+    let cursor = from
+    while (cursor <= to) {
         weekMap.set(formatWeekLabel(cursor), 0)
         cursor = addWeeks(cursor, 1)
     }
 
-    // Sum values per week
+    // Accumulate values per week
     for (const workout of typeWorkouts) {
         const monday = getWeekMonday(parseISO(workout.date))
         const label = formatWeekLabel(monday)
-        if (!weekMap.has(label)) continue // outside range (shouldn't happen)
+        if (!weekMap.has(label)) continue // outside range
 
-        const value = field === 'duration'
-            ? parseHHMM(workout.duration)
-            : workout.distance ?? 0
+        const value =
+            field === 'duration' ? parseHHMM(workout.duration) :
+            field === 'distance' ? (workout.distance ?? 0) :
+            /* count */            1
 
         weekMap.set(label, (weekMap.get(label) ?? 0) + value)
     }

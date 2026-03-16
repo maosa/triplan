@@ -11,6 +11,7 @@ import {
 import { getWorkoutIcon } from '@/components/app/workout-icons'
 import {
     buildWeeklyData,
+    buildGlobalWeekRange,
     formatMinutesToHHMM,
     type WorkoutType,
     type WeeklyDataPoint,
@@ -48,7 +49,9 @@ const TYPE_TEXT_COLORS: Record<WorkoutType, string> = {
 // ── Tooltip renderer factory ──────────────────────────────────────────────────
 // Returns a render function so we avoid spreading Recharts' complex prop types.
 
-function makeTooltipContent(field: 'duration' | 'distance', units: string) {
+type ChartField = 'duration' | 'distance' | 'count'
+
+function makeTooltipContent(field: ChartField, units: string) {
     return function TooltipContent({
         active,
         payload,
@@ -69,6 +72,8 @@ function makeTooltipContent(field: 'duration' | 'distance', units: string) {
                     const m = value % 60
                     return h > 0 ? `${h}h ${m}m` : `${m}m`
                 })()
+                : field === 'count'
+                ? `${value} session${value === 1 ? '' : 's'}`
                 : `${value.toFixed(1)} ${units === 'imperial' ? 'mi' : 'km'}`
 
         return (
@@ -85,7 +90,7 @@ function makeTooltipContent(field: 'duration' | 'distance', units: string) {
 interface ChartCellProps {
     data: WeeklyDataPoint[]
     type: WorkoutType
-    field: 'duration' | 'distance'
+    field: ChartField
     units: string
 }
 
@@ -99,6 +104,8 @@ function ChartCell({ data, type, field, units }: ChartCellProps) {
     const totalLabel =
         field === 'duration'
             ? formatMinutesToHHMM(total)
+            : field === 'count'
+            ? `${total} session${total === 1 ? '' : 's'}`
             : `${total.toFixed(1)} ${units === 'imperial' ? 'mi' : 'km'}`
 
     const TooltipContent = makeTooltipContent(field, units)
@@ -146,6 +153,11 @@ function ChartCell({ data, type, field, units }: ChartCellProps) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function TrainingCharts({ workouts, units, raceDate }: TrainingChartsProps) {
+    // Compute a single week range spanning all workouts (any type).
+    // Passing this as forcedRange to every buildWeeklyData call ensures all
+    // charts share the same x-axis, making week-over-week comparison easy.
+    const globalRange = buildGlobalWeekRange(workouts, raceDate) ?? undefined
+
     return (
         <div className="overflow-x-auto">
             {/* min-width ensures the grid never collapses on small screens */}
@@ -160,8 +172,15 @@ export function TrainingCharts({ workouts, units, raceDate }: TrainingChartsProp
 
                     {/* ── One row per workout type ── */}
                     {CHART_TYPES.map((type) => {
-                        const durationData = buildWeeklyData(workouts, type, 'duration', raceDate)
-                        const distanceData = buildWeeklyData(workouts, type, 'distance', raceDate)
+                        // Rest: duration column shows count of rest days per week
+                        const durationData =
+                            type === 'Rest'
+                                ? buildWeeklyData(workouts, 'Rest', 'count', raceDate, globalRange)
+                                : buildWeeklyData(workouts, type, 'duration', raceDate, globalRange)
+
+                        const distanceData = buildWeeklyData(workouts, type, 'distance', raceDate, globalRange)
+
+                        const durationField: ChartField = type === 'Rest' ? 'count' : 'duration'
 
                         return (
                             <>
@@ -173,12 +192,12 @@ export function TrainingCharts({ workouts, units, raceDate }: TrainingChartsProp
                                     </span>
                                 </div>
 
-                                {/* Duration chart */}
+                                {/* Duration chart (or rest-day count for Rest) */}
                                 <ChartCell
                                     key={`${type}-duration`}
                                     data={durationData}
                                     type={type}
-                                    field="duration"
+                                    field={durationField}
                                     units={units}
                                 />
 

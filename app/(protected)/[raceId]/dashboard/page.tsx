@@ -77,7 +77,7 @@ export default async function DashboardPage({ params }: PageProps) {
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            <Header backLink={`/${raceId}`} />
+            <Header backLink={`/${raceId}`} backLinkLabel="Back to Plan" />
 
             <main className="container mx-auto px-4 py-8 sm:px-8 space-y-8">
 

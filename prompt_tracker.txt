@@ -487,3 +487,9 @@ I envision the dashboard / chart page as follows:
 * Users may not always capture both Workout Duration and Workout Distance for all Workout Types. Let's plan to have both chart types for all Workout Types, but if there is no data at all for duration and / or distance for a specific workout type, let's leave that chart space blank (fully empty, no axes, value, nothing) - obviously let's maintain alignment i.e., position duration and distance charts in their respective column
 
 #####
+
+* In the Dashboard page, let's change the text in the Back to Races button, to read Back to Plan
+
+* For workout type Rest, let's have a bar chart (similar to the ones we already have) in the Workout Duration column, with the count of rest days per week (just absolute count I.e., 1, 2, 3, ...; no decimal points needed)
+
+* To be able to easily compare duration or distance charts across all workout types, let's make sure the x axes across all charts run from the earliest to the latest week / date we have data for in the respective training plan

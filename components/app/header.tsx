@@ -8,10 +8,11 @@ import { logout } from "@/app/(auth)/actions"
 
 interface HeaderProps {
     backLink?: string
+    backLinkLabel?: string
     isProfilePage?: boolean
 }
 
-export function Header({ backLink, isProfilePage = false }: HeaderProps) {
+export function Header({ backLink, backLinkLabel = 'Back to Races', isProfilePage = false }: HeaderProps) {
     return (
         <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
             <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-8">
@@ -24,7 +25,7 @@ export function Header({ backLink, isProfilePage = false }: HeaderProps) {
                         <Link href={backLink}>
                             <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground px-3">
                                 <ArrowLeft className="mr-2 h-4 w-4" />
-                                Back to Races
+                                {backLinkLabel}
                             </Button>
                         </Link>
                     )}
