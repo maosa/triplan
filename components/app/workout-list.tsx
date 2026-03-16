@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Plus } from "lucide-react"
+import { Plus, BarChart2 } from "lucide-react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AddEditWorkoutModal } from "@/components/app/add-workout-modal"
 import { getWorkoutIcon } from "@/components/app/workout-icons"
@@ -56,10 +57,21 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
         <div className="space-y-6" ref={listRef}>
             <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-foreground">Workouts</h2>
-                <Button onClick={() => setIsAddModalOpen(true)} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Workout
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Link href={`/${raceId}/dashboard`}>
+                        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 sm:px-4">
+                            <BarChart2 className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Dashboard</span>
+                        </Button>
+                    </Link>
+                    <Button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 sm:px-4"
+                    >
+                        <Plus className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Add Workout</span>
+                    </Button>
+                </div>
             </div>
 
             {sortedWorkouts.length === 0 ? (

@@ -455,3 +455,35 @@ I don't want to change any of the functionality, just looking to make improvemen
 #####
 
 I noticed that when I click on a race card to see that race's training plan, the training plan page may take 1-2 seconds to load. A similar delay exists when navigating from the training plan page back to the races page. That delay is not terribly long, but i'm used to almost instant loading / page switching when using other web apps. What's the reason behind this, and is there anything to be done about it?
+
+#####
+
+Awesome - thanks! Let's go with Recharge.
+
+I want to plan a bit more before moving ahead with development. I'm laying out my thoughts below - please let me know if you have any questions or additional ideas
+
+I envision the charts sitting in their own page. So within each training plan page, we could have a button that redirects to the page with the charts for that specific training plan.
+
+We could have another button on the left of the Add Workout button. That new button could look the same as the Add Workout button, but have a chart-bar Lucid icon and the text "Dashboard" inside. This might get too crowded in the mobile view, so perhaps for smartphone screens we can have both the Add Workout and Dashboard buttons be square buttons that only include their respective icons, without any text.
+
+I envision the dashboard / chart page as follows:
+
+* At the very top we have a header that's the same as that in all other pages. That is the same TriPlan logo, Back to Plan button that directs back to the Training Plan page, Account, and Log Out buttons 
+
+* Under the header, at the top left of the page, we keep the same information on Race Name, Race Date, and Race Location, as we have in the training plan page
+
+* Under the race details, we could also have a breakdown of the count of the different workout types, similar to what we have on Race cards (i.e., workout type icon followed by the number of workouts of that type in the specific training plan)
+
+* Then a grid-like arrangement (without any gridlines) with dimensions 7 rows x 3 columns. The first row contains headers: Workout Type, Workout Duration, Workout Distance. Each of the remaining 6 rows will represent a Workout Type: Swim, Bike, Run, Strength, Rest, Other. These should be represented with their respective icons and colours, in the first column. The second column will contain bar charts showing total Workout Duration per week. The third column will contain bar charts showing total Workout Distance per week
+
+* The charts should be dynamic, with weekly values calculated based on the training plan for that specific race. The x axis on these charts should be in format DD-Mmm-YYYY, and show the date for the Monday of each week
+
+* Charts should be bar charts, with charts coloured in the same colour as the respective workout type icons
+
+* Clicking / hovering over a bar in the chart should cause a tooltip to pop up containing the total duration or distance for that week
+
+* Above each and right-aligned to each chart, we should have a subtle text / subtitle showing the total number of hours (format HH:MM) or total distance (format in total kilometres or miles, based on what users have selected asa units in their account settings) - depending on each chart type
+
+* Users may not always capture both Workout Duration and Workout Distance for all Workout Types. Let's plan to have both chart types for all Workout Types, but if there is no data at all for duration and / or distance for a specific workout type, let's leave that chart space blank (fully empty, no axes, value, nothing) - obviously let's maintain alignment i.e., position duration and distance charts in their respective column
+
+#####
