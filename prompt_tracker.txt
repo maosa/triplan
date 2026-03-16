@@ -493,3 +493,13 @@ I envision the dashboard / chart page as follows:
 * For workout type Rest, let's have a bar chart (similar to the ones we already have) in the Workout Duration column, with the count of rest days per week (just absolute count I.e., 1, 2, 3, ...; no decimal points needed)
 
 * To be able to easily compare duration or distance charts across all workout types, let's make sure the x axes across all charts run from the earliest to the latest week / date we have data for in the respective training plan
+
+#####
+
+* For the Rest bar chart, let's have the chart text that reads "## sessions" changed to "Total: ## rest days"
+
+* For Swim, Bike, Run, Strength, and Other charts, let's have the chart text showing the total duration or total distance be "Total: ##h ##mins", and "Total: ###.#" (with the appropriate distance units as selected in the Account page) respectively
+
+* For chart areas that are blank (i.e., those where we do not have any data for), let's add some faint text that reads "No data". This should be centered vertically and horizontally compared to where the chart would be
+
+#####

@@ -12,7 +12,6 @@ import { getWorkoutIcon } from '@/components/app/workout-icons'
 import {
     buildWeeklyData,
     buildGlobalWeekRange,
-    formatMinutesToHHMM,
     type WorkoutType,
     type WeeklyDataPoint,
 } from '@/lib/chart-utils'
@@ -96,17 +95,27 @@ interface ChartCellProps {
 
 function ChartCell({ data, type, field, units }: ChartCellProps) {
     if (data.length === 0) {
-        // No data — leave cell completely blank
-        return <div />
+        return (
+            <div className="pt-6 flex items-center justify-center" style={{ minHeight: 130 }}>
+                <p className="text-xs text-muted-foreground/40 select-none">No data</p>
+            </div>
+        )
     }
 
     const total = data.reduce((sum, d) => sum + d.value, 0)
+    const distUnit = units === 'imperial' ? 'mi' : 'km'
     const totalLabel =
-        field === 'duration'
-            ? formatMinutesToHHMM(total)
-            : field === 'count'
-            ? `${total} session${total === 1 ? '' : 's'}`
-            : `${total.toFixed(1)} ${units === 'imperial' ? 'mi' : 'km'}`
+        field === 'count'
+            ? `Total: ${total} rest day${total === 1 ? '' : 's'}`
+            : field === 'distance'
+            ? `Total: ${total.toFixed(1)} ${distUnit}`
+            : (() => {
+                const h = Math.floor(total / 60)
+                const m = total % 60
+                if (h > 0 && m > 0) return `Total: ${h}h ${m}mins`
+                if (h > 0)          return `Total: ${h}h`
+                return                      `Total: ${m}mins`
+            })()
 
     const TooltipContent = makeTooltipContent(field, units)
 
