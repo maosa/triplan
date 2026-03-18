@@ -73,7 +73,7 @@ export interface Database {
                     race_id: string
                     user_id: string
                     date: string
-                    type: 'Swim' | 'Bike' | 'Run' | 'Strength' | 'Rest' | 'Stretching' | 'Other'
+                    type: 'Swim' | 'Bike' | 'Run' | 'Strength' | 'Rest' | 'Other'
                     duration: string | null
                     distance: number | null
                     intensity: number | null
@@ -86,7 +86,7 @@ export interface Database {
                     race_id: string
                     user_id: string
                     date: string
-                    type: 'Swim' | 'Bike' | 'Run' | 'Strength' | 'Rest' | 'Stretching' | 'Other'
+                    type: 'Swim' | 'Bike' | 'Run' | 'Strength' | 'Rest' | 'Other'
                     duration?: string | null
                     distance?: number | null
                     intensity?: number | null
@@ -99,7 +99,7 @@ export interface Database {
                     race_id?: string
                     user_id?: string
                     date?: string
-                    type?: 'Swim' | 'Bike' | 'Run' | 'Strength' | 'Rest' | 'Stretching' | 'Other'
+                    type?: 'Swim' | 'Bike' | 'Run' | 'Strength' | 'Rest' | 'Other'
                     duration?: string | null
                     distance?: number | null
                     intensity?: number | null

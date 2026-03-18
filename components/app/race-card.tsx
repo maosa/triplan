@@ -8,7 +8,7 @@ import { MouseEvent } from "react"
 
 type Race = Database['public']['Tables']['races']['Row']
 
-const WORKOUT_TYPE_ORDER = ['Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Stretching', 'Other'] as const
+const WORKOUT_TYPE_ORDER = ['Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Other'] as const
 
 const WORKOUT_TYPE_ICONS: Record<string, typeof Waves> = {
     Swim: Waves,
@@ -16,7 +16,6 @@ const WORKOUT_TYPE_ICONS: Record<string, typeof Waves> = {
     Run: Footprints,
     Strength: Dumbbell,
     Rest: BedDouble,
-    Stretching: Activity,
     Other: Activity,
 }
 

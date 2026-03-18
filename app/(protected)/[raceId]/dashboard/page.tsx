@@ -12,7 +12,7 @@ interface PageProps {
     params: Promise<{ raceId: string }>
 }
 
-const WORKOUT_TYPE_ORDER = ['Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Stretching', 'Other'] as const
+const WORKOUT_TYPE_ORDER = ['Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Other'] as const
 
 const WORKOUT_TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
     Swim: Waves,
@@ -20,7 +20,6 @@ const WORKOUT_TYPE_ICONS: Record<string, React.ComponentType<{ className?: strin
     Run: Footprints,
     Strength: Dumbbell,
     Rest: BedDouble,
-    Stretching: Activity,
     Other: Activity,
 }
 
@@ -30,7 +29,6 @@ const WORKOUT_TYPE_ICON_COLORS: Record<string, string> = {
     Run: 'text-orange-400',
     Strength: 'text-red-400',
     Rest: 'text-gray-400',
-    Stretching: 'text-purple-400',
     Other: 'text-purple-400',
 }
 

@@ -12,8 +12,6 @@ export const getWorkoutIcon = (type: string) => {
             return <Dumbbell className="h-5 w-5 text-red-400" />
         case "Rest":
             return <BedDouble className="h-5 w-5 text-gray-400" />
-        case "Stretching":
-            return <Activity className="h-5 w-5 text-purple-400" />
         case "Other":
             return <Activity className="h-5 w-5 text-purple-400" />
         default:

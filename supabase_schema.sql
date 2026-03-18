@@ -29,7 +29,7 @@ create table workouts (
   race_id uuid references races on delete cascade not null,
   user_id uuid references auth.users on delete cascade not null,
   date date not null,
-  type text not null check (type in ('Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Stretching', 'Other')),
+  type text not null check (type in ('Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Other')),
   duration text, -- Storing as HH:MM text or interval. Text is simpler for basic UI validation, but interval is better for math. Let's use text for now to match UI "HH:MM".
   distance numeric,
   intensity numeric check (intensity >= 0 and intensity <= 10),

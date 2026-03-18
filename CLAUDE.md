@@ -30,7 +30,7 @@ Three tables with Row Level Security — users only access their own data:
 
 - **profiles** — user preferences (units: metric/imperial, theme: dark/light). Auto-created by DB trigger on signup.
 - **races** — user's races (name, location, date, details).
-- **workouts** — training sessions belonging to a race. Types: Swim, Bike, Run, Strength, Rest, Stretching, Other. Duration stored as HH:MM text, intensity 0–10 with 0.5 steps.
+- **workouts** — training sessions belonging to a race. Types: Swim, Bike, Run, Strength, Rest, Other. Duration stored as HH:MM text, intensity 0–10 with 0.5 steps.
 
 Schema defined in `supabase_schema.sql`. RLS optimizations in `rls_optimization.sql`. TypeScript types in `types/database.ts`.
 
@@ -65,7 +65,7 @@ CSS variables defined in `app/globals.css` map to Tailwind's `@theme` block. Use
 
 - **UI primitives** in `components/ui/`: Button (with `isLoading` spinner), Input, Label, Checkbox, Modal. Not shadcn but similar API.
 - **App components** in `components/app/`: Header, Footer, RaceList, RaceCard, WorkoutList, AddEditRaceModal, AddEditWorkoutModal, ProfileForm, CsvManager, workout-icons.
-- The `cn()` utility (clsx + tailwind-merge) lives in `components/ui/button.tsx` and is imported from there by other components.
+- The `cn()` utility (clsx + tailwind-merge) lives in `lib/utils.ts`.
 - Modals are conditionally rendered (not portal-based). Client components use `useTransition` for async server action calls.
 - Workout intensity uses a green-to-red HSL color scale (`lib/colors.ts`).
 
@@ -74,9 +74,3 @@ CSS variables defined in `app/globals.css` map to Tailwind's `@theme` block. Use
 Export: `/api/export` joins races+workouts into a flat CSV with headers: Race Name, Race Location, Race Date, Race Details, Workout Date, Workout Type, Workout Duration, Workout Distance, Workout Intensity, Workout Details.
 
 Import: `importCsvData` in `app/actions.ts` validates headers, date formats (DD/MM/YYYY for workouts), workout types, and checks for duplicate races by name+date before inserting.
-
-### Known Issues
-
-- `Stretching` type exists in DB schema/types but is missing from `WORKOUT_TYPES` in `add-workout-modal.tsx` and CSV import validation.
-- Forgot-password page is a non-functional placeholder.
-- The `cn()` utility is unconventionally located in `button.tsx` rather than a standalone `lib/utils.ts`.
