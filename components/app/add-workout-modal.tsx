@@ -26,6 +26,7 @@ const WORKOUT_TYPES = ["Swim", "Bike", "Run", "Strength", "Rest", "Other"]
 export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, raceDate, units }: AddEditWorkoutModalProps) {
     const [isPending, startTransition] = useTransition()
     const [error, setError] = useState<string | null>(null)
+    const [durationError, setDurationError] = useState<string | null>(null)
     const [confirmAction, setConfirmAction] = useState<'delete' | null>(null)
 
     // Local state for Type to handle Rest logic
@@ -45,7 +46,22 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
     const handleClose = () => {
         setConfirmAction(null)
         setError(null)
+        setDurationError(null)
         onClose()
+    }
+
+    const validateDuration = (value: string): boolean => {
+        if (!value) return true // optional field
+        return /^\d+:[0-5]\d$/.test(value)
+    }
+
+    const handleDurationBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        const value = e.target.value.trim()
+        if (value && !validateDuration(value)) {
+            setDurationError('Please enter duration as HH:MM (e.g. 01:30)')
+        } else {
+            setDurationError(null)
+        }
     }
 
     // Handle Type change
@@ -60,10 +76,17 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
     async function handleSubmit(formData: FormData) {
         setError(null)
         const date = formData.get("date") as string
+        const duration = (formData.get("duration") as string).trim()
 
         // Client-side date validation
         if (new Date(date) > new Date(raceDate)) {
             setError("Date cannot be after race date.")
+            return
+        }
+
+        // Client-side duration validation
+        if (duration && !validateDuration(duration)) {
+            setDurationError('Please enter duration as HH:MM (e.g. 01:30)')
             return
         }
 
@@ -169,7 +192,10 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
                                 placeholder="00:00"
                                 disabled={type === "Rest"}
                                 defaultValue={existingWorkout?.duration || ''}
+                                onBlur={handleDurationBlur}
+                                onChange={() => setDurationError(null)}
                             />
+                            {durationError && <p className="text-destructive text-xs">{durationError}</p>}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="distance">Distance ({units === 'imperial' ? 'mi' : 'km'})</Label>

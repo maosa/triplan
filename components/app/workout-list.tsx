@@ -13,6 +13,14 @@ import { getIntensityColor } from "@/lib/colors"
 
 type Workout = Database['public']['Tables']['workouts']['Row']
 
+function formatDuration(duration: string): string {
+    const parts = duration.split(':')
+    if (parts.length !== 2) return duration
+    const hours = parts[0].padStart(2, '0')
+    const minutes = parts[1].padStart(2, '0')
+    return `${hours}:${minutes}`
+}
+
 interface WorkoutListProps {
     initialWorkouts: Workout[]
     raceId: string
@@ -121,7 +129,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                                     <div className="w-14 sm:w-24 flex justify-center">
                                         {workout.duration ? (
                                             <span className="flex items-center justify-center h-6 w-11 bg-muted rounded px-1 text-xs font-mono tracking-tight text-foreground/90">
-                                                {workout.duration}
+                                                {formatDuration(workout.duration)}
                                             </span>
                                         ) : (
                                             <span className="flex items-center justify-center h-6 w-11 text-muted-foreground/30 font-mono">-</span>
