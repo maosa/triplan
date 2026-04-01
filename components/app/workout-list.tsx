@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Plus, BarChart2 } from "lucide-react"
+import { Plus, BarChart2, Info, X } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AddEditWorkoutModal } from "@/components/app/add-workout-modal"
@@ -12,8 +12,6 @@ import { cn } from "@/lib/utils"
 import { getIntensityColor } from "@/lib/colors"
 
 type Workout = Database['public']['Tables']['workouts']['Row']
-
-const DETAILS_INLINE_THRESHOLD = 40
 
 function formatDuration(duration: string): string {
     const parts = duration.split(':')
@@ -33,6 +31,7 @@ interface WorkoutListProps {
 export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: WorkoutListProps) {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
     const [editingWorkout, setEditingWorkout] = useState<Workout | undefined>(undefined)
+    const [detailsPopupWorkout, setDetailsPopupWorkout] = useState<Workout | null>(null)
 
     // Workouts are already sorted by the server (Date DESC, Updated DESC, Created DESC)
     const sortedWorkouts = initialWorkouts
@@ -119,17 +118,27 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                                         <div className="font-medium text-foreground truncate">
                                             {format(new Date(workout.date), "EEE, dd MMM yyyy")}
                                         </div>
-                                        {workout.details && workout.details.length > DETAILS_INLINE_THRESHOLD ? (
-                                            <>
-                                                <div className="text-sm text-muted-foreground">{workout.type}</div>
-                                                <div className="text-sm text-muted-foreground pr-2 break-words">{workout.details}</div>
-                                            </>
-                                        ) : (
-                                            <div className="text-sm text-muted-foreground truncate">
+                                        {/* Desktop: Type • details, truncated at 110 chars */}
+                                        <div className="hidden sm:block text-sm text-muted-foreground truncate">
+                                            {workout.type}
+                                            {workout.details && ` • ${workout.details.length > 110 ? workout.details.slice(0, 110) + '…' : workout.details}`}
+                                        </div>
+                                        {/* Mobile: Type • [info icon] */}
+                                        <div className="sm:hidden flex items-center gap-1 text-sm text-muted-foreground">
+                                            <span className="truncate min-w-0">
                                                 {workout.type}
-                                                {workout.details && ` • ${workout.details}`}
-                                            </div>
-                                        )}
+                                                {workout.details && " •"}
+                                            </span>
+                                            {workout.details && (
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); setDetailsPopupWorkout(workout) }}
+                                                    className="flex-shrink-0 text-muted-foreground active:text-foreground"
+                                                    aria-label="View workout details"
+                                                >
+                                                    <Info className="h-3.5 w-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -169,6 +178,43 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                         )
                     })}
                 </div>
+            )}
+
+            {/* Mobile details popup */}
+            {detailsPopupWorkout && (
+                <>
+                    {/* Transparent backdrop — click outside to close */}
+                    <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setDetailsPopupWorkout(null)}
+                    />
+                    {/* Popup */}
+                    <div className="fixed z-50 inset-x-6 top-1/2 -translate-y-1/2 rounded-2xl border border-border bg-card/90 backdrop-blur-sm shadow-2xl p-5">
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <span className="flex-shrink-0 text-foreground">
+                                    {getWorkoutIcon(detailsPopupWorkout.type)}
+                                </span>
+                                <div className="min-w-0">
+                                    <span className="font-semibold text-sm text-foreground">{detailsPopupWorkout.type}</span>
+                                    <p className="text-xs text-muted-foreground truncate">
+                                        {format(new Date(detailsPopupWorkout.date), "EEE, dd MMM yyyy")}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setDetailsPopupWorkout(null)}
+                                className="flex-shrink-0 text-muted-foreground hover:text-foreground mt-0.5"
+                                aria-label="Close"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                            {detailsPopupWorkout.details}
+                        </p>
+                    </div>
+                </>
             )}
 
             {isAddModalOpen && (
