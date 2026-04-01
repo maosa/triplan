@@ -13,6 +13,8 @@ import { getIntensityColor } from "@/lib/colors"
 
 type Workout = Database['public']['Tables']['workouts']['Row']
 
+const DETAILS_INLINE_THRESHOLD = 40
+
 function formatDuration(duration: string): string {
     const parts = duration.split(':')
     if (parts.length !== 2) return duration
@@ -117,10 +119,17 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                                         <div className="font-medium text-foreground truncate">
                                             {format(new Date(workout.date), "EEE, dd MMM yyyy")}
                                         </div>
-                                        <div className="text-sm text-muted-foreground truncate">
-                                            {workout.type}
-                                            {workout.details && ` • ${workout.details}`}
-                                        </div>
+                                        {workout.details && workout.details.length > DETAILS_INLINE_THRESHOLD ? (
+                                            <>
+                                                <div className="text-sm text-muted-foreground">{workout.type}</div>
+                                                <div className="text-sm text-muted-foreground pr-2 break-words">{workout.details}</div>
+                                            </>
+                                        ) : (
+                                            <div className="text-sm text-muted-foreground truncate">
+                                                {workout.type}
+                                                {workout.details && ` • ${workout.details}`}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
