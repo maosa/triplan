@@ -13,6 +13,28 @@ import { getIntensityColor } from "@/lib/colors"
 
 type Workout = Database['public']['Tables']['workouts']['Row']
 
+function useWindowWidth(): number {
+    const [width, setWidth] = useState(0)
+    useEffect(() => {
+        setWidth(window.innerWidth)
+        const handleResize = () => setWidth(window.innerWidth)
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+    return width
+}
+
+function getDetailsMaxChars(windowWidth: number): number {
+    if (windowWidth >= 3440) return 200  // ~34 in
+    if (windowWidth >= 3008) return 180  // ~32 in
+    if (windowWidth >= 2560) return 165  // ~27 in
+    if (windowWidth >= 2048) return 150  // ~22–24 in
+    if (windowWidth >= 1920) return 140  // ~20 in
+    if (windowWidth >= 1680) return 130  // ~17 in
+    if (windowWidth >= 1440) return 120  // ~15 in
+    return 110                           // ~13 in (default / SSR)
+}
+
 function formatDuration(duration: string): string {
     const parts = duration.split(':')
     if (parts.length !== 2) return duration
@@ -32,6 +54,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
     const [editingWorkout, setEditingWorkout] = useState<Workout | undefined>(undefined)
     const [detailsPopupWorkout, setDetailsPopupWorkout] = useState<Workout | null>(null)
+    const windowWidth = useWindowWidth()
 
     // Workouts are already sorted by the server (Date DESC, Updated DESC, Created DESC)
     const sortedWorkouts = initialWorkouts
@@ -121,7 +144,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                                         {/* Desktop: Type • details, truncated at 110 chars */}
                                         <div className="hidden sm:block text-sm text-muted-foreground truncate">
                                             {workout.type}
-                                            {workout.details && ` • ${workout.details.length > 110 ? workout.details.slice(0, 110) + '…' : workout.details}`}
+                                            {workout.details && ` • ${workout.details.length > getDetailsMaxChars(windowWidth) ? workout.details.slice(0, getDetailsMaxChars(windowWidth)) + '…' : workout.details}`}
                                         </div>
                                         {/* Mobile: Type • [info icon] */}
                                         <div className="sm:hidden flex items-center gap-1 text-sm text-muted-foreground">
