@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import Papa from 'papaparse'
+import { logSecurityEvent } from '@/lib/security-events'
 
 // Prevent CSV formula injection: spreadsheet apps treat cells starting with
 // =, +, -, @, \t, or \r as formulas. Prefix them with a single-quote so the
@@ -71,6 +72,12 @@ export async function GET(request: Request) {
     }
 
     const csv = Papa.unparse(rows)
+
+    await logSecurityEvent({
+        userId: user.id,
+        eventType: 'csv_export',
+        metadata: { race_count: races.length },
+    })
 
     return new NextResponse(csv, {
         headers: {

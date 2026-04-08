@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { headers, cookies } from 'next/headers'
+import { logFailedLogin, logSecurityEvent, hashEmail } from '@/lib/security-events'
 
 type ActionResult = { error?: string; success?: boolean | string }
 
@@ -19,6 +20,13 @@ export async function login(formData: FormData): Promise<ActionResult> {
     })
 
     if (error) {
+        // Log the failed attempt. IP and UA are best-effort — proxies may strip them.
+        const h = await headers()
+        await logFailedLogin(
+            email,
+            h.get('x-forwarded-for') ?? h.get('x-real-ip'),
+            h.get('user-agent'),
+        )
         // Return a generic message to avoid leaking whether an email exists
         return { error: 'Invalid email or password.' }
     }
@@ -101,6 +109,12 @@ export async function resetPassword(formData: FormData): Promise<{ error?: strin
     if (error) {
         return { error: error.message }
     }
+
+    await logSecurityEvent({
+        userId: null, // no session at this point
+        eventType: 'password_reset_requested',
+        metadata: { email_hash: hashEmail(email) },
+    })
 
     return { success: 'Check your email for a password reset link.' }
 }

@@ -108,6 +108,29 @@ export interface Database {
                     updated_at?: string
                 }
             }
+            security_events: {
+                Row: {
+                    id: string
+                    user_id: string | null
+                    event_type: string
+                    metadata: Record<string, unknown>
+                    ip_address: string | null
+                    user_agent: string | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id?: string | null
+                    event_type: string
+                    metadata?: Record<string, unknown>
+                    ip_address?: string | null
+                    user_agent?: string | null
+                    created_at?: string
+                }
+                // Audit log is append-only — updates are never permitted.
+                // Using `never` causes a compile-time error on any .update() call.
+                Update: never
+            }
         }
     }
 }

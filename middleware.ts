@@ -1,8 +1,44 @@
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-    return await updateSession(request)
+    // Generate a fresh cryptographic nonce for every request.
+    // Using crypto.randomUUID() (available in the Next.js Edge runtime),
+    // base64-encoded to keep it safe for use in HTTP headers and HTML attributes.
+    const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+
+    const csp = [
+        "default-src 'self'",
+        // 'nonce-...' replaces 'unsafe-inline'. The nonce is passed to <Script>
+        // components in layout.tsx so Next.js renders <script nonce="..."> tags.
+        `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com`,
+        // next/font/google self-hosts fonts at build time — no external font CDN needed
+        "font-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: https:",
+        // Supabase API + realtime WS, GA collection endpoints
+        "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+    ].join('; ')
+
+    // Attach the nonce to the forwarded request headers so Server Components
+    // can read it via headers() from next/headers (used in app/layout.tsx).
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-nonce', nonce)
+
+    // Create a new NextRequest with the modified headers so updateSession
+    // forwards them to the Server Component render context.
+    const modifiedRequest = new NextRequest(request, { headers: requestHeaders })
+
+    // Run Supabase session refresh and auth redirect logic
+    const response = await updateSession(modifiedRequest)
+
+    // Set the nonce-based CSP on the response so browsers enforce it
+    response.headers.set('Content-Security-Policy', csp)
+
+    return response
 }
 
 export const config = {
@@ -12,7 +48,6 @@ export const config = {
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
-         * Feel free to modify this pattern to include more paths.
          */
         '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],

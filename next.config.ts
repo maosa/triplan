@@ -13,27 +13,8 @@ const securityHeaders = [
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
   // Restrict access to browser features
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
-  // Content Security Policy
-  // NOTE: 'unsafe-inline' for scripts is required by the Google Analytics inline init snippet.
-  // To harden this further, migrate GA init to a /public/analytics.js file and implement
-  // Next.js nonce-based CSP (https://nextjs.org/docs/app/building-your-application/configuring/content-security-policy).
-  {
-    key: 'Content-Security-Policy',
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com",
-      // next/font/google self-hosts fonts at build time, no external font CDN needed
-      "font-src 'self'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https:",
-      // Supabase API + realtime WS, GA collection endpoint
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com",
-      "frame-ancestors 'none'",
-      // Restrict <base> and <form> targets
-      "base-uri 'self'",
-      "form-action 'self'",
-    ].join('; '),
-  },
+  // Content-Security-Policy is set dynamically in middleware.ts with a per-request
+  // nonce, replacing 'unsafe-inline'. Do not add a static CSP entry here.
 ]
 
 const nextConfig: NextConfig = {

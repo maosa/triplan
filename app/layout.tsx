@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { Footer } from "@/components/app/footer";
 import Script from "next/script";
 
@@ -24,22 +24,27 @@ export default async function RootLayout({
   const cookieStore = await cookies()
   const theme = cookieStore.get('theme')?.value || 'dark'
 
+  // Read the per-request nonce injected by middleware.ts.
+  // Passing it to <Script> causes Next.js to render <script nonce="..."> tags,
+  // which satisfies the nonce-based CSP (no 'unsafe-inline' needed).
+  const headersList = await headers()
+  const nonce = headersList.get('x-nonce') ?? ''
+
   return (
     <html lang="en" className={theme}>
       <head>
+        {/* Load the GA library — nonce authorises this script tag */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-HD03HER1E2"
           strategy="afterInteractive"
+          nonce={nonce}
         />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-
-            gtag('config', 'G-HD03HER1E2');
-          `}
-        </Script>
+        {/* GA init is in /public/analytics.js — no inline code, no 'unsafe-inline' needed */}
+        <Script
+          src="/analytics.js"
+          strategy="afterInteractive"
+          nonce={nonce}
+        />
       </head>
       <body className={`${inter.variable} antialiased flex flex-col min-h-screen`}>
         <div className="flex-1 flex flex-col">

@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { Database } from '@/types/database'
 import Papa from 'papaparse'
+import { logSecurityEvent, hashEmail } from '@/lib/security-events'
 
 type Race = Database['public']['Tables']['races']['Row']
 
@@ -268,6 +269,18 @@ export async function updateProfile(formData: FormData): Promise<ActionResult> {
 export async function deleteAccount(formData: FormData) {
     const supabase = await createClient()
 
+    // Fetch the user first so we can log the event with their ID before deletion.
+    // After delete_user() runs, the auth.users row is gone and user_id would be NULL.
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (user) {
+        await logSecurityEvent({
+            userId: user.id,
+            eventType: 'account_deleted',
+            metadata: { email_hash: hashEmail(user.email ?? '') },
+        })
+    }
+
     const { error } = await supabase.rpc('delete_user')
 
     if (error) return dbError('deleteAccount', error)
@@ -312,6 +325,25 @@ export async function updateSecuritySettings(formData: FormData): Promise<Action
     if (error) {
         // Supabase auth errors are generally safe to surface (e.g. "New password should be different")
         return { error: error.message }
+    }
+
+    // Audit log — log after the successful update so we don't record events for failed attempts
+    if ('email' in updates) {
+        await logSecurityEvent({
+            userId: user.id,
+            eventType: 'email_changed',
+            metadata: {
+                old_email_hash: hashEmail(user.email ?? ''),
+                new_email_hash: hashEmail(updates.email!),
+            },
+        })
+    }
+    if ('password' in updates) {
+        await logSecurityEvent({
+            userId: user.id,
+            eventType: 'password_changed',
+            metadata: {},
+        })
     }
 
     return { success: 'Security settings updated successfully.' }
@@ -526,6 +558,12 @@ export async function importCsvData(formData: FormData): Promise<ActionResult> {
             return dbError('importCsvData (workouts insert)', wError)
         }
     }
+
+    await logSecurityEvent({
+        userId: user.id,
+        eventType: 'csv_import',
+        metadata: { row_count: workoutsToInsert.length, race_name: raceNameRef },
+    })
 
     revalidatePath('/')
     return { success: true }
