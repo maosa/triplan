@@ -2,6 +2,17 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import Papa from 'papaparse'
 
+// Prevent CSV formula injection: spreadsheet apps treat cells starting with
+// =, +, -, @, \t, or \r as formulas. Prefix them with a single-quote so the
+// content is treated as plain text.
+function sanitizeCsvField(value: string): string {
+    if (!value) return value
+    if (/^[=+\-@\t\r]/.test(value)) {
+        return `'${value}`
+    }
+    return value
+}
+
 export async function GET(request: Request) {
     const supabase = await createClient()
 
@@ -26,16 +37,14 @@ export async function GET(request: Request) {
 
     for (const race of races) {
         const workouts = race.workouts || []
-        // Sort workouts by date
         workouts.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
         if (workouts.length === 0) {
             rows.push({
-                "Race Name": race.name,
-                "Race Location": race.location || '',
+                "Race Name": sanitizeCsvField(race.name),
+                "Race Location": sanitizeCsvField(race.location || ''),
                 "Race Date": race.date,
-                "Race Details": race.details || '',
-                // Workout fields blank
+                "Race Details": sanitizeCsvField(race.details || ''),
                 "Workout Date": '',
                 "Workout Type": '',
                 "Workout Duration": '',
@@ -46,16 +55,16 @@ export async function GET(request: Request) {
         } else {
             for (const workout of workouts) {
                 rows.push({
-                    "Race Name": race.name,
-                    "Race Location": race.location || '',
+                    "Race Name": sanitizeCsvField(race.name),
+                    "Race Location": sanitizeCsvField(race.location || ''),
                     "Race Date": race.date,
-                    "Race Details": race.details || '',
+                    "Race Details": sanitizeCsvField(race.details || ''),
                     "Workout Date": workout.date,
                     "Workout Type": workout.type,
                     "Workout Duration": workout.duration || '',
                     "Workout Distance": workout.distance || '',
                     "Workout Intensity": workout.intensity !== null ? workout.intensity : '',
-                    "Workout Details": workout.details || '',
+                    "Workout Details": sanitizeCsvField(workout.details || ''),
                 })
             }
         }
@@ -65,8 +74,11 @@ export async function GET(request: Request) {
 
     return new NextResponse(csv, {
         headers: {
-            'Content-Type': 'text/csv',
+            'Content-Type': 'text/csv; charset=utf-8',
             'Content-Disposition': `attachment; filename="triplan-export-${new Date().toISOString().split('T')[0]}.csv"`,
+            // Prevent the exported file from being cached — it contains personal data
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            'X-Content-Type-Options': 'nosniff',
         },
     })
 }

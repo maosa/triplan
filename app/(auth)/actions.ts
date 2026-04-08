@@ -4,7 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { headers, cookies } from 'next/headers'
 
-export async function login(formData: FormData) {
+type ActionResult = { error?: string; success?: boolean | string }
+
+export async function login(formData: FormData): Promise<ActionResult> {
     const email = formData.get('email') as string
     const password = formData.get('password') as string
     const rememberMe = formData.get('rememberMe') === 'on'
@@ -17,7 +19,8 @@ export async function login(formData: FormData) {
     })
 
     if (error) {
-        return { error: error.message }
+        // Return a generic message to avoid leaking whether an email exists
+        return { error: 'Invalid email or password.' }
     }
 
     // Bootstrap theme cookie from user's profile so the root layout
@@ -35,6 +38,8 @@ export async function login(formData: FormData) {
                 path: '/',
                 maxAge: 60 * 60 * 24 * 365,
                 sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+                httpOnly: true,
             })
         }
     }
@@ -42,7 +47,7 @@ export async function login(formData: FormData) {
     redirect('/')
 }
 
-export async function signup(formData: FormData) {
+export async function signup(formData: FormData): Promise<{ error?: string; success?: string }> {
     const email = formData.get('email') as string
     const password = formData.get('password') as string
     const firstName = formData.get('firstName') as string
@@ -82,7 +87,7 @@ export async function signup(formData: FormData) {
     }
 }
 
-export async function resetPassword(formData: FormData) {
+export async function resetPassword(formData: FormData): Promise<{ error?: string; success?: string }> {
     const email = formData.get('email') as string
 
     const supabase = await createClient()
@@ -100,7 +105,7 @@ export async function resetPassword(formData: FormData) {
     return { success: 'Check your email for a password reset link.' }
 }
 
-export async function updatePassword(formData: FormData) {
+export async function updatePassword(formData: FormData): Promise<ActionResult> {
     const password = formData.get('password') as string
     const confirmPassword = formData.get('confirmPassword') as string
 
@@ -108,8 +113,17 @@ export async function updatePassword(formData: FormData) {
         return { error: 'Passwords do not match.' }
     }
 
-    if (password.length < 6) {
-        return { error: 'Password must be at least 6 characters.' }
+    if (password.length < 12) {
+        return { error: 'Password must be at least 12 characters.' }
+    }
+    if (!/[A-Z]/.test(password)) {
+        return { error: 'Password must contain at least one uppercase letter.' }
+    }
+    if (!/[a-z]/.test(password)) {
+        return { error: 'Password must contain at least one lowercase letter.' }
+    }
+    if (!/[0-9]/.test(password)) {
+        return { error: 'Password must contain at least one number.' }
     }
 
     const supabase = await createClient()

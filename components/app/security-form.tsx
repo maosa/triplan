@@ -16,7 +16,7 @@ export function SecurityForm({ currentEmail }: { currentEmail: string }) {
         setError(null)
         setSuccess(false)
         startTransition(async () => {
-            const result = await updateSecuritySettings(currentEmail, formData)
+            const result = await updateSecuritySettings(formData)
             if (result?.error) {
                 setError(result.error)
             } else if (result?.success) {
