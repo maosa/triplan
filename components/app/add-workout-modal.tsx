@@ -76,7 +76,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
     async function handleSubmit(formData: FormData) {
         setError(null)
         const date = formData.get("date") as string
-        const duration = (formData.get("duration") as string).trim()
+        const duration = ((formData.get("duration") as string) || '').trim()
 
         // Client-side date validation
         if (new Date(date) > new Date(raceDate)) {
