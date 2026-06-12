@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { cookies, headers } from "next/headers";
-import { Footer } from "@/components/app/footer";
 import Script from "next/script";
 
 const inter = Inter({
@@ -50,7 +49,6 @@ export default async function RootLayout({
         <div className="flex-1 flex flex-col">
           {children}
         </div>
-        <Footer />
       </body>
     </html>
   );
