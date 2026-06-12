@@ -1,7 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { RaceList } from '@/components/app/race-list'
-import { Header } from '@/components/app/header'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -12,35 +10,18 @@ export default async function Home() {
     redirect('/login')
   }
 
-  const [{ data: races, error }, { data: workouts, error: workoutsError }] = await Promise.all([
-    supabase.from('races').select('*').order('date', { ascending: false }),
-    supabase.from('workouts').select('race_id, type'),
-  ])
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('landing_page')
+    .eq('id', user.id)
+    .single()
 
-  if (error) {
-    console.error('Error fetching races:', error)
+  const landingPage = profile?.landing_page
+  if (landingPage === 'maintenance') {
+    redirect('/maintenance')
+  } else if (landingPage === 'results') {
+    redirect('/results')
+  } else {
+    redirect('/races')
   }
-  if (workoutsError) {
-    console.error('Error fetching workouts:', workoutsError)
-  }
-
-  // Build workout counts per race: { raceId: { Swim: 3, Run: 5, ... } }
-  const workoutCounts: Record<string, Record<string, number>> = {}
-  if (workouts) {
-    for (const w of workouts) {
-      if (!workoutCounts[w.race_id]) {
-        workoutCounts[w.race_id] = {}
-      }
-      workoutCounts[w.race_id][w.type] = (workoutCounts[w.race_id][w.type] || 0) + 1
-    }
-  }
-
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Header />
-      <main className="container mx-auto px-4 py-8 sm:px-8 space-y-12">
-        <RaceList initialRaces={races || []} workoutCounts={workoutCounts} />
-      </main>
-    </div>
-  )
 }
