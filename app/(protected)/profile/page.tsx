@@ -37,6 +37,15 @@ export default async function ProfilePage() {
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-foreground">Preferences</h2>
                     <ProfileForm profile={profile} />
+                </div>
+
+                <div className="space-y-6">
+                    <div className="space-y-1">
+                        <h2 className="text-xl font-semibold text-foreground">Maintenance Training</h2>
+                        <p className="text-sm text-muted-foreground">
+                            Set your default weekly schedule. Apply it to any week from the Maintenance page.
+                        </p>
+                    </div>
                     <MaintenanceDefaultsForm initialDefaults={profile?.maintenance_defaults ?? {}} />
                 </div>
 

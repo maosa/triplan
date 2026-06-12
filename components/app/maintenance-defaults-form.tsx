@@ -59,13 +59,6 @@ export function MaintenanceDefaultsForm({ initialDefaults }: { initialDefaults: 
 
   return (
     <div className="rounded-lg border border-border bg-card p-6 space-y-6">
-      <div>
-        <h3 className="text-base font-semibold text-foreground">Maintenance Training</h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          Set your default weekly schedule. Apply it to any week from the Maintenance page.
-        </p>
-      </div>
-
       <MaintenanceGrid
         columns={DAYS.map((d) => ({ key: d.key, label: d.label, isToday: false }))}
         values={schedule}
