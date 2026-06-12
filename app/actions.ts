@@ -231,10 +231,12 @@ export async function duplicateWorkout(workout: Database['public']['Tables']['wo
 export async function updateProfile(formData: FormData): Promise<ActionResult> {
     const units = formData.get('units') as string
     const theme = formData.get('theme') as string
+    const landingPage = formData.get('landing_page') as string
 
     // Validate against known-good values to prevent injection
     if (!['metric', 'imperial'].includes(units)) return { error: 'Invalid units value.' }
     if (!['light', 'dark'].includes(theme)) return { error: 'Invalid theme value.' }
+    if (!['races', 'maintenance', 'results'].includes(landingPage)) return { error: 'Invalid landing page value.' }
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -246,6 +248,7 @@ export async function updateProfile(formData: FormData): Promise<ActionResult> {
     const { error } = await supabase.from('profiles').update({
         units: units as 'metric' | 'imperial',
         theme: theme as 'light' | 'dark',
+        landing_page: landingPage as 'races' | 'maintenance' | 'results',
     }).eq('id', user.id)
 
     if (error) return dbError('updateProfile', error)
@@ -263,6 +266,40 @@ export async function updateProfile(formData: FormData): Promise<ActionResult> {
     // Do NOT revalidate path to prevent client component remount/snap-back.
     // Client side state is updated optimistically.
     // revalidatePath('/', 'layout')
+    return { success: true }
+}
+
+export async function updateMaintenanceDefaults(formData: FormData): Promise<ActionResult> {
+    const scheduleRaw = formData.get('schedule') as string
+
+    let parsed: Record<string, { am: string | null; pm: string | null }>
+    try {
+        parsed = JSON.parse(scheduleRaw)
+    } catch {
+        return { error: 'Invalid schedule data.' }
+    }
+
+    const validTypes = new Set<string | null>(['Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Other', null])
+    const validDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+
+    for (const day of validDays) {
+        const slot = parsed[day]
+        if (!slot || typeof slot !== 'object') continue
+        if (!validTypes.has(slot.am)) return { error: `Invalid workout type for ${day} AM.` }
+        if (!validTypes.has(slot.pm)) return { error: `Invalid workout type for ${day} PM.` }
+    }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('User not authenticated')
+
+    const { error } = await supabase.from('profiles').update({
+        maintenance_defaults: parsed,
+    }).eq('id', user.id)
+
+    if (error) return dbError('updateMaintenanceDefaults', error)
+
     return { success: true }
 }
 

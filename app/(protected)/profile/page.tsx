@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Header } from '@/components/app/header'
 import { ProfileForm } from '@/components/app/profile-form'
+import { MaintenanceDefaultsForm } from '@/components/app/maintenance-defaults-form'
 import { CsvManager } from '@/components/app/csv-manager'
 import { SecurityForm } from '@/components/app/security-form'
 import { DeleteAccountSection } from '@/components/app/delete-account-section'
@@ -36,6 +37,7 @@ export default async function ProfilePage() {
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-foreground">Preferences</h2>
                     <ProfileForm profile={profile} />
+                    <MaintenanceDefaultsForm initialDefaults={profile?.maintenance_defaults ?? {}} />
                 </div>
 
                 <div className="space-y-6">

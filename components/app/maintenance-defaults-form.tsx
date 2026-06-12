@@ -1,0 +1,90 @@
+"use client"
+
+import { useState, useTransition } from 'react'
+import { Button } from '@/components/ui/button'
+import { MaintenanceGrid } from './maintenance-grid'
+import { updateMaintenanceDefaults } from '@/app/actions'
+import { type WorkoutCellType } from '@/lib/maintenance-colors'
+import { type MaintenanceDefaults } from '@/types/database'
+
+const DAYS = [
+  { key: 'mon', label: 'Mon' },
+  { key: 'tue', label: 'Tue' },
+  { key: 'wed', label: 'Wed' },
+  { key: 'thu', label: 'Thu' },
+  { key: 'fri', label: 'Fri' },
+  { key: 'sat', label: 'Sat' },
+  { key: 'sun', label: 'Sun' },
+] as const
+
+function emptySchedule(): MaintenanceDefaults {
+  return Object.fromEntries(DAYS.map((d) => [d.key, { am: null, pm: null }]))
+}
+
+function seedFromDefaults(defaults: MaintenanceDefaults): MaintenanceDefaults {
+  const base = emptySchedule()
+  for (const day of DAYS) {
+    const slot = defaults[day.key]
+    if (slot) base[day.key] = { am: slot.am ?? null, pm: slot.pm ?? null }
+  }
+  return base
+}
+
+export function MaintenanceDefaultsForm({ initialDefaults }: { initialDefaults: MaintenanceDefaults }) {
+  const [schedule, setSchedule] = useState<MaintenanceDefaults>(() => seedFromDefaults(initialDefaults))
+  const [isPending, startTransition] = useTransition()
+  const [success, setSuccess] = useState(false)
+
+  const handleChange = (key: string, session: 'am' | 'pm', value: WorkoutCellType | null) => {
+    setSchedule((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], [session]: value },
+    }))
+  }
+
+  const handleClear = () => setSchedule(emptySchedule())
+
+  const handleSave = () => {
+    setSuccess(false)
+    startTransition(async () => {
+      const formData = new FormData()
+      formData.set('schedule', JSON.stringify(schedule))
+      const result = await updateMaintenanceDefaults(formData)
+      if (result?.success) {
+        setSuccess(true)
+        setTimeout(() => setSuccess(false), 3000)
+      }
+    })
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-6 space-y-6">
+      <div>
+        <h3 className="text-base font-semibold text-foreground">Maintenance Training</h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          Set your default weekly schedule. Apply it to any week from the Maintenance page.
+        </p>
+      </div>
+
+      <MaintenanceGrid
+        columns={DAYS.map((d) => ({ key: d.key, label: d.label, isToday: false }))}
+        values={schedule}
+        onChange={handleChange}
+      />
+
+      <div className="flex items-center gap-3 flex-wrap">
+        <Button type="button" onClick={handleSave} isLoading={isPending}>
+          Save Schedule
+        </Button>
+        <Button type="button" variant="ghost" onClick={handleClear} disabled={isPending}>
+          Clear
+        </Button>
+        {success && (
+          <span className="text-sm font-medium text-green-500 animate-in fade-in slide-in-from-top-2">
+            Schedule saved.
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
