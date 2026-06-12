@@ -24,7 +24,7 @@ export default async function ProfilePage() {
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            <Header backLink="/races" isProfilePage={true} />
+            <Header />
 
             <main className="container max-w-2xl mx-auto px-4 py-8 sm:px-8 space-y-8">
                 <div className="space-y-2">
