@@ -21,6 +21,12 @@ interface MaintenanceGridProps {
 const LABEL_COL = 'minmax(2rem, auto)'
 const DAY_COLS = 'repeat(7, minmax(0, 1fr))'
 
+// Display labels for the two daily training sessions. These are decoupled from
+// time of day (a session could be morning, lunch, or evening) and from the
+// internal 'am'/'pm' keys — change here to relabel everywhere (live grid +
+// Account Settings defaults editor).
+const SESSION_LABELS = { am: '1st', pm: '2nd' } as const
+
 export function MaintenanceGrid({ columns, values, onChange, readOnly }: MaintenanceGridProps) {
   const getValue = (key: string, session: 'am' | 'pm') => values[key]?.[session] ?? null
   const handleChange = (key: string, session: 'am' | 'pm', value: WorkoutCellType | null) => {
@@ -56,7 +62,7 @@ export function MaintenanceGrid({ columns, values, onChange, readOnly }: Mainten
         {/* AM row */}
         <div className="grid gap-1.5" style={{ gridTemplateColumns: `${LABEL_COL} ${DAY_COLS}` }}>
           <div className="flex items-center justify-end pr-2">
-            <span className="text-xs font-medium text-muted-foreground">AM</span>
+            <span className="text-xs font-medium text-muted-foreground">{SESSION_LABELS.am}</span>
           </div>
           {columns.map((col) => (
             <MaintenanceCell
@@ -71,7 +77,7 @@ export function MaintenanceGrid({ columns, values, onChange, readOnly }: Mainten
         {/* PM row */}
         <div className="grid gap-1.5" style={{ gridTemplateColumns: `${LABEL_COL} ${DAY_COLS}` }}>
           <div className="flex items-center justify-end pr-2">
-            <span className="text-xs font-medium text-muted-foreground">PM</span>
+            <span className="text-xs font-medium text-muted-foreground">{SESSION_LABELS.pm}</span>
           </div>
           {columns.map((col) => (
             <MaintenanceCell
@@ -89,8 +95,8 @@ export function MaintenanceGrid({ columns, values, onChange, readOnly }: Mainten
         {/* Header row */}
         <div className="grid grid-cols-[5rem_1fr_1fr] gap-1.5">
           <div />
-          <div className="text-center text-xs font-medium text-muted-foreground">AM</div>
-          <div className="text-center text-xs font-medium text-muted-foreground">PM</div>
+          <div className="text-center text-xs font-medium text-muted-foreground">{SESSION_LABELS.am}</div>
+          <div className="text-center text-xs font-medium text-muted-foreground">{SESSION_LABELS.pm}</div>
         </div>
 
         {/* Day rows */}
