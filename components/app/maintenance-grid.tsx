@@ -108,9 +108,9 @@ export function MaintenanceGrid({ columns, values, onChange, readOnly }: Mainten
                 col.isToday ? 'text-primary font-semibold' : 'text-muted-foreground'
               )}
             >
-              {col.label}
+              <span className="inline-block w-8 shrink-0">{col.label}</span>
               {col.sublabel && (
-                <span className="ml-1 text-[10px] text-muted-foreground/70">{col.sublabel}</span>
+                <span className="text-[10px] text-muted-foreground/70">{col.sublabel}</span>
               )}
             </div>
             <MaintenanceCell

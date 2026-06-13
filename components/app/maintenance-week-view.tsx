@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { format, addWeeks, subWeeks, isSameWeek, isSameMonth, isSameYear, isSameDay } from 'date-fns'
+import { format, addWeeks, subWeeks, isSameWeek, isSameDay } from 'date-fns'
 import { ChevronLeft, ChevronRight, ClipboardPaste, Eraser, CalendarCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
@@ -49,7 +49,7 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
   const columns = weekDays.map((day) => ({
     key: toDateString(day),
     label: format(day, 'EEE'),
-    sublabel: format(day, 'd MMM'),
+    sublabel: format(day, 'dd MMM'),
     isToday: isSameDay(day, today),
   }))
 
@@ -102,21 +102,14 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
   // True when the displayed week has at least one populated cell (enables Clear).
   const weekHasEntries = Object.values(values).some((s) => s.am || s.pm)
 
-  // Count entries within the displayed week / month / year, bucketed by type.
-  const countFor = (predicate: (d: Date) => boolean): Record<string, number> => {
-    const counts: Record<string, number> = {}
-    for (const entry of entries) {
-      const d = parseDateString(entry.date)
-      if (d && predicate(d)) {
-        counts[entry.type] = (counts[entry.type] || 0) + 1
-      }
+  // Count entries within the displayed week, bucketed by type.
+  const weekCounts: Record<string, number> = {}
+  for (const entry of entries) {
+    const d = parseDateString(entry.date)
+    if (d && isSameWeek(d, weekStartDate, { weekStartsOn: 1 })) {
+      weekCounts[entry.type] = (weekCounts[entry.type] || 0) + 1
     }
-    return counts
   }
-
-  const weekCounts = countFor((d) => isSameWeek(d, weekStartDate, { weekStartsOn: 1 }))
-  const monthCounts = countFor((d) => isSameMonth(d, weekStartDate))
-  const yearCounts = countFor((d) => isSameYear(d, weekStartDate))
 
   return (
     <div className="space-y-8">
@@ -206,8 +199,6 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
       {/* Summary stats */}
       <div className="space-y-3">
         <StatsRow label="This week" counts={weekCounts} />
-        <StatsRow label="This month" counts={monthCounts} />
-        <StatsRow label="This year" counts={yearCounts} />
       </div>
 
       {/* Paste confirmation */}

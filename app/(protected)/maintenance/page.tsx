@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Header } from '@/components/app/header'
 import { MaintenanceWeekView } from '@/components/app/maintenance-week-view'
 import { getWeekStart, parseDateString, toDateString } from '@/lib/date-utils'
+import { addDays } from 'date-fns'
 
 interface PageProps {
   searchParams: Promise<{ week?: string }>
@@ -24,19 +25,16 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
   const weekStartDate = getWeekStart(requested ?? new Date())
   const weekStart = toDateString(weekStartDate)
 
-  // Year range covering the displayed week's Monday — supplies the grid and the
-  // week/month/year summary stats in one query.
-  const year = weekStartDate.getFullYear()
-  const yearStart = `${year}-01-01`
-  const yearEnd = `${year}-12-31`
+  // Displayed week's Mon–Sun range — supplies the grid and the "This week" stats.
+  const weekEnd = toDateString(addDays(weekStartDate, 6))
 
   const [{ data: profile }, { data: entries, error: entriesError }] = await Promise.all([
     supabase.from('profiles').select('maintenance_defaults').eq('id', user.id).single(),
     supabase
       .from('maintenance_entries')
       .select('*')
-      .gte('date', yearStart)
-      .lte('date', yearEnd),
+      .gte('date', weekStart)
+      .lte('date', weekEnd),
   ])
 
   if (entriesError) {
