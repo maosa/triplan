@@ -1,7 +1,8 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { ChevronDown } from "lucide-react"
+import { ArrowDownUp } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { ResultsCard } from "@/components/app/results-card"
 import { RaceResultsModal } from "@/components/app/race-results-modal"
 import type { Database } from "@/types/database"
@@ -38,18 +39,15 @@ export function ResultsList({ races, results, units }: ResultsListProps) {
                 <h2 className="text-lg font-semibold text-foreground">Race Results</h2>
 
                 {races.length > 0 && (
-                    <div className="relative">
-                        <select
-                            aria-label="Sort race results"
-                            value={sortOrder}
-                            onChange={(e) => setSortOrder(e.target.value as SortOrder)}
-                            className="flex h-10 appearance-none rounded-md border border-input bg-background pl-3 pr-10 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        >
-                            <option value="newest">Newest first</option>
-                            <option value="oldest">Oldest first</option>
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    </div>
+                    <Button
+                        variant="outline"
+                        className="w-36 justify-center gap-2"
+                        aria-label={`Sorted ${sortOrder} first — click to toggle`}
+                        onClick={() => setSortOrder((prev) => (prev === 'newest' ? 'oldest' : 'newest'))}
+                    >
+                        <ArrowDownUp className="h-4 w-4" />
+                        {sortOrder === 'newest' ? 'Newest First' : 'Oldest First'}
+                    </Button>
                 )}
             </div>
 
