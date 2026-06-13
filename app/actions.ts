@@ -409,6 +409,36 @@ export async function pasteDefaultSchedule(weekStartDate: string): Promise<Actio
     return { success: true }
 }
 
+export async function clearMaintenanceWeek(weekStartDate: string): Promise<ActionResult> {
+    if (!isValidDateString(weekStartDate)) return { error: 'Invalid week start date.' }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('User not authenticated')
+
+    // Compute the 7 dates of the week (Mon–Sun) from the Monday weekStartDate.
+    const [y, m, d] = weekStartDate.split('-').map(Number)
+    const monday = new Date(y, m - 1, d)
+    const dates: string[] = []
+    for (let i = 0; i < DAY_KEYS.length; i++) {
+        const dd = new Date(monday)
+        dd.setDate(monday.getDate() + i)
+        dates.push(`${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, '0')}-${String(dd.getDate()).padStart(2, '0')}`)
+    }
+
+    const { error } = await supabase
+        .from('maintenance_entries')
+        .delete()
+        .eq('user_id', user.id)
+        .in('date', dates)
+
+    if (error) return dbError('clearMaintenanceWeek', error)
+
+    revalidatePath('/maintenance')
+    return { success: true }
+}
+
 export async function deleteAccount(formData: FormData) {
     const supabase = await createClient()
 

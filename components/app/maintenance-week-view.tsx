@@ -3,13 +3,13 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { format, addWeeks, subWeeks, isSameWeek, isSameMonth, isSameYear, isSameDay } from 'date-fns'
-import { ChevronLeft, ChevronRight, ClipboardPaste } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ClipboardPaste, Eraser, CalendarCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { MaintenanceGrid } from './maintenance-grid'
 import { MAINTENANCE_TYPE_STYLES, MAINTENANCE_TYPE_ORDER, type WorkoutCellType } from '@/lib/maintenance-colors'
 import { getWeekDays, formatWeekRange, toDateString, parseDateString } from '@/lib/date-utils'
-import { upsertMaintenanceEntry, pasteDefaultSchedule } from '@/app/actions'
+import { upsertMaintenanceEntry, pasteDefaultSchedule, clearMaintenanceWeek } from '@/app/actions'
 import type { Database } from '@/types/database'
 import { cn } from '@/lib/utils'
 
@@ -27,6 +27,7 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [pasteOpen, setPasteOpen] = useState(false)
+  const [clearOpen, setClearOpen] = useState(false)
 
   const weekStartDate = parseDateString(weekStart) ?? new Date()
   const weekDays = getWeekDays(weekStartDate)
@@ -70,6 +71,16 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
     })
   }
 
+  const handleClearConfirm = () => {
+    startTransition(async () => {
+      const result = await clearMaintenanceWeek(weekStart)
+      if (!result?.error) setClearOpen(false)
+    })
+  }
+
+  // True when the displayed week has at least one populated cell (enables Clear).
+  const weekHasEntries = Object.values(values).some((s) => s.am || s.pm)
+
   // Count entries within the displayed week / month / year, bucketed by type.
   const countFor = (predicate: (d: Date) => boolean): Record<string, number> => {
     const counts: Record<string, number> = {}
@@ -88,13 +99,12 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
 
   return (
     <div className="space-y-8">
-      {/* Navigation + paste */}
-      <div className="flex items-center justify-between gap-2 sm:gap-3">
-        <div className="flex items-center gap-1.5 sm:gap-2">
+      {/* Navigation + actions */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1">
           <Button
             variant="secondary"
-            size="icon"
-            className="shrink-0"
+            className="h-9 w-9 shrink-0"
             onClick={() => navigate(subWeeks(weekStartDate, 1))}
             disabled={isPending}
             aria-label="Previous week"
@@ -103,8 +113,7 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
           </Button>
           <span
             className={cn(
-              'text-sm font-medium rounded-full px-3 py-1 text-center transition-colors whitespace-nowrap',
-              'sm:min-w-[11rem]',
+              'h-9 inline-flex items-center justify-center rounded-full px-3 text-sm font-medium text-center transition-colors whitespace-nowrap min-w-[7rem]',
               viewingCurrentWeek ? 'bg-primary/10 text-primary' : 'text-foreground'
             )}
           >
@@ -112,8 +121,7 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
           </span>
           <Button
             variant="secondary"
-            size="icon"
-            className="shrink-0"
+            className="h-9 w-9 shrink-0"
             onClick={() => navigate(addWeeks(weekStartDate, 1))}
             disabled={isPending}
             aria-label="Next week"
@@ -122,26 +130,38 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
           </Button>
           <Button
             variant="secondary"
-            size="sm"
             onClick={() => navigate(today)}
             disabled={isPending || viewingCurrentWeek}
-            className="shrink-0 ml-0.5 sm:ml-1"
+            className="h-9 w-9 p-0 sm:w-auto sm:px-3 shrink-0 ml-1"
+            aria-label="Go to current week"
           >
-            Today
+            <CalendarCheck className="h-4 w-4 sm:hidden" />
+            <span className="hidden sm:inline">Today</span>
           </Button>
         </div>
 
-        <Button
-          variant="secondary"
-          size="icon"
-          className="shrink-0"
-          onClick={() => setPasteOpen(true)}
-          disabled={isPending}
-          aria-label="Paste default schedule"
-          title="Paste default schedule"
-        >
-          <ClipboardPaste className="h-5 w-5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="secondary"
+            className="h-9 w-9 shrink-0"
+            onClick={() => setPasteOpen(true)}
+            disabled={isPending}
+            aria-label="Paste default schedule"
+            title="Paste default schedule"
+          >
+            <ClipboardPaste className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="secondary"
+            className="h-9 w-9 shrink-0"
+            onClick={() => setClearOpen(true)}
+            disabled={isPending || !weekHasEntries}
+            aria-label="Clear this week"
+            title="Clear this week"
+          >
+            <Eraser className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
       {/* Grid */}
@@ -186,6 +206,23 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
             </div>
           </>
         )}
+      </Modal>
+
+      {/* Clear confirmation */}
+      <Modal isOpen={clearOpen} onClose={() => setClearOpen(false)} title="Clear this week?">
+        <p className="text-sm text-muted-foreground">
+          This will remove all entries for{' '}
+          <span className="font-medium text-foreground">{formatWeekRange(weekStartDate)}</span>. This can&apos;t be
+          undone.
+        </p>
+        <div className="mt-6 flex justify-end gap-3">
+          <Button variant="ghost" onClick={() => setClearOpen(false)} disabled={isPending}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={handleClearConfirm} isLoading={isPending}>
+            Clear Week
+          </Button>
+        </div>
       </Modal>
     </div>
   )
