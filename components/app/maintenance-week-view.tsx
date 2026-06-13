@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { format, addWeeks, subWeeks, isSameWeek, isSameDay } from 'date-fns'
 import { ChevronLeft, ChevronRight, ClipboardPaste, Eraser, CalendarCheck, BedDouble } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -9,29 +9,43 @@ import { MaintenanceGrid } from './maintenance-grid'
 import { MAINTENANCE_TYPE_STYLES, MAINTENANCE_TYPE_ORDER, type WorkoutCellType } from '@/lib/maintenance-colors'
 import { getWeekStart, getWeekDays, formatWeekRange, toDateString, parseDateString } from '@/lib/date-utils'
 import { upsertMaintenanceEntry, pasteDefaultSchedule, clearMaintenanceWeek, fillRestWeek } from '@/app/actions'
+import { createClient } from '@/lib/supabase/client'
 import type { Database, MaintenanceDefaults } from '@/types/database'
 
 type MaintenanceEntry = Database['public']['Tables']['maintenance_entries']['Row']
 
 interface MaintenanceWeekViewProps {
   initialWeekStart: string // YYYY-MM-DD (Monday)
-  entries: MaintenanceEntry[] // ALL of the user's entries (small dataset, loaded once)
+  entries: MaintenanceEntry[] // entries within the loaded date window (not "all")
+  loadedFrom: string // YYYY-MM-DD — inclusive lower bound of the loaded window
+  loadedTo: string // YYYY-MM-DD — inclusive upper bound of the loaded window
   defaults: MaintenanceDefaults
   hasDefaults: boolean
 }
 
 const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
 
+// Keep these aligned with the server's initial window in maintenance/page.tsx.
+const WINDOW_WEEKS = 52 // size of each lazily-fetched extension chunk
+const BUFFER_WEEKS = 4 // extend when the displayed week comes within this of an edge
+
 // Master store key for a single session slot.
 const slotKey = (date: string, session: 'AM' | 'PM') => `${date}|${session}`
 
-export function MaintenanceWeekView({ initialWeekStart, entries, defaults, hasDefaults }: MaintenanceWeekViewProps) {
+export function MaintenanceWeekView({
+  initialWeekStart,
+  entries,
+  loadedFrom,
+  loadedTo,
+  defaults,
+  hasDefaults,
+}: MaintenanceWeekViewProps) {
   const [, startSave] = useTransition()
   const [pasteOpen, setPasteOpen] = useState(false)
   const [restOpen, setRestOpen] = useState(false)
   const [clearOpen, setClearOpen] = useState(false)
 
-  // Client-owned state. The store holds every session keyed by `${date}|AM|PM`
+  // Client-owned state. The store holds every loaded session keyed by `${date}|AM|PM`
   // so navigation and edits are instant; the DB is updated in the background.
   const [store, setStore] = useState<Record<string, WorkoutCellType>>(() => {
     const initial: Record<string, WorkoutCellType> = {}
@@ -39,6 +53,12 @@ export function MaintenanceWeekView({ initialWeekStart, entries, defaults, hasDe
     return initial
   })
   const [weekStart, setWeekStart] = useState(initialWeekStart)
+
+  // The date range currently held in the store, and a guard against overlapping
+  // background extensions.
+  const [loadedRange, setLoadedRange] = useState({ from: loadedFrom, to: loadedTo })
+  const [supabase] = useState(() => createClient())
+  const extendingRef = useRef(false)
 
   const weekStartDate = parseDateString(weekStart) ?? new Date()
   const weekDays = getWeekDays(weekStartDate)
@@ -66,6 +86,57 @@ export function MaintenanceWeekView({ initialWeekStart, entries, defaults, hasDe
     setWeekStart(ws)
     window.history.replaceState(null, '', `/maintenance?week=${ws}`)
   }
+
+  // Lazily extend the loaded window in the background when the displayed week nears
+  // an edge, so sequential navigation never runs out of loaded data. Each fetch is a
+  // bounded date range — cap-proof and constant-cost regardless of total history.
+  useEffect(() => {
+    if (extendingRef.current) return
+    const wsd = parseDateString(weekStart)
+    const fromDate = parseDateString(loadedRange.from)
+    const toDate = parseDateString(loadedRange.to)
+    if (!wsd || !fromDate || !toDate) return
+
+    const nearStart = wsd <= addWeeks(fromDate, BUFFER_WEEKS)
+    const nearEnd = wsd >= subWeeks(toDate, BUFFER_WEEKS)
+    if (!nearStart && !nearEnd) return
+
+    let chunkFrom: string
+    let chunkTo: string
+    let nextRange: { from: string; to: string }
+    if (nearStart) {
+      chunkTo = loadedRange.from
+      chunkFrom = toDateString(subWeeks(fromDate, WINDOW_WEEKS))
+      nextRange = { from: chunkFrom, to: loadedRange.to }
+    } else {
+      chunkFrom = loadedRange.to
+      chunkTo = toDateString(addWeeks(toDate, WINDOW_WEEKS))
+      nextRange = { from: loadedRange.from, to: chunkTo }
+    }
+
+    extendingRef.current = true
+    void (async () => {
+      const { data, error } = await supabase
+        .from('maintenance_entries')
+        .select('*')
+        .gte('date', chunkFrom)
+        .lte('date', chunkTo)
+      if (error) {
+        console.error('Maintenance window extend failed:', error)
+      } else if (data) {
+        setStore((s) => {
+          const next = { ...s }
+          for (const entry of data) {
+            const key = slotKey(entry.date, entry.session)
+            if (!(key in next)) next[key] = entry.type // fill-if-absent: never clobber local edits
+          }
+          return next
+        })
+      }
+      setLoadedRange(nextRange)
+      extendingRef.current = false
+    })()
+  }, [weekStart, loadedRange, supabase])
 
   // Swipe the grid left/right to change weeks (touch devices). Vertical gestures
   // fall through to normal scrolling; cell taps have ~0 movement and are unaffected.

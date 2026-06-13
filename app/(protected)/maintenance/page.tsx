@@ -3,7 +3,12 @@ import { redirect } from 'next/navigation'
 import { Header } from '@/components/app/header'
 import { MaintenanceWeekView } from '@/components/app/maintenance-week-view'
 import { getWeekStart, parseDateString, toDateString } from '@/lib/date-utils'
+import { subWeeks, addWeeks } from 'date-fns'
 import type { MaintenanceDefaults } from '@/types/database'
+
+// ±1 year window (~728 rows max, well under Supabase's 1000-row page cap, and far
+// more than anyone navigates). The client lazily extends this as needed.
+const WINDOW_WEEKS = 52
 
 interface PageProps {
   searchParams: Promise<{ week?: string }>
@@ -25,11 +30,21 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
   const weekStartDate = getWeekStart(requested ?? new Date())
   const weekStart = toDateString(weekStartDate)
 
-  // Load all of the user's maintenance entries once (a small dataset, scoped to
-  // the user by RLS) so week navigation and edits are handled instantly client-side.
+  // Load a bounded date window around the displayed week (not "all rows"), so the
+  // query is always a small range scan — cap-proof and constant-cost regardless of
+  // how much history accumulates. The client navigates instantly within this window
+  // and extends it in the background near the edges.
+  const loadedFrom = toDateString(subWeeks(weekStartDate, WINDOW_WEEKS))
+  const loadedTo = toDateString(addWeeks(weekStartDate, WINDOW_WEEKS + 1)) // +1wk pads the Sunday edge
+
   const [{ data: profile }, { data: entries, error: entriesError }] = await Promise.all([
     supabase.from('profiles').select('maintenance_defaults').eq('id', user.id).single(),
-    supabase.from('maintenance_entries').select('*').order('date'),
+    supabase
+      .from('maintenance_entries')
+      .select('*')
+      .gte('date', loadedFrom)
+      .lte('date', loadedTo)
+      .order('date'),
   ])
 
   if (entriesError) {
@@ -48,6 +63,8 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
           <MaintenanceWeekView
             initialWeekStart={weekStart}
             entries={entries || []}
+            loadedFrom={loadedFrom}
+            loadedTo={loadedTo}
             defaults={defaults}
             hasDefaults={hasDefaults}
           />
