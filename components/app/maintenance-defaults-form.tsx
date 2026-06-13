@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { MaintenanceGrid } from './maintenance-grid'
 import { updateMaintenanceDefaults } from '@/app/actions'
 import { type WorkoutCellType } from '@/lib/maintenance-colors'
-import { type MaintenanceDefaults } from '@/types/database'
+import { type MaintenanceDefaults, type MaintenanceSession } from '@/types/database'
 
 const DAYS = [
   { key: 'mon', label: 'Mon' },
@@ -18,14 +18,14 @@ const DAYS = [
 ] as const
 
 function emptySchedule(): MaintenanceDefaults {
-  return Object.fromEntries(DAYS.map((d) => [d.key, { am: null, pm: null }]))
+  return Object.fromEntries(DAYS.map((d) => [d.key, { first_session: null, second_session: null }]))
 }
 
 function seedFromDefaults(defaults: MaintenanceDefaults): MaintenanceDefaults {
   const base = emptySchedule()
   for (const day of DAYS) {
     const slot = defaults[day.key]
-    if (slot) base[day.key] = { am: slot.am ?? null, pm: slot.pm ?? null }
+    if (slot) base[day.key] = { first_session: slot.first_session ?? null, second_session: slot.second_session ?? null }
   }
   return base
 }
@@ -35,7 +35,7 @@ export function MaintenanceDefaultsForm({ initialDefaults }: { initialDefaults: 
   const [isPending, startTransition] = useTransition()
   const [success, setSuccess] = useState(false)
 
-  const handleChange = (key: string, session: 'am' | 'pm', value: WorkoutCellType | null) => {
+  const handleChange = (key: string, session: MaintenanceSession, value: WorkoutCellType | null) => {
     setSchedule((prev) => ({
       ...prev,
       [key]: { ...prev[key], [session]: value },

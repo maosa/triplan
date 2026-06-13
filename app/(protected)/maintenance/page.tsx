@@ -52,7 +52,7 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
   }
 
   const defaults = (profile?.maintenance_defaults || {}) as MaintenanceDefaults
-  const hasDefaults = Object.values(defaults).some((slot) => slot && (slot.am || slot.pm))
+  const hasDefaults = Object.values(defaults).some((slot) => slot && (slot.first_session || slot.second_session))
 
   return (
     <div className="min-h-screen bg-background text-foreground">

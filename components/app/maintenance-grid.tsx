@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils'
 import { MaintenanceCell } from './maintenance-cell'
 import { type WorkoutCellType } from '@/lib/maintenance-colors'
+import { type MaintenanceSession } from '@/types/database'
 
 interface GridColumn {
   key: string
@@ -13,8 +14,8 @@ interface GridColumn {
 
 interface MaintenanceGridProps {
   columns: GridColumn[]
-  values: Record<string, { am: WorkoutCellType | null; pm: WorkoutCellType | null }>
-  onChange?: (columnKey: string, session: 'am' | 'pm', value: WorkoutCellType | null) => void
+  values: Record<string, { first_session: WorkoutCellType | null; second_session: WorkoutCellType | null }>
+  onChange?: (columnKey: string, session: MaintenanceSession, value: WorkoutCellType | null) => void
   readOnly?: boolean
 }
 
@@ -23,13 +24,13 @@ const DAY_COLS = 'repeat(7, minmax(0, 1fr))'
 
 // Display labels for the two daily training sessions. These are decoupled from
 // time of day (a session could be morning, lunch, or evening) and from the
-// internal 'am'/'pm' keys — change here to relabel everywhere (live grid +
-// Account Settings defaults editor).
-const SESSION_LABELS = { am: '1st', pm: '2nd' } as const
+// stored 'first_session'/'second_session' keys — change here to relabel everywhere
+// (live grid + Account Settings defaults editor).
+const SESSION_LABELS: Record<MaintenanceSession, string> = { first_session: '1st', second_session: '2nd' }
 
 export function MaintenanceGrid({ columns, values, onChange, readOnly }: MaintenanceGridProps) {
-  const getValue = (key: string, session: 'am' | 'pm') => values[key]?.[session] ?? null
-  const handleChange = (key: string, session: 'am' | 'pm', value: WorkoutCellType | null) => {
+  const getValue = (key: string, session: MaintenanceSession) => values[key]?.[session] ?? null
+  const handleChange = (key: string, session: MaintenanceSession, value: WorkoutCellType | null) => {
     onChange?.(key, session, value)
   }
 
@@ -59,44 +60,44 @@ export function MaintenanceGrid({ columns, values, onChange, readOnly }: Mainten
           ))}
         </div>
 
-        {/* AM row */}
+        {/* 1st session row */}
         <div className="grid gap-1.5" style={{ gridTemplateColumns: `${LABEL_COL} ${DAY_COLS}` }}>
           <div className="flex items-center justify-end pr-2">
-            <span className="text-xs font-medium text-muted-foreground">{SESSION_LABELS.am}</span>
+            <span className="text-xs font-medium text-muted-foreground">{SESSION_LABELS.first_session}</span>
           </div>
           {columns.map((col) => (
             <MaintenanceCell
               key={col.key}
-              value={getValue(col.key, 'am')}
-              onChange={(val) => handleChange(col.key, 'am', val)}
+              value={getValue(col.key, 'first_session')}
+              onChange={(val) => handleChange(col.key, 'first_session', val)}
               disabled={readOnly}
             />
           ))}
         </div>
 
-        {/* PM row */}
+        {/* 2nd session row */}
         <div className="grid gap-1.5" style={{ gridTemplateColumns: `${LABEL_COL} ${DAY_COLS}` }}>
           <div className="flex items-center justify-end pr-2">
-            <span className="text-xs font-medium text-muted-foreground">{SESSION_LABELS.pm}</span>
+            <span className="text-xs font-medium text-muted-foreground">{SESSION_LABELS.second_session}</span>
           </div>
           {columns.map((col) => (
             <MaintenanceCell
               key={col.key}
-              value={getValue(col.key, 'pm')}
-              onChange={(val) => handleChange(col.key, 'pm', val)}
+              value={getValue(col.key, 'second_session')}
+              onChange={(val) => handleChange(col.key, 'second_session', val)}
               disabled={readOnly}
             />
           ))}
         </div>
       </div>
 
-      {/* Mobile layout: 2 columns (AM, PM) × 7 rows */}
+      {/* Mobile layout: 2 columns (1st, 2nd) × 7 rows */}
       <div className="sm:hidden space-y-1.5">
         {/* Header row */}
         <div className="grid grid-cols-[5rem_1fr_1fr] gap-1.5">
           <div />
-          <div className="text-center text-xs font-medium text-muted-foreground">{SESSION_LABELS.am}</div>
-          <div className="text-center text-xs font-medium text-muted-foreground">{SESSION_LABELS.pm}</div>
+          <div className="text-center text-xs font-medium text-muted-foreground">{SESSION_LABELS.first_session}</div>
+          <div className="text-center text-xs font-medium text-muted-foreground">{SESSION_LABELS.second_session}</div>
         </div>
 
         {/* Day rows */}
@@ -114,13 +115,13 @@ export function MaintenanceGrid({ columns, values, onChange, readOnly }: Mainten
               )}
             </div>
             <MaintenanceCell
-              value={getValue(col.key, 'am')}
-              onChange={(val) => handleChange(col.key, 'am', val)}
+              value={getValue(col.key, 'first_session')}
+              onChange={(val) => handleChange(col.key, 'first_session', val)}
               disabled={readOnly}
             />
             <MaintenanceCell
-              value={getValue(col.key, 'pm')}
-              onChange={(val) => handleChange(col.key, 'pm', val)}
+              value={getValue(col.key, 'second_session')}
+              onChange={(val) => handleChange(col.key, 'second_session', val)}
               disabled={readOnly}
             />
           </div>

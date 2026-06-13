@@ -10,9 +10,11 @@ import { MAINTENANCE_TYPE_STYLES, MAINTENANCE_TYPE_ORDER, type WorkoutCellType }
 import { getWeekStart, getWeekDays, formatWeekRange, toDateString, parseDateString } from '@/lib/date-utils'
 import { upsertMaintenanceEntry, pasteDefaultSchedule, clearMaintenanceWeek, fillRestWeek } from '@/app/actions'
 import { createClient } from '@/lib/supabase/client'
-import type { Database, MaintenanceDefaults } from '@/types/database'
+import type { Database, MaintenanceDefaults, MaintenanceSession } from '@/types/database'
 
 type MaintenanceEntry = Database['public']['Tables']['maintenance_entries']['Row']
+
+const SESSIONS: MaintenanceSession[] = ['first_session', 'second_session']
 
 interface MaintenanceWeekViewProps {
   initialWeekStart: string // YYYY-MM-DD (Monday)
@@ -30,7 +32,7 @@ const WINDOW_WEEKS = 52 // size of each lazily-fetched extension chunk
 const BUFFER_WEEKS = 4 // extend when the displayed week comes within this of an edge
 
 // Master store key for a single session slot.
-const slotKey = (date: string, session: 'AM' | 'PM') => `${date}|${session}`
+const slotKey = (date: string, session: MaintenanceSession) => `${date}|${session}`
 
 export function MaintenanceWeekView({
   initialWeekStart,
@@ -66,10 +68,13 @@ export function MaintenanceWeekView({
   const viewingCurrentWeek = isSameWeek(weekStartDate, today, { weekStartsOn: 1 })
 
   // Derive the displayed week's grid values from the store.
-  const values: Record<string, { am: WorkoutCellType | null; pm: WorkoutCellType | null }> = {}
+  const values: Record<string, { first_session: WorkoutCellType | null; second_session: WorkoutCellType | null }> = {}
   for (const day of weekDays) {
     const ds = toDateString(day)
-    values[ds] = { am: store[slotKey(ds, 'AM')] ?? null, pm: store[slotKey(ds, 'PM')] ?? null }
+    values[ds] = {
+      first_session: store[slotKey(ds, 'first_session')] ?? null,
+      second_session: store[slotKey(ds, 'second_session')] ?? null,
+    }
   }
 
   const columns = weekDays.map((day) => ({
@@ -162,8 +167,8 @@ export function MaintenanceWeekView({
 
   // Optimistic cell edit: update the store immediately, persist in the background,
   // and revert if the save fails.
-  const handleCellChange = (columnKey: string, session: 'am' | 'pm', value: WorkoutCellType | null) => {
-    const key = slotKey(columnKey, session === 'am' ? 'AM' : 'PM')
+  const handleCellChange = (columnKey: string, session: MaintenanceSession, value: WorkoutCellType | null) => {
+    const key = slotKey(columnKey, session)
     const previous = store[key] ?? null
     setStore((s) => {
       const next = { ...s }
@@ -172,7 +177,7 @@ export function MaintenanceWeekView({
       return next
     })
     startSave(async () => {
-      const result = await upsertMaintenanceEntry(columnKey, session === 'am' ? 'AM' : 'PM', value)
+      const result = await upsertMaintenanceEntry(columnKey, session, value)
       if (result?.error) {
         setStore((s) => {
           const next = { ...s }
@@ -209,10 +214,10 @@ export function MaintenanceWeekView({
       (next) => {
         weekDays.forEach((day, i) => {
           const ds = toDateString(day)
-          const slot = defaults[DAY_KEYS[i]] ?? { am: null, pm: null }
-          for (const session of ['AM', 'PM'] as const) {
+          const slot = defaults[DAY_KEYS[i]] ?? { first_session: null, second_session: null }
+          for (const session of SESSIONS) {
             const key = slotKey(ds, session)
-            const val = session === 'AM' ? slot.am : slot.pm
+            const val = slot[session]
             if (val) next[key] = val
             else delete next[key]
           }
@@ -228,7 +233,7 @@ export function MaintenanceWeekView({
       (next) => {
         for (const day of weekDays) {
           const ds = toDateString(day)
-          for (const session of ['AM', 'PM'] as const) {
+          for (const session of SESSIONS) {
             const key = slotKey(ds, session)
             if (!next[key]) next[key] = 'Rest'
           }
@@ -244,8 +249,8 @@ export function MaintenanceWeekView({
       (next) => {
         for (const day of weekDays) {
           const ds = toDateString(day)
-          delete next[slotKey(ds, 'AM')]
-          delete next[slotKey(ds, 'PM')]
+          delete next[slotKey(ds, 'first_session')]
+          delete next[slotKey(ds, 'second_session')]
         }
       },
       () => clearMaintenanceWeek(weekStart),
@@ -254,22 +259,22 @@ export function MaintenanceWeekView({
   }
 
   // True when the displayed week has at least one populated cell (enables Clear).
-  const weekHasEntries = Object.values(values).some((s) => s.am || s.pm)
+  const weekHasEntries = Object.values(values).some((s) => s.first_session || s.second_session)
   // True when at least one cell is empty (enables Fill-Rest).
-  const weekHasEmptyCells = Object.values(values).some((s) => !s.am || !s.pm)
+  const weekHasEmptyCells = Object.values(values).some((s) => !s.first_session || !s.second_session)
 
   // Weekly summary counts. Non-Rest sessions are counted per cell. Rest is only
   // counted as a full rest day — i.e. when BOTH sessions that day are Rest — so a
   // single Rest paired with a workout (or an empty slot) is not shown. This keeps
   // the summary meaningful instead of inflating it with incidental Rest cells.
   const weekCounts: Record<string, number> = {}
-  for (const { am, pm } of Object.values(values)) {
-    for (const session of [am, pm]) {
+  for (const { first_session, second_session } of Object.values(values)) {
+    for (const session of [first_session, second_session]) {
       if (session && session !== 'Rest') {
         weekCounts[session] = (weekCounts[session] || 0) + 1
       }
     }
-    if (am === 'Rest' && pm === 'Rest') {
+    if (first_session === 'Rest' && second_session === 'Rest') {
       weekCounts.Rest = (weekCounts.Rest || 0) + 1
     }
   }

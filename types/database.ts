@@ -8,7 +8,15 @@ export type Json =
 
 export type WorkoutType = 'Swim' | 'Bike' | 'Run' | 'Strength' | 'Rest' | 'Other'
 
-export type MaintenanceDefaults = Record<string, { am: WorkoutType | null; pm: WorkoutType | null }>
+// The two daily training sessions. Stored decoupled from time of day (the UI shows
+// "1st"/"2nd"); these tokens are used both as maintenance_entries.session values and
+// as the per-day keys in profiles.maintenance_defaults.
+export type MaintenanceSession = 'first_session' | 'second_session'
+
+export type MaintenanceDefaults = Record<
+    string,
+    { first_session: WorkoutType | null; second_session: WorkoutType | null }
+>
 
 export interface Database {
     public: {
@@ -123,7 +131,7 @@ export interface Database {
                     id: string
                     user_id: string
                     date: string
-                    session: 'AM' | 'PM'
+                    session: MaintenanceSession
                     type: WorkoutType
                     created_at: string
                     updated_at: string
@@ -132,7 +140,7 @@ export interface Database {
                     id?: string
                     user_id: string
                     date: string
-                    session: 'AM' | 'PM'
+                    session: MaintenanceSession
                     type: WorkoutType
                     created_at?: string
                     updated_at?: string
@@ -141,7 +149,7 @@ export interface Database {
                     id?: string
                     user_id?: string
                     date?: string
-                    session?: 'AM' | 'PM'
+                    session?: MaintenanceSession
                     type?: WorkoutType
                     created_at?: string
                     updated_at?: string

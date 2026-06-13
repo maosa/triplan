@@ -358,7 +358,7 @@ export async function updateProfile(formData: FormData): Promise<ActionResult> {
 export async function updateMaintenanceDefaults(formData: FormData): Promise<ActionResult> {
     const scheduleRaw = formData.get('schedule') as string
 
-    let parsed: Record<string, { am: string | null; pm: string | null }>
+    let parsed: Record<string, { first_session: string | null; second_session: string | null }>
     try {
         parsed = JSON.parse(scheduleRaw)
     } catch {
@@ -371,8 +371,8 @@ export async function updateMaintenanceDefaults(formData: FormData): Promise<Act
     for (const day of validDays) {
         const slot = parsed[day]
         if (!slot || typeof slot !== 'object') continue
-        if (!validTypes.has(slot.am)) return { error: `Invalid workout type for ${day} AM.` }
-        if (!validTypes.has(slot.pm)) return { error: `Invalid workout type for ${day} PM.` }
+        if (!validTypes.has(slot.first_session)) return { error: `Invalid workout type for ${day} 1st session.` }
+        if (!validTypes.has(slot.second_session)) return { error: `Invalid workout type for ${day} 2nd session.` }
     }
 
     const supabase = await createClient()
@@ -392,6 +392,8 @@ export async function updateMaintenanceDefaults(formData: FormData): Promise<Act
 // Maintenance Training Actions
 
 const MAINTENANCE_TYPES = new Set(['Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Other'])
+const MAINTENANCE_SESSIONS = ['first_session', 'second_session'] as const
+type MaintenanceSession = (typeof MAINTENANCE_SESSIONS)[number]
 const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
 
 function isValidDateString(s: string): boolean {
@@ -400,11 +402,11 @@ function isValidDateString(s: string): boolean {
 
 export async function upsertMaintenanceEntry(
     date: string,
-    session: 'AM' | 'PM',
+    session: MaintenanceSession,
     type: string | null
 ): Promise<ActionResult> {
     if (!isValidDateString(date)) return { error: 'Invalid date.' }
-    if (session !== 'AM' && session !== 'PM') return { error: 'Invalid session.' }
+    if (!MAINTENANCE_SESSIONS.includes(session)) return { error: 'Invalid session.' }
     if (type !== null && !MAINTENANCE_TYPES.has(type)) return { error: 'Invalid workout type.' }
 
     const supabase = await createClient()
@@ -451,13 +453,13 @@ export async function pasteDefaultSchedule(weekStartDate: string): Promise<Actio
 
     if (profileError) return dbError('pasteDefaultSchedule (profile)', profileError)
 
-    const defaults = (profile?.maintenance_defaults || {}) as Record<string, { am: string | null; pm: string | null }>
+    const defaults = (profile?.maintenance_defaults || {}) as Record<string, { first_session: string | null; second_session: string | null }>
 
     // Compute the 7 dates of the week (Mon–Sun) from the Monday weekStartDate.
     const [y, m, d] = weekStartDate.split('-').map(Number)
     const monday = new Date(y, m - 1, d)
 
-    const rowsToUpsert: { user_id: string; date: string; session: 'AM' | 'PM'; type: string }[] = []
+    const rowsToUpsert: { user_id: string; date: string; session: MaintenanceSession; type: string }[] = []
     const datesToClear: string[] = []
 
     for (let i = 0; i < DAY_KEYS.length; i++) {
@@ -465,9 +467,9 @@ export async function pasteDefaultSchedule(weekStartDate: string): Promise<Actio
         dayDate.setDate(monday.getDate() + i)
         const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`
 
-        const slot = defaults[DAY_KEYS[i]] || { am: null, pm: null }
-        for (const session of ['AM', 'PM'] as const) {
-            const val = session === 'AM' ? slot.am : slot.pm
+        const slot = defaults[DAY_KEYS[i]] || { first_session: null, second_session: null }
+        for (const session of MAINTENANCE_SESSIONS) {
+            const val = slot[session]
             if (val && MAINTENANCE_TYPES.has(val)) {
                 rowsToUpsert.push({ user_id: user.id, date: dateStr, session, type: val })
             }
@@ -558,9 +560,9 @@ export async function fillRestWeek(weekStartDate: string): Promise<ActionResult>
 
     const taken = new Set((existing || []).map((e) => `${e.date}|${e.session}`))
 
-    const rowsToInsert: { user_id: string; date: string; session: 'AM' | 'PM'; type: string }[] = []
+    const rowsToInsert: { user_id: string; date: string; session: MaintenanceSession; type: string }[] = []
     for (const date of dates) {
-        for (const session of ['AM', 'PM'] as const) {
+        for (const session of MAINTENANCE_SESSIONS) {
             if (!taken.has(`${date}|${session}`)) {
                 rowsToInsert.push({ user_id: user.id, date, session, type: 'Rest' })
             }

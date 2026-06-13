@@ -120,7 +120,7 @@ create table maintenance_entries (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references auth.users on delete cascade not null,
   date date not null,
-  session text not null check (session in ('AM', 'PM')),
+  session text not null check (session in ('first_session', 'second_session')),
   type text not null check (type in ('Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Other')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
