@@ -1,50 +1,55 @@
 "use client"
 
 import { useRef, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { format, addWeeks, subWeeks, isSameWeek, isSameDay } from 'date-fns'
 import { ChevronLeft, ChevronRight, ClipboardPaste, Eraser, CalendarCheck, BedDouble } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { MaintenanceGrid } from './maintenance-grid'
 import { MAINTENANCE_TYPE_STYLES, MAINTENANCE_TYPE_ORDER, type WorkoutCellType } from '@/lib/maintenance-colors'
-import { getWeekDays, formatWeekRange, toDateString, parseDateString } from '@/lib/date-utils'
+import { getWeekStart, getWeekDays, formatWeekRange, toDateString, parseDateString } from '@/lib/date-utils'
 import { upsertMaintenanceEntry, pasteDefaultSchedule, clearMaintenanceWeek, fillRestWeek } from '@/app/actions'
-import type { Database } from '@/types/database'
+import type { Database, MaintenanceDefaults } from '@/types/database'
 
 type MaintenanceEntry = Database['public']['Tables']['maintenance_entries']['Row']
 
 interface MaintenanceWeekViewProps {
-  weekStart: string // YYYY-MM-DD (Monday)
-  entries: MaintenanceEntry[] // entries for the whole year containing weekStart
+  initialWeekStart: string // YYYY-MM-DD (Monday)
+  entries: MaintenanceEntry[] // ALL of the user's entries (small dataset, loaded once)
+  defaults: MaintenanceDefaults
   hasDefaults: boolean
 }
 
-const SESSION_LABELS = ['AM', 'PM'] as const
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
 
-export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: MaintenanceWeekViewProps) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+// Master store key for a single session slot.
+const slotKey = (date: string, session: 'AM' | 'PM') => `${date}|${session}`
+
+export function MaintenanceWeekView({ initialWeekStart, entries, defaults, hasDefaults }: MaintenanceWeekViewProps) {
+  const [, startSave] = useTransition()
   const [pasteOpen, setPasteOpen] = useState(false)
   const [restOpen, setRestOpen] = useState(false)
   const [clearOpen, setClearOpen] = useState(false)
+
+  // Client-owned state. The store holds every session keyed by `${date}|AM|PM`
+  // so navigation and edits are instant; the DB is updated in the background.
+  const [store, setStore] = useState<Record<string, WorkoutCellType>>(() => {
+    const initial: Record<string, WorkoutCellType> = {}
+    for (const entry of entries) initial[slotKey(entry.date, entry.session)] = entry.type
+    return initial
+  })
+  const [weekStart, setWeekStart] = useState(initialWeekStart)
 
   const weekStartDate = parseDateString(weekStart) ?? new Date()
   const weekDays = getWeekDays(weekStartDate)
   const today = new Date()
   const viewingCurrentWeek = isSameWeek(weekStartDate, today, { weekStartsOn: 1 })
 
-  // Build the grid values keyed by date string.
+  // Derive the displayed week's grid values from the store.
   const values: Record<string, { am: WorkoutCellType | null; pm: WorkoutCellType | null }> = {}
   for (const day of weekDays) {
-    values[toDateString(day)] = { am: null, pm: null }
-  }
-  for (const entry of entries) {
-    const slot = values[entry.date]
-    if (slot) {
-      if (entry.session === 'AM') slot.am = entry.type
-      else slot.pm = entry.type
-    }
+    const ds = toDateString(day)
+    values[ds] = { am: store[slotKey(ds, 'AM')] ?? null, pm: store[slotKey(ds, 'PM')] ?? null }
   }
 
   const columns = weekDays.map((day) => ({
@@ -54,8 +59,12 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
     isToday: isSameDay(day, today),
   }))
 
-  const navigate = (newWeekStart: Date) => {
-    router.push(`/maintenance?week=${toDateString(newWeekStart)}`)
+  // Client-side week navigation — instant, no server round-trip. The URL is kept
+  // in sync (for refresh/bookmark) via the History API without re-fetching.
+  const goToWeek = (date: Date) => {
+    const ws = toDateString(getWeekStart(date))
+    setWeekStart(ws)
+    window.history.replaceState(null, '', `/maintenance?week=${ws}`)
   }
 
   // Swipe the grid left/right to change weeks (touch devices). Vertical gestures
@@ -70,41 +79,107 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
   const handleTouchEnd = (e: React.TouchEvent) => {
     const start = touchStart.current
     touchStart.current = null
-    if (!start || isPending) return
+    if (!start) return
     const t = e.changedTouches[0]
     const dx = t.clientX - start.x
     const dy = t.clientY - start.y
     const SWIPE_MIN = 50
     if (Math.abs(dx) < SWIPE_MIN || Math.abs(dx) <= Math.abs(dy)) return
-    if (dx < 0) navigate(addWeeks(weekStartDate, 1)) // swipe left → next week
-    else navigate(subWeeks(weekStartDate, 1)) // swipe right → previous week
+    if (dx < 0) goToWeek(addWeeks(weekStartDate, 1)) // swipe left → next week
+    else goToWeek(subWeeks(weekStartDate, 1)) // swipe right → previous week
   }
 
+  // Optimistic cell edit: update the store immediately, persist in the background,
+  // and revert if the save fails.
   const handleCellChange = (columnKey: string, session: 'am' | 'pm', value: WorkoutCellType | null) => {
-    startTransition(async () => {
-      await upsertMaintenanceEntry(columnKey, session === 'am' ? 'AM' : 'PM', value)
+    const key = slotKey(columnKey, session === 'am' ? 'AM' : 'PM')
+    const previous = store[key] ?? null
+    setStore((s) => {
+      const next = { ...s }
+      if (value) next[key] = value
+      else delete next[key]
+      return next
+    })
+    startSave(async () => {
+      const result = await upsertMaintenanceEntry(columnKey, session === 'am' ? 'AM' : 'PM', value)
+      if (result?.error) {
+        setStore((s) => {
+          const next = { ...s }
+          if (previous) next[key] = previous
+          else delete next[key]
+          return next
+        })
+      }
+    })
+  }
+
+  // Optimistic bulk action: apply `mutate` to a copy of the store for the displayed
+  // week, persist via `persist`, and revert to the snapshot on failure.
+  const runBulk = (
+    mutate: (next: Record<string, WorkoutCellType>) => void,
+    persist: () => Promise<{ error?: string } | void>,
+    close: () => void
+  ) => {
+    const snapshot = store
+    setStore((s) => {
+      const next = { ...s }
+      mutate(next)
+      return next
+    })
+    close()
+    startSave(async () => {
+      const result = await persist()
+      if (result?.error) setStore(snapshot)
     })
   }
 
   const handlePasteConfirm = () => {
-    startTransition(async () => {
-      const result = await pasteDefaultSchedule(weekStart)
-      if (!result?.error) setPasteOpen(false)
-    })
-  }
-
-  const handleClearConfirm = () => {
-    startTransition(async () => {
-      const result = await clearMaintenanceWeek(weekStart)
-      if (!result?.error) setClearOpen(false)
-    })
+    runBulk(
+      (next) => {
+        weekDays.forEach((day, i) => {
+          const ds = toDateString(day)
+          const slot = defaults[DAY_KEYS[i]] ?? { am: null, pm: null }
+          for (const session of ['AM', 'PM'] as const) {
+            const key = slotKey(ds, session)
+            const val = session === 'AM' ? slot.am : slot.pm
+            if (val) next[key] = val
+            else delete next[key]
+          }
+        })
+      },
+      () => pasteDefaultSchedule(weekStart),
+      () => setPasteOpen(false)
+    )
   }
 
   const handleRestConfirm = () => {
-    startTransition(async () => {
-      const result = await fillRestWeek(weekStart)
-      if (!result?.error) setRestOpen(false)
-    })
+    runBulk(
+      (next) => {
+        for (const day of weekDays) {
+          const ds = toDateString(day)
+          for (const session of ['AM', 'PM'] as const) {
+            const key = slotKey(ds, session)
+            if (!next[key]) next[key] = 'Rest'
+          }
+        }
+      },
+      () => fillRestWeek(weekStart),
+      () => setRestOpen(false)
+    )
+  }
+
+  const handleClearConfirm = () => {
+    runBulk(
+      (next) => {
+        for (const day of weekDays) {
+          const ds = toDateString(day)
+          delete next[slotKey(ds, 'AM')]
+          delete next[slotKey(ds, 'PM')]
+        }
+      },
+      () => clearMaintenanceWeek(weekStart),
+      () => setClearOpen(false)
+    )
   }
 
   // True when the displayed week has at least one populated cell (enables Clear).
@@ -137,16 +212,15 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
             variant="secondary"
             size="icon"
             className="h-9 w-9 shrink-0"
-            onClick={() => navigate(subWeeks(weekStartDate, 1))}
-            disabled={isPending}
+            onClick={() => goToWeek(subWeeks(weekStartDate, 1))}
             aria-label="Previous week"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <Button
             variant="secondary"
-            onClick={() => navigate(today)}
-            disabled={isPending || viewingCurrentWeek}
+            onClick={() => goToWeek(today)}
+            disabled={viewingCurrentWeek}
             className="h-9 px-3 py-0 shrink-0 max-[340px]:w-9 max-[340px]:px-0"
             aria-label="Go to current week"
           >
@@ -157,8 +231,7 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
             variant="secondary"
             size="icon"
             className="h-9 w-9 shrink-0"
-            onClick={() => navigate(addWeeks(weekStartDate, 1))}
-            disabled={isPending}
+            onClick={() => goToWeek(addWeeks(weekStartDate, 1))}
             aria-label="Next week"
           >
             <ChevronRight className="h-5 w-5" />
@@ -171,7 +244,6 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
             size="icon"
             className="h-9 w-9 shrink-0"
             onClick={() => setPasteOpen(true)}
-            disabled={isPending}
             aria-label="Paste default schedule"
             title="Paste default schedule"
           >
@@ -182,7 +254,7 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
             size="icon"
             className="h-9 w-9 shrink-0"
             onClick={() => setRestOpen(true)}
-            disabled={isPending || !weekHasEmptyCells}
+            disabled={!weekHasEmptyCells}
             aria-label="Fill empty cells with Rest"
             title="Fill empty cells with Rest"
           >
@@ -193,7 +265,7 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
             size="icon"
             className="h-9 w-9 shrink-0"
             onClick={() => setClearOpen(true)}
-            disabled={isPending || !weekHasEntries}
+            disabled={!weekHasEntries}
             aria-label="Clear this week"
             title="Clear this week"
           >
@@ -239,12 +311,10 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
               existing entries for this week. Continue?
             </p>
             <div className="mt-6 flex justify-end gap-3">
-              <Button variant="ghost" onClick={() => setPasteOpen(false)} disabled={isPending}>
+              <Button variant="ghost" onClick={() => setPasteOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handlePasteConfirm} isLoading={isPending}>
-                Paste Schedule
-              </Button>
+              <Button onClick={handlePasteConfirm}>Paste Schedule</Button>
             </div>
           </>
         ) : (
@@ -269,12 +339,10 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
           sessions are left unchanged.
         </p>
         <div className="mt-6 flex justify-end gap-3">
-          <Button variant="ghost" onClick={() => setRestOpen(false)} disabled={isPending}>
+          <Button variant="ghost" onClick={() => setRestOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleRestConfirm} isLoading={isPending}>
-            Fill with Rest
-          </Button>
+          <Button onClick={handleRestConfirm}>Fill with Rest</Button>
         </div>
       </Modal>
 
@@ -286,10 +354,10 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
           undone.
         </p>
         <div className="mt-6 flex justify-end gap-3">
-          <Button variant="ghost" onClick={() => setClearOpen(false)} disabled={isPending}>
+          <Button variant="ghost" onClick={() => setClearOpen(false)}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleClearConfirm} isLoading={isPending}>
+          <Button variant="destructive" onClick={handleClearConfirm}>
             Clear Week
           </Button>
         </div>

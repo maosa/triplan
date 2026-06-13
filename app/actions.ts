@@ -430,7 +430,8 @@ export async function upsertMaintenanceEntry(
         if (error) return dbError('upsertMaintenanceEntry (upsert)', error)
     }
 
-    revalidatePath('/maintenance')
+    // No revalidatePath: the maintenance page updates optimistically client-side
+    // and persists in the background; a re-render here would only cause churn.
     return { success: true }
 }
 
@@ -491,7 +492,8 @@ export async function pasteDefaultSchedule(weekStartDate: string): Promise<Actio
         if (insertError) return dbError('pasteDefaultSchedule (insert)', insertError)
     }
 
-    revalidatePath('/maintenance')
+    // No revalidatePath: the maintenance page updates optimistically client-side
+    // and persists in the background; a re-render here would only cause churn.
     return { success: true }
 }
 
@@ -521,7 +523,8 @@ export async function clearMaintenanceWeek(weekStartDate: string): Promise<Actio
 
     if (error) return dbError('clearMaintenanceWeek', error)
 
-    revalidatePath('/maintenance')
+    // No revalidatePath: the maintenance page updates optimistically client-side
+    // and persists in the background; a re-render here would only cause churn.
     return { success: true }
 }
 
@@ -571,7 +574,8 @@ export async function fillRestWeek(weekStartDate: string): Promise<ActionResult>
         if (insertError) return dbError('fillRestWeek (insert)', insertError)
     }
 
-    revalidatePath('/maintenance')
+    // No revalidatePath: the maintenance page updates optimistically client-side
+    // and persists in the background; a re-render here would only cause churn.
     return { success: true }
 }
 
