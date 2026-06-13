@@ -48,7 +48,7 @@ export function MaintenanceGrid({ columns, values, onChange, readOnly }: Mainten
                   {col.sublabel}
                 </div>
               )}
-              {col.isToday && <div className="h-0.5 rounded-full bg-primary mt-0.5 mx-auto w-4" />}
+              <div className={cn('h-0.5 rounded-full mt-0.5 mx-auto w-4', col.isToday ? 'bg-primary' : 'bg-transparent')} />
             </div>
           ))}
         </div>
@@ -87,7 +87,7 @@ export function MaintenanceGrid({ columns, values, onChange, readOnly }: Mainten
       {/* Mobile layout: 2 columns (AM, PM) × 7 rows */}
       <div className="sm:hidden space-y-1.5">
         {/* Header row */}
-        <div className="grid grid-cols-[minmax(3rem,auto)_1fr_1fr] gap-1.5">
+        <div className="grid grid-cols-[5rem_1fr_1fr] gap-1.5">
           <div />
           <div className="text-center text-xs font-medium text-muted-foreground">AM</div>
           <div className="text-center text-xs font-medium text-muted-foreground">PM</div>
@@ -95,7 +95,7 @@ export function MaintenanceGrid({ columns, values, onChange, readOnly }: Mainten
 
         {/* Day rows */}
         {columns.map((col) => (
-          <div key={col.key} className="grid grid-cols-[minmax(3rem,auto)_1fr_1fr] gap-1.5">
+          <div key={col.key} className="grid grid-cols-[5rem_1fr_1fr] gap-1.5">
             <div
               className={cn(
                 'flex items-center text-xs font-medium',

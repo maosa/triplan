@@ -89,23 +89,31 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
   return (
     <div className="space-y-8">
       {/* Navigation + paste */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <Button
-            variant="ghost"
+            variant="secondary"
             size="icon"
+            className="shrink-0"
             onClick={() => navigate(subWeeks(weekStartDate, 1))}
             disabled={isPending}
             aria-label="Previous week"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <span className="text-sm font-medium text-foreground min-w-[9rem] text-center sm:min-w-[11rem]">
+          <span
+            className={cn(
+              'text-sm font-medium rounded-full px-3 py-1 text-center transition-colors whitespace-nowrap',
+              'sm:min-w-[11rem]',
+              viewingCurrentWeek ? 'bg-primary/10 text-primary' : 'text-foreground'
+            )}
+          >
             {formatWeekRange(weekStartDate)}
           </span>
           <Button
-            variant="ghost"
+            variant="secondary"
             size="icon"
+            className="shrink-0"
             onClick={() => navigate(addWeeks(weekStartDate, 1))}
             disabled={isPending}
             aria-label="Next week"
@@ -113,22 +121,20 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
             <ChevronRight className="h-5 w-5" />
           </Button>
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
             onClick={() => navigate(today)}
             disabled={isPending || viewingCurrentWeek}
-            className={cn(
-              'ml-1',
-              viewingCurrentWeek && 'bg-primary/10 text-primary hover:bg-primary/10'
-            )}
+            className="shrink-0 ml-0.5 sm:ml-1"
           >
             Today
           </Button>
         </div>
 
         <Button
-          variant="ghost"
+          variant="secondary"
           size="icon"
+          className="shrink-0"
           onClick={() => setPasteOpen(true)}
           disabled={isPending}
           aria-label="Paste default schedule"
