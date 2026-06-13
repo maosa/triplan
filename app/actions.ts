@@ -8,6 +8,7 @@ import { cookies } from 'next/headers'
 import { Database } from '@/types/database'
 import Papa from 'papaparse'
 import { logSecurityEvent, hashEmail } from '@/lib/security-events'
+import { parseTimeToSeconds, parsePaceToSeconds, isValidTimeString, isValidPaceString } from '@/lib/time-format'
 
 type Race = Database['public']['Tables']['races']['Row']
 
@@ -223,6 +224,91 @@ export async function duplicateWorkout(workout: Database['public']['Tables']['wo
     if (error) return dbError('duplicateWorkout', error)
 
     revalidatePath(`/${workout.race_id}`)
+    return { success: true }
+}
+
+// Race Results Actions
+
+export async function upsertRaceResult(raceId: string, formData: FormData): Promise<ActionResult> {
+    if (!raceId) return { error: 'Missing race.' }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('User not authenticated')
+
+    // Parse a numeric field: blank -> null, otherwise a finite non-negative number.
+    const parseNumber = (key: string): { value: number | null; error?: string } => {
+        const raw = ((formData.get(key) as string) || '').trim()
+        if (!raw) return { value: null }
+        const n = Number(raw)
+        if (!Number.isFinite(n) || n < 0) return { value: null, error: `Invalid value for ${key}.` }
+        return { value: n }
+    }
+
+    // Parse a time field (H:MM:SS / M:SS) -> seconds. Blank -> null.
+    const parseTime = (key: string): { value: number | null; error?: string } => {
+        const raw = ((formData.get(key) as string) || '').trim()
+        if (!raw) return { value: null }
+        if (!isValidTimeString(raw)) return { value: null, error: `Invalid time format for ${key} (use H:MM:SS).` }
+        return { value: parseTimeToSeconds(raw) }
+    }
+
+    // Parse a pace field (MM:SS) -> seconds. Blank -> null.
+    const parsePace = (key: string): { value: number | null; error?: string } => {
+        const raw = ((formData.get(key) as string) || '').trim()
+        if (!raw) return { value: null }
+        if (!isValidPaceString(raw)) return { value: null, error: `Invalid pace format for ${key} (use MM:SS).` }
+        return { value: parsePaceToSeconds(raw) }
+    }
+
+    const fields = {
+        swim_distance: parseNumber('swim_distance'),
+        swim_time_seconds: parseTime('swim_time'),
+        swim_pace_seconds: parsePace('swim_pace'),
+        t1_time_seconds: parseTime('t1_time'),
+        bike_distance: parseNumber('bike_distance'),
+        bike_elevation: parseNumber('bike_elevation'),
+        bike_time_seconds: parseTime('bike_time'),
+        bike_speed: parseNumber('bike_speed'),
+        t2_time_seconds: parseTime('t2_time'),
+        run_distance: parseNumber('run_distance'),
+        run_time_seconds: parseTime('run_time'),
+        run_pace_seconds: parsePace('run_pace'),
+        total_time_seconds: parseTime('total_time'),
+    }
+
+    // Defense in depth: reject if any provided value failed validation.
+    for (const result of Object.values(fields)) {
+        if (result.error) return { error: result.error }
+    }
+
+    const { error } = await supabase.from('race_results').upsert(
+        {
+            race_id: raceId,
+            user_id: user.id,
+            swim_distance: fields.swim_distance.value,
+            swim_time_seconds: fields.swim_time_seconds.value,
+            swim_pace_seconds: fields.swim_pace_seconds.value,
+            t1_time_seconds: fields.t1_time_seconds.value,
+            bike_distance: fields.bike_distance.value,
+            bike_elevation: fields.bike_elevation.value,
+            bike_time_seconds: fields.bike_time_seconds.value,
+            bike_speed: fields.bike_speed.value,
+            t2_time_seconds: fields.t2_time_seconds.value,
+            run_distance: fields.run_distance.value,
+            run_time_seconds: fields.run_time_seconds.value,
+            run_pace_seconds: fields.run_pace_seconds.value,
+            total_time_seconds: fields.total_time_seconds.value,
+            updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'race_id' }
+    )
+
+    if (error) return dbError('upsertRaceResult', error)
+
+    revalidatePath(`/${raceId}`)
+    revalidatePath('/results')
     return { success: true }
 }
 

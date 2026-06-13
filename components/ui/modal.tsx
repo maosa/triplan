@@ -9,9 +9,10 @@ interface ModalProps {
     onClose: () => void
     title: string
     children: React.ReactNode
+    size?: 'default' | 'lg'
 }
 
-export function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, size = 'default' }: ModalProps) {
     React.useEffect(() => {
         if (!isOpen) return
 
@@ -30,7 +31,10 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 animate-in fade-in zoom-in-95 duration-200">
             <div className="fixed inset-0" onClick={onClose}></div>
-            <div className="relative w-full max-w-lg rounded-lg border border-border bg-background p-6 shadow-lg sm:p-8">
+            <div className={cn(
+                "relative w-full rounded-lg border border-border bg-background p-6 shadow-lg sm:p-8",
+                size === 'lg' ? "max-w-2xl" : "max-w-lg"
+            )}>
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold text-foreground">{title}</h2>
                     <button

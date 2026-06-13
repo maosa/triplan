@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Plus, BarChart2, Info, X } from "lucide-react"
+import { Plus, BarChart2, Info, X, Timer } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AddEditWorkoutModal } from "@/components/app/add-workout-modal"
+import { RaceResultsModal } from "@/components/app/race-results-modal"
 import { getWorkoutIcon } from "@/components/app/workout-icons"
 import type { Database } from "@/types/database"
 import { format, isSameDay, parseISO } from "date-fns"
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils"
 import { getIntensityColor } from "@/lib/colors"
 
 type Workout = Database['public']['Tables']['workouts']['Row']
+type RaceResult = Database['public']['Tables']['race_results']['Row']
 
 function formatDuration(duration: string): string {
     const parts = duration.split(':')
@@ -24,14 +26,18 @@ function formatDuration(duration: string): string {
 interface WorkoutListProps {
     initialWorkouts: Workout[]
     raceId: string
+    raceName: string
     raceDate: string
     units: string // 'metric' or 'imperial'
+    isCompleted: boolean
+    raceResult: RaceResult | null
 }
 
-export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: WorkoutListProps) {
+export function WorkoutList({ initialWorkouts, raceId, raceName, raceDate, units, isCompleted, raceResult }: WorkoutListProps) {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
     const [editingWorkout, setEditingWorkout] = useState<Workout | undefined>(undefined)
     const [detailsPopupWorkout, setDetailsPopupWorkout] = useState<Workout | null>(null)
+    const [isResultsModalOpen, setIsResultsModalOpen] = useState(false)
 
     // Workouts are already sorted by the server (Date DESC, Updated DESC, Created DESC)
     const sortedWorkouts = initialWorkouts
@@ -67,6 +73,15 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
             <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-foreground">Workouts</h2>
                 <div className="flex items-center gap-2">
+                    {isCompleted && (
+                        <Button
+                            onClick={() => setIsResultsModalOpen(true)}
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 sm:px-4"
+                        >
+                            <Timer className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Results</span>
+                        </Button>
+                    )}
                     <Link href={`/${raceId}/dashboard`}>
                         <Button className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 sm:px-4">
                             <BarChart2 className="h-4 w-4 sm:mr-2" />
@@ -224,6 +239,17 @@ export function WorkoutList({ initialWorkouts, raceId, raceDate, units }: Workou
                     existingWorkout={editingWorkout}
                     raceId={raceId}
                     raceDate={raceDate}
+                    units={units}
+                />
+            )}
+
+            {isResultsModalOpen && (
+                <RaceResultsModal
+                    isOpen={isResultsModalOpen}
+                    onClose={() => setIsResultsModalOpen(false)}
+                    raceId={raceId}
+                    raceName={raceName}
+                    existingResult={raceResult}
                     units={units}
                 />
             )}

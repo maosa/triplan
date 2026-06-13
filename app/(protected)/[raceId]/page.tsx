@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { WorkoutList } from '@/components/app/workout-list'
 import { MapPin, Calendar } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, differenceInCalendarDays } from 'date-fns'
 import { Header } from '@/components/app/header'
 
 interface PageProps {
@@ -20,8 +20,8 @@ export default async function RacePage({ params }: PageProps) {
         redirect('/login')
     }
 
-    // Fetch profile, race, and workouts in parallel
-    const [{ data: profile }, { data: race, error: raceError }, { data: workouts, error: workoutError }] = await Promise.all([
+    // Fetch profile, race, workouts, and race results in parallel
+    const [{ data: profile }, { data: race, error: raceError }, { data: workouts, error: workoutError }, { data: raceResult }] = await Promise.all([
         supabase
             .from('profiles')
             .select('units')
@@ -40,6 +40,11 @@ export default async function RacePage({ params }: PageProps) {
             .order('updated_at', { ascending: false })
             .order('created_at', { ascending: false })
             .order('id', { ascending: false }),
+        supabase
+            .from('race_results')
+            .select('*')
+            .eq('race_id', raceId)
+            .maybeSingle(),
     ])
 
     const userUnits = profile?.units || 'metric'
@@ -51,6 +56,9 @@ export default async function RacePage({ params }: PageProps) {
     if (workoutError) {
         console.error(workoutError)
     }
+
+    // A race is completed once its date is in the past (calendar-day comparison).
+    const isCompleted = differenceInCalendarDays(new Date(race.date), new Date()) < 0
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -81,8 +89,11 @@ export default async function RacePage({ params }: PageProps) {
                 <WorkoutList
                     initialWorkouts={workouts || []}
                     raceId={raceId}
+                    raceName={race.name}
                     raceDate={race.date}
                     units={userUnits}
+                    isCompleted={isCompleted}
+                    raceResult={raceResult || null}
                 />
             </main>
         </div>
