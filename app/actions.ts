@@ -525,6 +525,56 @@ export async function clearMaintenanceWeek(weekStartDate: string): Promise<Actio
     return { success: true }
 }
 
+export async function fillRestWeek(weekStartDate: string): Promise<ActionResult> {
+    if (!isValidDateString(weekStartDate)) return { error: 'Invalid week start date.' }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('User not authenticated')
+
+    // Compute the 7 dates of the week (Mon–Sun) from the Monday weekStartDate.
+    const [y, m, d] = weekStartDate.split('-').map(Number)
+    const monday = new Date(y, m - 1, d)
+    const dates: string[] = []
+    for (let i = 0; i < DAY_KEYS.length; i++) {
+        const dd = new Date(monday)
+        dd.setDate(monday.getDate() + i)
+        dates.push(`${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, '0')}-${String(dd.getDate()).padStart(2, '0')}`)
+    }
+
+    // Find which (date, session) slots already have an entry, so we only fill gaps
+    // and never overwrite a real session.
+    const { data: existing, error: fetchError } = await supabase
+        .from('maintenance_entries')
+        .select('date, session')
+        .eq('user_id', user.id)
+        .in('date', dates)
+
+    if (fetchError) return dbError('fillRestWeek (fetch)', fetchError)
+
+    const taken = new Set((existing || []).map((e) => `${e.date}|${e.session}`))
+
+    const rowsToInsert: { user_id: string; date: string; session: 'AM' | 'PM'; type: string }[] = []
+    for (const date of dates) {
+        for (const session of ['AM', 'PM'] as const) {
+            if (!taken.has(`${date}|${session}`)) {
+                rowsToInsert.push({ user_id: user.id, date, session, type: 'Rest' })
+            }
+        }
+    }
+
+    if (rowsToInsert.length > 0) {
+        const { error: insertError } = await supabase
+            .from('maintenance_entries')
+            .upsert(rowsToInsert as any, { onConflict: 'user_id,date,session', ignoreDuplicates: true })
+        if (insertError) return dbError('fillRestWeek (insert)', insertError)
+    }
+
+    revalidatePath('/maintenance')
+    return { success: true }
+}
+
 export async function deleteAccount(formData: FormData) {
     const supabase = await createClient()
 

@@ -3,13 +3,13 @@
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { format, addWeeks, subWeeks, isSameWeek, isSameDay } from 'date-fns'
-import { ChevronLeft, ChevronRight, ClipboardPaste, Eraser, CalendarCheck } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ClipboardPaste, Eraser, CalendarCheck, BedDouble } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { MaintenanceGrid } from './maintenance-grid'
 import { MAINTENANCE_TYPE_STYLES, MAINTENANCE_TYPE_ORDER, type WorkoutCellType } from '@/lib/maintenance-colors'
 import { getWeekDays, formatWeekRange, toDateString, parseDateString } from '@/lib/date-utils'
-import { upsertMaintenanceEntry, pasteDefaultSchedule, clearMaintenanceWeek } from '@/app/actions'
+import { upsertMaintenanceEntry, pasteDefaultSchedule, clearMaintenanceWeek, fillRestWeek } from '@/app/actions'
 import type { Database } from '@/types/database'
 
 type MaintenanceEntry = Database['public']['Tables']['maintenance_entries']['Row']
@@ -26,6 +26,7 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [pasteOpen, setPasteOpen] = useState(false)
+  const [restOpen, setRestOpen] = useState(false)
   const [clearOpen, setClearOpen] = useState(false)
 
   const weekStartDate = parseDateString(weekStart) ?? new Date()
@@ -99,8 +100,17 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
     })
   }
 
+  const handleRestConfirm = () => {
+    startTransition(async () => {
+      const result = await fillRestWeek(weekStart)
+      if (!result?.error) setRestOpen(false)
+    })
+  }
+
   // True when the displayed week has at least one populated cell (enables Clear).
   const weekHasEntries = Object.values(values).some((s) => s.am || s.pm)
+  // True when at least one cell is empty (enables Fill-Rest).
+  const weekHasEmptyCells = Object.values(values).some((s) => !s.am || !s.pm)
 
   // Count entries within the displayed week, bucketed by type.
   const weekCounts: Record<string, number> = {}
@@ -159,6 +169,17 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
             title="Paste default schedule"
           >
             <ClipboardPaste className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="secondary"
+            size="icon"
+            className="h-9 w-9 shrink-0"
+            onClick={() => setRestOpen(true)}
+            disabled={isPending || !weekHasEmptyCells}
+            aria-label="Fill empty cells with Rest"
+            title="Fill empty cells with Rest"
+          >
+            <BedDouble className="h-5 w-5" />
           </Button>
           <Button
             variant="secondary"
@@ -231,6 +252,23 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
             </div>
           </>
         )}
+      </Modal>
+
+      {/* Fill-with-Rest confirmation */}
+      <Modal isOpen={restOpen} onClose={() => setRestOpen(false)} title="Fill empty cells with Rest?">
+        <p className="text-sm text-muted-foreground">
+          This will set every empty cell in{' '}
+          <span className="font-medium text-foreground">{formatWeekRange(weekStartDate)}</span> to Rest. Existing
+          sessions are left unchanged.
+        </p>
+        <div className="mt-6 flex justify-end gap-3">
+          <Button variant="ghost" onClick={() => setRestOpen(false)} disabled={isPending}>
+            Cancel
+          </Button>
+          <Button onClick={handleRestConfirm} isLoading={isPending}>
+            Fill with Rest
+          </Button>
+        </div>
       </Modal>
 
       {/* Clear confirmation */}
