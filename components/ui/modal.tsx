@@ -10,9 +10,10 @@ interface ModalProps {
     title: string
     children: React.ReactNode
     size?: 'default' | 'lg'
+    footer?: React.ReactNode
 }
 
-export function Modal({ isOpen, onClose, title, children, size = 'default' }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, size = 'default', footer }: ModalProps) {
     React.useEffect(() => {
         if (!isOpen) return
 
@@ -26,26 +27,57 @@ export function Modal({ isOpen, onClose, title, children, size = 'default' }: Mo
         return () => document.removeEventListener("keydown", handleKeyDown)
     }, [isOpen, onClose])
 
+    // Lock background page scroll while the modal is open so it can't move
+    // behind the modal (and the user returns to where they opened it on close).
+    React.useEffect(() => {
+        if (!isOpen) return
+        const previousOverflow = document.body.style.overflow
+        document.body.style.overflow = "hidden"
+        return () => { document.body.style.overflow = previousOverflow }
+    }, [isOpen])
+
     if (!isOpen) return null
+
+    const closeButton = (
+        <button
+            onClick={onClose}
+            className="rounded-full p-1 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+        >
+            <X className="h-5 w-5" />
+        </button>
+    )
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 animate-in fade-in zoom-in-95 duration-200">
             <div className="fixed inset-0" onClick={onClose}></div>
-            <div className={cn(
-                "relative flex max-h-[85vh] w-full flex-col rounded-lg border border-border bg-background p-6 shadow-lg sm:p-8",
-                size === 'lg' ? "max-w-2xl" : "max-w-lg"
-            )}>
-                <div className="flex items-center justify-between mb-6 shrink-0">
-                    <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-                    <button
-                        onClick={onClose}
-                        className="rounded-full p-1 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                        <X className="h-5 w-5" />
-                    </button>
+            {footer !== undefined ? (
+                <div className={cn(
+                    "relative flex max-h-[85vh] w-full flex-col overflow-hidden rounded-lg border border-border bg-background shadow-lg",
+                    size === 'lg' ? "max-w-2xl" : "max-w-lg"
+                )}>
+                    <div className="flex items-center justify-between shrink-0 border-b border-border px-6 pt-6 pb-4 sm:px-8 sm:pt-8">
+                        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+                        {closeButton}
+                    </div>
+                    <div className="modal-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-4 sm:px-8">
+                        {children}
+                    </div>
+                    <div className="shrink-0 border-t border-border px-6 py-4 sm:px-8">
+                        {footer}
+                    </div>
                 </div>
-                {children}
-            </div>
+            ) : (
+                <div className={cn(
+                    "relative flex max-h-[85vh] w-full flex-col rounded-lg border border-border bg-background p-6 shadow-lg sm:p-8",
+                    size === 'lg' ? "max-w-2xl" : "max-w-lg"
+                )}>
+                    <div className="flex items-center justify-between mb-6 shrink-0">
+                        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+                        {closeButton}
+                    </div>
+                    {children}
+                </div>
+            )}
         </div>
     )
 }

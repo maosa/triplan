@@ -80,3 +80,11 @@ export function maskPaceInput(value: string): string {
     if (d.length > 2) return `${d.slice(0, 2)}:${d.slice(2)}`
     return d
 }
+
+/** Input sanitizer for non-negative decimals: keeps digits and a single dot. */
+export function sanitizeDecimalInput(value: string): string {
+    let v = value.replace(/[^\d.]/g, '') // drop minus sign, letters, etc.
+    const dot = v.indexOf('.')
+    if (dot !== -1) v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '')
+    return v
+}

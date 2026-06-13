@@ -14,6 +14,7 @@ import {
     isValidPaceString,
     maskTimeInput,
     maskPaceInput,
+    sanitizeDecimalInput,
     parseTimeToSeconds,
     parsePaceToSeconds,
 } from "@/lib/time-format"
@@ -222,69 +223,69 @@ export function RaceResultsModal({
         })
     }
 
+    const footer = (
+        <div className="space-y-3">
+            {error && <p className="text-destructive text-sm">{error}</p>}
+            <div className="flex justify-between">
+                <Button type="button" variant="ghost" size="sm" onClick={handleClearAll} disabled={isPending}>
+                    Clear all
+                </Button>
+                <div className="flex space-x-2">
+                    <Button type="button" variant="ghost" onClick={handleClose} disabled={isPending}>
+                        Cancel
+                    </Button>
+                    <Button type="button" onClick={handleSubmit} isLoading={isPending}>
+                        Save
+                    </Button>
+                </div>
+            </div>
+        </div>
+    )
+
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} title={`Race Results — ${raceName}`} size="lg">
-            <div className="flex-1 min-h-0 overflow-y-auto pr-2">
-                <div className="space-y-5">
-                    {sections.map((section) => (
-                        <div key={section.title} className="space-y-3">
-                            <h3 className="text-sm font-semibold text-muted-foreground">
-                                {section.title}
-                            </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {section.fields.map((field) => (
-                                    <div key={field.name} className="space-y-2">
-                                        <Label htmlFor={field.name}>{field.label}</Label>
-                                        <Input
-                                            id={field.name}
-                                            name={field.name}
-                                            type={field.kind === 'number' ? 'number' : 'text'}
-                                            inputMode={field.kind === 'number' ? 'decimal' : 'numeric'}
-                                            step={field.kind === 'number' ? '0.01' : undefined}
-                                            placeholder={
-                                                field.kind === 'time'
-                                                    ? 'HH:MM:SS'
-                                                    : field.kind === 'pace'
-                                                        ? 'MM:SS'
-                                                        : '0'
-                                            }
-                                            value={values[field.name] ?? ''}
-                                            onChange={(e) => {
-                                                const raw = e.target.value
-                                                const v = field.kind === 'time'
-                                                    ? maskTimeInput(raw)
-                                                    : field.kind === 'pace'
-                                                        ? maskPaceInput(raw)
-                                                        : raw
-                                                handleChange(field.name, v)
-                                            }}
-                                            onBlur={field.kind === 'number' ? undefined : () => handleBlur(field)}
-                                        />
-                                        {fieldErrors[field.name] && (
-                                            <p className="text-destructive text-xs">{fieldErrors[field.name]}</p>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-
-                    {error && <p className="text-destructive text-sm">{error}</p>}
-
-                    <div className="flex justify-between pt-4">
-                        <Button type="button" variant="ghost" size="sm" onClick={handleClearAll} disabled={isPending}>
-                            Clear all
-                        </Button>
-                        <div className="flex space-x-2">
-                            <Button type="button" variant="ghost" onClick={handleClose} disabled={isPending}>
-                                Cancel
-                            </Button>
-                            <Button type="button" onClick={handleSubmit} isLoading={isPending}>
-                                Save
-                            </Button>
+        <Modal isOpen={isOpen} onClose={handleClose} title={`Race Results — ${raceName}`} size="lg" footer={footer}>
+            <div className="space-y-5">
+                {sections.map((section) => (
+                    <div key={section.title} className="space-y-3">
+                        <h3 className="text-sm font-semibold text-muted-foreground">
+                            {section.title}
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {section.fields.map((field) => (
+                                <div key={field.name} className="space-y-2">
+                                    <Label htmlFor={field.name}>{field.label}</Label>
+                                    <Input
+                                        id={field.name}
+                                        name={field.name}
+                                        type="text"
+                                        inputMode={field.kind === 'number' ? 'decimal' : 'numeric'}
+                                        placeholder={
+                                            field.kind === 'time'
+                                                ? 'HH:MM:SS'
+                                                : field.kind === 'pace'
+                                                    ? 'MM:SS'
+                                                    : '0'
+                                        }
+                                        value={values[field.name] ?? ''}
+                                        onChange={(e) => {
+                                            const raw = e.target.value
+                                            const v = field.kind === 'time'
+                                                ? maskTimeInput(raw)
+                                                : field.kind === 'pace'
+                                                    ? maskPaceInput(raw)
+                                                    : sanitizeDecimalInput(raw)
+                                            handleChange(field.name, v)
+                                        }}
+                                        onBlur={field.kind === 'number' ? undefined : () => handleBlur(field)}
+                                    />
+                                    {fieldErrors[field.name] && (
+                                        <p className="text-destructive text-xs">{fieldErrors[field.name]}</p>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     </div>
-                </div>
+                ))}
             </div>
         </Modal>
     )
