@@ -11,7 +11,6 @@ import { MAINTENANCE_TYPE_STYLES, MAINTENANCE_TYPE_ORDER, type WorkoutCellType }
 import { getWeekDays, formatWeekRange, toDateString, parseDateString } from '@/lib/date-utils'
 import { upsertMaintenanceEntry, pasteDefaultSchedule, clearMaintenanceWeek } from '@/app/actions'
 import type { Database } from '@/types/database'
-import { cn } from '@/lib/utils'
 
 type MaintenanceEntry = Database['public']['Tables']['maintenance_entries']['Row']
 
@@ -112,14 +111,16 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <span
-            className={cn(
-              'h-9 inline-flex items-center justify-center rounded-full px-3 text-sm font-medium text-center transition-colors whitespace-nowrap min-w-[7rem]',
-              viewingCurrentWeek ? 'bg-primary/10 text-primary' : 'text-foreground'
-            )}
+          <Button
+            variant="secondary"
+            onClick={() => navigate(today)}
+            disabled={isPending || viewingCurrentWeek}
+            className="h-9 w-9 p-0 sm:w-auto sm:px-3 shrink-0"
+            aria-label="Go to current week"
           >
-            {formatWeekRange(weekStartDate)}
-          </span>
+            <CalendarCheck className="h-4 w-4 sm:hidden" />
+            <span className="hidden sm:inline">Today</span>
+          </Button>
           <Button
             variant="secondary"
             size="icon"
@@ -129,16 +130,6 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
             aria-label="Next week"
           >
             <ChevronRight className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => navigate(today)}
-            disabled={isPending || viewingCurrentWeek}
-            className="h-9 w-9 p-0 sm:w-auto sm:px-3 shrink-0 ml-1"
-            aria-label="Go to current week"
-          >
-            <CalendarCheck className="h-4 w-4 sm:hidden" />
-            <span className="hidden sm:inline">Today</span>
           </Button>
         </div>
 
@@ -168,9 +159,22 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
         </div>
       </div>
 
-      {/* Grid */}
-      <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
-        <MaintenanceGrid columns={columns} values={values} onChange={handleCellChange} />
+      {/* Week label + grid */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-foreground">
+            {formatWeekRange(weekStartDate)}
+          </span>
+          {viewingCurrentWeek && (
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+              This week
+            </span>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+          <MaintenanceGrid columns={columns} values={values} onChange={handleCellChange} />
+        </div>
       </div>
 
       {/* Summary stats */}
