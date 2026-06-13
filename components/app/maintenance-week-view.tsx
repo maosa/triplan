@@ -115,11 +115,11 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
             variant="secondary"
             onClick={() => navigate(today)}
             disabled={isPending || viewingCurrentWeek}
-            className="h-9 w-9 p-0 sm:w-auto sm:px-3 shrink-0"
+            className="h-9 px-3 py-0 shrink-0 max-[340px]:w-9 max-[340px]:px-0"
             aria-label="Go to current week"
           >
-            <CalendarCheck className="h-4 w-4 sm:hidden" />
-            <span className="hidden sm:inline">Today</span>
+            <CalendarCheck className="h-4 w-4 hidden max-[340px]:inline" />
+            <span className="max-[340px]:hidden">Today</span>
           </Button>
           <Button
             variant="secondary"
