@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils"
 
 const NAV_ITEMS = [
   { href: '/races', label: 'Races', icon: Flag },
-  { href: '/maintenance', label: 'Maintenance', icon: CalendarDays },
   { href: '/results', label: 'Results', icon: Trophy },
+  { href: '/maintenance', label: 'Maintenance', icon: CalendarDays },
   { href: '/profile', label: 'Account', icon: User },
 ] as const
 
