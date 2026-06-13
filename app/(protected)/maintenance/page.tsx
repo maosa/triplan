@@ -1,8 +1,14 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Header } from '@/components/app/header'
+import { MaintenanceWeekView } from '@/components/app/maintenance-week-view'
+import { getWeekStart, parseDateString, toDateString } from '@/lib/date-utils'
 
-export default async function MaintenancePage() {
+interface PageProps {
+  searchParams: Promise<{ week?: string }>
+}
+
+export default async function MaintenancePage({ searchParams }: PageProps) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -11,11 +17,43 @@ export default async function MaintenancePage() {
     redirect('/login')
   }
 
+  const { week } = await searchParams
+
+  // Resolve the displayed week's Monday: from ?week=YYYY-MM-DD if valid, else current week.
+  const requested = parseDateString(week)
+  const weekStartDate = getWeekStart(requested ?? new Date())
+  const weekStart = toDateString(weekStartDate)
+
+  // Year range covering the displayed week's Monday — supplies the grid and the
+  // week/month/year summary stats in one query.
+  const year = weekStartDate.getFullYear()
+  const yearStart = `${year}-01-01`
+  const yearEnd = `${year}-12-31`
+
+  const [{ data: profile }, { data: entries, error: entriesError }] = await Promise.all([
+    supabase.from('profiles').select('maintenance_defaults').eq('id', user.id).single(),
+    supabase
+      .from('maintenance_entries')
+      .select('*')
+      .gte('date', yearStart)
+      .lte('date', yearEnd),
+  ])
+
+  if (entriesError) {
+    console.error('Error fetching maintenance entries:', entriesError)
+  }
+
+  const defaults = (profile?.maintenance_defaults || {}) as Record<string, { am: string | null; pm: string | null }>
+  const hasDefaults = Object.values(defaults).some((slot) => slot && (slot.am || slot.pm))
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
-      <main className="container mx-auto px-4 py-8 sm:px-8 flex items-center justify-center">
-        <p className="text-muted-foreground text-lg">Coming soon</p>
+      <main className="container mx-auto px-4 py-8 sm:px-8">
+        <div className="mx-auto max-w-4xl space-y-6">
+          <h1 className="text-2xl font-semibold text-foreground">Maintenance Training</h1>
+          <MaintenanceWeekView weekStart={weekStart} entries={entries || []} hasDefaults={hasDefaults} />
+        </div>
       </main>
     </div>
   )

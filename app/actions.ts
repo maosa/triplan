@@ -303,6 +303,112 @@ export async function updateMaintenanceDefaults(formData: FormData): Promise<Act
     return { success: true }
 }
 
+// Maintenance Training Actions
+
+const MAINTENANCE_TYPES = new Set(['Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Other'])
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
+
+function isValidDateString(s: string): boolean {
+    return /^\d{4}-\d{2}-\d{2}$/.test(s)
+}
+
+export async function upsertMaintenanceEntry(
+    date: string,
+    session: 'AM' | 'PM',
+    type: string | null
+): Promise<ActionResult> {
+    if (!isValidDateString(date)) return { error: 'Invalid date.' }
+    if (session !== 'AM' && session !== 'PM') return { error: 'Invalid session.' }
+    if (type !== null && !MAINTENANCE_TYPES.has(type)) return { error: 'Invalid workout type.' }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('User not authenticated')
+
+    if (type === null) {
+        const { error } = await supabase
+            .from('maintenance_entries')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('date', date)
+            .eq('session', session)
+        if (error) return dbError('upsertMaintenanceEntry (delete)', error)
+    } else {
+        const { error } = await supabase
+            .from('maintenance_entries')
+            .upsert(
+                { user_id: user.id, date, session, type: type as any, updated_at: new Date().toISOString() },
+                { onConflict: 'user_id,date,session' }
+            )
+        if (error) return dbError('upsertMaintenanceEntry (upsert)', error)
+    }
+
+    revalidatePath('/maintenance')
+    return { success: true }
+}
+
+export async function pasteDefaultSchedule(weekStartDate: string): Promise<ActionResult> {
+    if (!isValidDateString(weekStartDate)) return { error: 'Invalid week start date.' }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('User not authenticated')
+
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('maintenance_defaults')
+        .eq('id', user.id)
+        .single()
+
+    if (profileError) return dbError('pasteDefaultSchedule (profile)', profileError)
+
+    const defaults = (profile?.maintenance_defaults || {}) as Record<string, { am: string | null; pm: string | null }>
+
+    // Compute the 7 dates of the week (Mon–Sun) from the Monday weekStartDate.
+    const [y, m, d] = weekStartDate.split('-').map(Number)
+    const monday = new Date(y, m - 1, d)
+
+    const rowsToUpsert: { user_id: string; date: string; session: 'AM' | 'PM'; type: string }[] = []
+    const datesToClear: string[] = []
+
+    for (let i = 0; i < DAY_KEYS.length; i++) {
+        const dayDate = new Date(monday)
+        dayDate.setDate(monday.getDate() + i)
+        const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`
+
+        const slot = defaults[DAY_KEYS[i]] || { am: null, pm: null }
+        for (const session of ['AM', 'PM'] as const) {
+            const val = session === 'AM' ? slot.am : slot.pm
+            if (val && MAINTENANCE_TYPES.has(val)) {
+                rowsToUpsert.push({ user_id: user.id, date: dateStr, session, type: val })
+            }
+        }
+        datesToClear.push(dateStr)
+    }
+
+    // The week becomes an exact copy of the defaults: clear the whole week first,
+    // then insert only the populated cells. This also clears cells whose default is empty.
+    const { error: deleteError } = await supabase
+        .from('maintenance_entries')
+        .delete()
+        .eq('user_id', user.id)
+        .in('date', datesToClear)
+
+    if (deleteError) return dbError('pasteDefaultSchedule (clear)', deleteError)
+
+    if (rowsToUpsert.length > 0) {
+        const { error: insertError } = await supabase
+            .from('maintenance_entries')
+            .insert(rowsToUpsert as any)
+        if (insertError) return dbError('pasteDefaultSchedule (insert)', insertError)
+    }
+
+    revalidatePath('/maintenance')
+    return { success: true }
+}
+
 export async function deleteAccount(formData: FormData) {
     const supabase = await createClient()
 
