@@ -112,12 +112,19 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
   // True when at least one cell is empty (enables Fill-Rest).
   const weekHasEmptyCells = Object.values(values).some((s) => !s.am || !s.pm)
 
-  // Count entries within the displayed week, bucketed by type.
+  // Weekly summary counts. Non-Rest sessions are counted per cell. Rest is only
+  // counted as a full rest day — i.e. when BOTH sessions that day are Rest — so a
+  // single Rest paired with a workout (or an empty slot) is not shown. This keeps
+  // the summary meaningful instead of inflating it with incidental Rest cells.
   const weekCounts: Record<string, number> = {}
-  for (const entry of entries) {
-    const d = parseDateString(entry.date)
-    if (d && isSameWeek(d, weekStartDate, { weekStartsOn: 1 })) {
-      weekCounts[entry.type] = (weekCounts[entry.type] || 0) + 1
+  for (const { am, pm } of Object.values(values)) {
+    for (const session of [am, pm]) {
+      if (session && session !== 'Rest') {
+        weekCounts[session] = (weekCounts[session] || 0) + 1
+      }
+    }
+    if (am === 'Rest' && pm === 'Rest') {
+      weekCounts.Rest = (weekCounts.Rest || 0) + 1
     }
   }
 
