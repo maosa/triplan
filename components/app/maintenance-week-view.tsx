@@ -104,6 +104,7 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
         <div className="flex items-center gap-1">
           <Button
             variant="secondary"
+            size="icon"
             className="h-9 w-9 shrink-0"
             onClick={() => navigate(subWeeks(weekStartDate, 1))}
             disabled={isPending}
@@ -121,6 +122,7 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
           </span>
           <Button
             variant="secondary"
+            size="icon"
             className="h-9 w-9 shrink-0"
             onClick={() => navigate(addWeeks(weekStartDate, 1))}
             disabled={isPending}
@@ -143,6 +145,7 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
         <div className="flex items-center gap-1">
           <Button
             variant="secondary"
+            size="icon"
             className="h-9 w-9 shrink-0"
             onClick={() => setPasteOpen(true)}
             disabled={isPending}
@@ -153,6 +156,7 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
           </Button>
           <Button
             variant="secondary"
+            size="icon"
             className="h-9 w-9 shrink-0"
             onClick={() => setClearOpen(true)}
             disabled={isPending || !weekHasEntries}
