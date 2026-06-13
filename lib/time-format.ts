@@ -38,13 +38,13 @@ export function parseTimeToSeconds(value: string): number | null {
     return null
 }
 
-/** seconds -> "H:MM:SS". Returns "" for null. */
+/** seconds -> "HH:MM:SS" (zero-padded). Returns "" for null. */
 export function formatSecondsToHMS(seconds: number | null): string {
     if (seconds === null || seconds === undefined) return ''
     const h = Math.floor(seconds / 3600)
     const m = Math.floor((seconds % 3600) / 60)
     const s = seconds % 60
-    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
 /** "1:45" (MM:SS) -> seconds. Returns null for blank/invalid input. */
@@ -58,10 +58,25 @@ export function parsePaceToSeconds(value: string): number | null {
     return null
 }
 
-/** seconds -> "M:SS" pace. Returns "" for null. */
+/** seconds -> "MM:SS" pace (zero-padded). Returns "" for null. */
 export function formatSecondsToPace(seconds: number | null): string {
     if (seconds === null || seconds === undefined) return ''
     const m = Math.floor(seconds / 60)
     const s = seconds % 60
-    return `${m}:${String(s).padStart(2, '0')}`
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
+/** Live input mask: digits -> "HH:MM:SS" (max 6 digits, grouped left-to-right). */
+export function maskTimeInput(value: string): string {
+    const d = value.replace(/\D/g, '').slice(0, 6)
+    if (d.length > 4) return `${d.slice(0, 2)}:${d.slice(2, 4)}:${d.slice(4)}`
+    if (d.length > 2) return `${d.slice(0, 2)}:${d.slice(2)}`
+    return d
+}
+
+/** Live input mask: digits -> "MM:SS" (max 4 digits). */
+export function maskPaceInput(value: string): string {
+    const d = value.replace(/\D/g, '').slice(0, 4)
+    if (d.length > 2) return `${d.slice(0, 2)}:${d.slice(2)}`
+    return d
 }

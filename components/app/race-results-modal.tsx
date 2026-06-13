@@ -12,6 +12,10 @@ import {
     formatSecondsToPace,
     isValidTimeString,
     isValidPaceString,
+    maskTimeInput,
+    maskPaceInput,
+    parseTimeToSeconds,
+    parsePaceToSeconds,
 } from "@/lib/time-format"
 
 type RaceResult = Database['public']['Tables']['race_results']['Row']
@@ -150,13 +154,22 @@ export function RaceResultsModal({
     }
 
     const handleBlur = (field: FieldDef) => {
-        const err = validateField(field, values[field.name] || '')
+        const v = (values[field.name] || '').trim()
+        const err = validateField(field, v)
         setFieldErrors((prev) => {
             const next = { ...prev }
             if (err) next[field.name] = err
             else delete next[field.name]
             return next
         })
+        // Normalize valid time/pace to canonical zero-padded form (e.g. "29:30" -> "00:29:30").
+        if (!err && v) {
+            if (field.kind === 'time') {
+                handleChange(field.name, formatSecondsToHMS(parseTimeToSeconds(v)))
+            } else if (field.kind === 'pace') {
+                handleChange(field.name, formatSecondsToPace(parsePaceToSeconds(v)))
+            }
+        }
     }
 
     const handleChange = (name: string, value: string) => {
@@ -215,7 +228,7 @@ export function RaceResultsModal({
                 <div className="space-y-5">
                     {sections.map((section) => (
                         <div key={section.title} className="space-y-3">
-                            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                            <h3 className="text-sm font-semibold text-muted-foreground">
                                 {section.title}
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -226,6 +239,7 @@ export function RaceResultsModal({
                                             id={field.name}
                                             name={field.name}
                                             type={field.kind === 'number' ? 'number' : 'text'}
+                                            inputMode={field.kind === 'number' ? 'decimal' : 'numeric'}
                                             step={field.kind === 'number' ? '0.01' : undefined}
                                             placeholder={
                                                 field.kind === 'time'
@@ -235,7 +249,15 @@ export function RaceResultsModal({
                                                         : '0'
                                             }
                                             value={values[field.name] ?? ''}
-                                            onChange={(e) => handleChange(field.name, e.target.value)}
+                                            onChange={(e) => {
+                                                const raw = e.target.value
+                                                const v = field.kind === 'time'
+                                                    ? maskTimeInput(raw)
+                                                    : field.kind === 'pace'
+                                                        ? maskPaceInput(raw)
+                                                        : raw
+                                                handleChange(field.name, v)
+                                            }}
                                             onBlur={field.kind === 'number' ? undefined : () => handleBlur(field)}
                                         />
                                         {fieldErrors[field.name] && (
