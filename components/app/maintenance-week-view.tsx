@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { format, addWeeks, subWeeks, isSameWeek, isSameMonth, isSameYear, isSameDay } from 'date-fns'
 import { ChevronLeft, ChevronRight, ClipboardPaste, Eraser, CalendarCheck } from 'lucide-react'
@@ -55,6 +55,28 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
 
   const navigate = (newWeekStart: Date) => {
     router.push(`/maintenance?week=${toDateString(newWeekStart)}`)
+  }
+
+  // Swipe the grid left/right to change weeks (touch devices). Vertical gestures
+  // fall through to normal scrolling; cell taps have ~0 movement and are unaffected.
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0]
+    touchStart.current = { x: t.clientX, y: t.clientY }
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const start = touchStart.current
+    touchStart.current = null
+    if (!start || isPending) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - start.x
+    const dy = t.clientY - start.y
+    const SWIPE_MIN = 50
+    if (Math.abs(dx) < SWIPE_MIN || Math.abs(dx) <= Math.abs(dy)) return
+    if (dx < 0) navigate(addWeeks(weekStartDate, 1)) // swipe left → next week
+    else navigate(subWeeks(weekStartDate, 1)) // swipe right → previous week
   }
 
   const handleCellChange = (columnKey: string, session: 'am' | 'pm', value: WorkoutCellType | null) => {
@@ -172,7 +194,11 @@ export function MaintenanceWeekView({ weekStart, entries, hasDefaults }: Mainten
           )}
         </div>
 
-        <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+        <div
+          className="rounded-lg border border-border bg-card p-4 sm:p-6 touch-pan-y"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <MaintenanceGrid columns={columns} values={values} onChange={handleCellChange} />
         </div>
       </div>
