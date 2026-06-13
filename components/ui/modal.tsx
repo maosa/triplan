@@ -32,10 +32,10 @@ export function Modal({ isOpen, onClose, title, children, size = 'default' }: Mo
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 animate-in fade-in zoom-in-95 duration-200">
             <div className="fixed inset-0" onClick={onClose}></div>
             <div className={cn(
-                "relative w-full rounded-lg border border-border bg-background p-6 shadow-lg sm:p-8",
+                "relative flex max-h-[85vh] w-full flex-col rounded-lg border border-border bg-background p-6 shadow-lg sm:p-8",
                 size === 'lg' ? "max-w-2xl" : "max-w-lg"
             )}>
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-6 shrink-0">
                     <h2 className="text-xl font-semibold text-foreground">{title}</h2>
                     <button
                         onClick={onClose}

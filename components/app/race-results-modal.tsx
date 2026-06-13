@@ -64,14 +64,14 @@ export function RaceResultsModal({
             title: 'Swim',
             fields: [
                 { name: 'swim_distance', label: `Distance (${u.swimDist})`, kind: 'number' },
-                { name: 'swim_time', label: 'Time (H:MM:SS)', kind: 'time' },
-                { name: 'swim_pace', label: `Pace (MM:SS ${u.swimPace})`, kind: 'pace' },
+                { name: 'swim_time', label: 'Time (HH:MM:SS)', kind: 'time' },
+                { name: 'swim_pace', label: `Pace (MM:SS${u.swimPace})`, kind: 'pace' },
             ],
         },
         {
             title: 'Transition 1',
             fields: [
-                { name: 't1_time', label: 'T1 Time (H:MM:SS)', kind: 'time' },
+                { name: 't1_time', label: 'T1 Time (HH:MM:SS)', kind: 'time' },
             ],
         },
         {
@@ -79,28 +79,28 @@ export function RaceResultsModal({
             fields: [
                 { name: 'bike_distance', label: `Distance (${u.dist})`, kind: 'number' },
                 { name: 'bike_elevation', label: `Elevation Gain (${u.elev})`, kind: 'number' },
-                { name: 'bike_time', label: 'Time (H:MM:SS)', kind: 'time' },
+                { name: 'bike_time', label: 'Time (HH:MM:SS)', kind: 'time' },
                 { name: 'bike_speed', label: `Speed (${u.speed})`, kind: 'number' },
             ],
         },
         {
             title: 'Transition 2',
             fields: [
-                { name: 't2_time', label: 'T2 Time (H:MM:SS)', kind: 'time' },
+                { name: 't2_time', label: 'T2 Time (HH:MM:SS)', kind: 'time' },
             ],
         },
         {
             title: 'Run',
             fields: [
                 { name: 'run_distance', label: `Distance (${u.dist})`, kind: 'number' },
-                { name: 'run_time', label: 'Time (H:MM:SS)', kind: 'time' },
-                { name: 'run_pace', label: `Pace (MM:SS ${u.runPace})`, kind: 'pace' },
+                { name: 'run_time', label: 'Time (HH:MM:SS)', kind: 'time' },
+                { name: 'run_pace', label: `Pace (MM:SS${u.runPace})`, kind: 'pace' },
             ],
         },
         {
             title: 'Total',
             fields: [
-                { name: 'total_time', label: 'Total Time (H:MM:SS)', kind: 'time' },
+                { name: 'total_time', label: 'Total Time (HH:MM:SS)', kind: 'time' },
             ],
         },
     ]
@@ -141,7 +141,7 @@ export function RaceResultsModal({
         const v = value.trim()
         if (!v) return null // all fields optional
         if (field.kind === 'time' && !isValidTimeString(v)) {
-            return 'Use H:MM:SS or M:SS'
+            return 'Use HH:MM:SS or M:SS'
         }
         if (field.kind === 'pace' && !isValidPaceString(v)) {
             return 'Use MM:SS'
@@ -211,14 +211,14 @@ export function RaceResultsModal({
 
     return (
         <Modal isOpen={isOpen} onClose={handleClose} title={`Race Results — ${raceName}`} size="lg">
-            <div className="max-h-[85vh] overflow-y-auto -mx-1 px-1">
-                <div className="space-y-6">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2">
+                <div className="space-y-5">
                     {sections.map((section) => (
                         <div key={section.title} className="space-y-3">
                             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                                 {section.title}
                             </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {section.fields.map((field) => (
                                     <div key={field.name} className="space-y-2">
                                         <Label htmlFor={field.name}>{field.label}</Label>
@@ -229,7 +229,7 @@ export function RaceResultsModal({
                                             step={field.kind === 'number' ? '0.01' : undefined}
                                             placeholder={
                                                 field.kind === 'time'
-                                                    ? 'H:MM:SS'
+                                                    ? 'HH:MM:SS'
                                                     : field.kind === 'pace'
                                                         ? 'MM:SS'
                                                         : '0'

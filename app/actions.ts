@@ -250,7 +250,7 @@ export async function upsertRaceResult(raceId: string, formData: FormData): Prom
     const parseTime = (key: string): { value: number | null; error?: string } => {
         const raw = ((formData.get(key) as string) || '').trim()
         if (!raw) return { value: null }
-        if (!isValidTimeString(raw)) return { value: null, error: `Invalid time format for ${key} (use H:MM:SS).` }
+        if (!isValidTimeString(raw)) return { value: null, error: `Invalid time format for ${key} (use HH:MM:SS).` }
         return { value: parseTimeToSeconds(raw) }
     }
 
