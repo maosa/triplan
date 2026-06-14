@@ -88,7 +88,11 @@ begin
   values (new.id, new.email, '', '');
   return new;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer set search_path = '';
+
+-- Trigger-only function: it fires via the trigger mechanism, so no client role
+-- needs (or should have) EXECUTE on it.
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
 
 create trigger on_auth_user_created
   after insert on auth.users
@@ -104,7 +108,11 @@ begin
   -- This function must be Security Definer to access auth.users.
   delete from auth.users where id = auth.uid();
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer set search_path = '';
+
+-- Called by the app as the authenticated user (self-delete), scoped to auth.uid();
+-- keep authenticated only.
+revoke execute on function delete_user() from public, anon;
 
 -- MIGRATION: 20260612_maintenance_and_results
 -- New columns on profiles
