@@ -104,6 +104,16 @@ export async function signup(formData: FormData): Promise<{ error?: string; succ
     // Assuming auto-confirm for dev, but handling check email flow is better UX.
 
     if (data.session) {
+        // New accounts default to a session-only cookie (no "Remember me" at
+        // signup); the session ends when the browser closes until they opt in
+        // at login. Recorded explicitly so middleware keeps the right lifetime.
+        const cookieStore = await cookies()
+        cookieStore.set(REMEMBER_ME_COOKIE, 'false', {
+            path: '/',
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+            httpOnly: true,
+        })
         redirect('/')
     } else {
         // Email confirmation required case
