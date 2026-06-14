@@ -1,14 +1,17 @@
 'use server'
 
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
-import { Database, WorkoutType } from '@/types/database'
+import { Database, WorkoutType, MaintenanceSession } from '@/types/database'
+import { WORKOUT_TYPES, WORKOUT_TYPE_SET, MAINTENANCE_SESSIONS, DAY_KEYS } from '@/lib/workout-constants'
 import Papa from 'papaparse'
 import { logSecurityEvent, hashEmail } from '@/lib/security-events'
 import { parseTimeToSeconds, parsePaceToSeconds, isValidTimeString, isValidPaceString } from '@/lib/time-format'
+import { toDateString } from '@/lib/date-utils'
+import { validatePassword } from '@/lib/validation'
 
 // Consistent return type for all server actions so callers can safely do `result?.error`
 // without TypeScript complaining about discriminated union property access.
@@ -46,12 +49,7 @@ export async function createRace(formData: FormData): Promise<ActionResult> {
     if (details && details.length > LIMITS.DETAILS) return { error: 'Details must be under 5000 characters.' }
     if (!date) return { error: 'Race date is required.' }
 
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-        throw new Error('User not authenticated')
-    }
+    const { supabase, user } = await getAuthenticatedUser()
 
     const { error } = await supabase.from('races').insert({
         user_id: user.id,
@@ -117,12 +115,7 @@ export async function createWorkout(raceId: string, formData: FormData): Promise
     if (details.length > LIMITS.DETAILS) return { error: 'Details must be under 5000 characters.' }
     if (intensity !== null && (intensity < 0 || intensity > 10)) return { error: 'Intensity must be between 0 and 10.' }
 
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-        throw new Error('User not authenticated')
-    }
+    const { supabase, user } = await getAuthenticatedUser()
 
     const dateCheck = await validateWorkoutDate(supabase, raceId, date)
     if (dateCheck.error) return { error: dateCheck.error }
@@ -194,12 +187,7 @@ export async function deleteWorkout(workoutId: string, raceId: string): Promise<
 }
 
 export async function duplicateWorkout(workout: Database['public']['Tables']['workouts']['Row']): Promise<ActionResult> {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-        throw new Error('User not authenticated')
-    }
+    const { supabase, user } = await getAuthenticatedUser()
 
     // Clone with date = today
     const finalDate = new Date().toISOString().split('T')[0]
@@ -232,10 +220,7 @@ export async function duplicateWorkout(workout: Database['public']['Tables']['wo
 export async function upsertRaceResult(raceId: string, formData: FormData): Promise<ActionResult> {
     if (!raceId) return { error: 'Missing race.' }
 
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) throw new Error('User not authenticated')
+    const { supabase, user } = await getAuthenticatedUser()
 
     // Parse a numeric field: blank -> null, otherwise a finite non-negative number.
     const parseNumber = (key: string): { value: number | null; error?: string } => {
@@ -324,12 +309,7 @@ export async function updateProfile(formData: FormData): Promise<ActionResult> {
     if (!['light', 'dark'].includes(theme)) return { error: 'Invalid theme value.' }
     if (!['races', 'maintenance', 'results'].includes(landingPage)) return { error: 'Invalid landing page value.' }
 
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-        throw new Error('User not authenticated')
-    }
+    const { supabase, user } = await getAuthenticatedUser()
 
     const { error } = await supabase.from('profiles').update({
         units: units as 'metric' | 'imperial',
@@ -365,20 +345,16 @@ export async function updateMaintenanceDefaults(formData: FormData): Promise<Act
         return { error: 'Invalid schedule data.' }
     }
 
-    const validTypes = new Set<string | null>(['Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Other', null])
-    const validDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+    const validTypes = new Set<string | null>([...WORKOUT_TYPES, null])
 
-    for (const day of validDays) {
+    for (const day of DAY_KEYS) {
         const slot = parsed[day]
         if (!slot || typeof slot !== 'object') continue
         if (!validTypes.has(slot.first_session)) return { error: `Invalid workout type for ${day} 1st session.` }
         if (!validTypes.has(slot.second_session)) return { error: `Invalid workout type for ${day} 2nd session.` }
     }
 
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) throw new Error('User not authenticated')
+    const { supabase, user } = await getAuthenticatedUser()
 
     const { error } = await supabase.from('profiles').update({
         maintenance_defaults: parsed,
@@ -391,11 +367,6 @@ export async function updateMaintenanceDefaults(formData: FormData): Promise<Act
 
 // Maintenance Training Actions
 
-const MAINTENANCE_TYPES = new Set(['Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Other'])
-const MAINTENANCE_SESSIONS = ['first_session', 'second_session'] as const
-type MaintenanceSession = (typeof MAINTENANCE_SESSIONS)[number]
-const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
-
 function isValidDateString(s: string): boolean {
     return /^\d{4}-\d{2}-\d{2}$/.test(s)
 }
@@ -407,12 +378,9 @@ export async function upsertMaintenanceEntry(
 ): Promise<ActionResult> {
     if (!isValidDateString(date)) return { error: 'Invalid date.' }
     if (!MAINTENANCE_SESSIONS.includes(session)) return { error: 'Invalid session.' }
-    if (type !== null && !MAINTENANCE_TYPES.has(type)) return { error: 'Invalid workout type.' }
+    if (type !== null && !WORKOUT_TYPE_SET.has(type)) return { error: 'Invalid workout type.' }
 
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) throw new Error('User not authenticated')
+    const { supabase, user } = await getAuthenticatedUser()
 
     if (type === null) {
         const { error } = await supabase
@@ -440,10 +408,7 @@ export async function upsertMaintenanceEntry(
 export async function pasteDefaultSchedule(weekStartDate: string): Promise<ActionResult> {
     if (!isValidDateString(weekStartDate)) return { error: 'Invalid week start date.' }
 
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) throw new Error('User not authenticated')
+    const { supabase, user } = await getAuthenticatedUser()
 
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -465,12 +430,12 @@ export async function pasteDefaultSchedule(weekStartDate: string): Promise<Actio
     for (let i = 0; i < DAY_KEYS.length; i++) {
         const dayDate = new Date(monday)
         dayDate.setDate(monday.getDate() + i)
-        const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`
+        const dateStr = toDateString(dayDate)
 
         const slot = defaults[DAY_KEYS[i]] || { first_session: null, second_session: null }
         for (const session of MAINTENANCE_SESSIONS) {
             const val = slot[session]
-            if (val && MAINTENANCE_TYPES.has(val)) {
+            if (val && WORKOUT_TYPE_SET.has(val)) {
                 rowsToUpsert.push({ user_id: user.id, date: dateStr, session, type: val })
             }
         }
@@ -502,10 +467,7 @@ export async function pasteDefaultSchedule(weekStartDate: string): Promise<Actio
 export async function clearMaintenanceWeek(weekStartDate: string): Promise<ActionResult> {
     if (!isValidDateString(weekStartDate)) return { error: 'Invalid week start date.' }
 
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) throw new Error('User not authenticated')
+    const { supabase, user } = await getAuthenticatedUser()
 
     // Compute the 7 dates of the week (Mon–Sun) from the Monday weekStartDate.
     const [y, m, d] = weekStartDate.split('-').map(Number)
@@ -514,7 +476,7 @@ export async function clearMaintenanceWeek(weekStartDate: string): Promise<Actio
     for (let i = 0; i < DAY_KEYS.length; i++) {
         const dd = new Date(monday)
         dd.setDate(monday.getDate() + i)
-        dates.push(`${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, '0')}-${String(dd.getDate()).padStart(2, '0')}`)
+        dates.push(toDateString(dd))
     }
 
     const { error } = await supabase
@@ -533,10 +495,7 @@ export async function clearMaintenanceWeek(weekStartDate: string): Promise<Actio
 export async function fillRestWeek(weekStartDate: string): Promise<ActionResult> {
     if (!isValidDateString(weekStartDate)) return { error: 'Invalid week start date.' }
 
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) throw new Error('User not authenticated')
+    const { supabase, user } = await getAuthenticatedUser()
 
     // Compute the 7 dates of the week (Mon–Sun) from the Monday weekStartDate.
     const [y, m, d] = weekStartDate.split('-').map(Number)
@@ -545,7 +504,7 @@ export async function fillRestWeek(weekStartDate: string): Promise<ActionResult>
     for (let i = 0; i < DAY_KEYS.length; i++) {
         const dd = new Date(monday)
         dd.setDate(monday.getDate() + i)
-        dates.push(`${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, '0')}-${String(dd.getDate()).padStart(2, '0')}`)
+        dates.push(toDateString(dd))
     }
 
     // Find which (date, session) slots already have an entry, so we only fill gaps
@@ -605,12 +564,7 @@ export async function deleteAccount() {
 }
 
 export async function updateSecuritySettings(formData: FormData): Promise<ActionResult> {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-        throw new Error('User not authenticated')
-    }
+    const { supabase, user } = await getAuthenticatedUser()
 
     const newEmail = (formData.get('email') as string)?.trim()
     const password = formData.get('password') as string
@@ -625,10 +579,8 @@ export async function updateSecuritySettings(formData: FormData): Promise<Action
     }
 
     if (password) {
-        if (password.length < 12) return { error: 'Password must be at least 12 characters.' }
-        if (!/[A-Z]/.test(password)) return { error: 'Password must contain at least one uppercase letter.' }
-        if (!/[a-z]/.test(password)) return { error: 'Password must contain at least one lowercase letter.' }
-        if (!/[0-9]/.test(password)) return { error: 'Password must contain at least one number.' }
+        const passwordError = validatePassword(password)
+        if (passwordError) return { error: passwordError }
         updates.password = password
     }
 
@@ -752,8 +704,6 @@ export async function importCsvData(formData: FormData): Promise<ActionResult> {
     }
 
     // 3. Data Validation per Row
-    const validTypes = new Set(["Swim", "Bike", "Run", "Strength", "Rest", "Other"])
-
     for (const row of rows) {
         // Workout Date: DD/MM/YYYY
         const wDate = row['Workout Date']?.trim()
@@ -768,7 +718,7 @@ export async function importCsvData(formData: FormData): Promise<ActionResult> {
 
         // Workout Type
         const wType = row['Workout Type']?.trim()
-        if (!validTypes.has(wType)) {
+        if (!WORKOUT_TYPE_SET.has(wType)) {
             return { error: "Workout Type should be one of the following: Swim, Bike, Run, Strength, Rest, Other." }
         }
 
@@ -807,10 +757,7 @@ export async function importCsvData(formData: FormData): Promise<ActionResult> {
     }
 
     // 4. Insert Race and Workouts
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) throw new Error('User not authenticated')
+    const { supabase, user } = await getAuthenticatedUser()
 
     const raceDate = parseDate(raceDateRef)
     if (!raceDate) {

@@ -5,6 +5,7 @@ import { Modal } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { createRace, deleteRace, updateRace } from "@/app/actions"
 import type { Database } from "@/types/database"
 
@@ -109,13 +110,12 @@ export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceM
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="details">Details (Optional)</Label>
-                        <textarea
+                        <Textarea
                             id="details"
                             name="details"
                             defaultValue={existingRace?.details || ''}
                             placeholder="Goals, notes..."
                             rows={3}
-                            className="flex w-full appearance-none rounded-md border border-input bg-background px-3 py-2 text-base sm:text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none min-h-[80px]"
                         />
                     </div>
 

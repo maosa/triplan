@@ -1,5 +1,6 @@
 import { Waves, Bike, Footprints, Dumbbell, BedDouble, Activity, type LucideIcon } from 'lucide-react'
 import { type WorkoutType } from '@/types/database'
+import { WORKOUT_TYPES } from '@/lib/workout-constants'
 
 export type WorkoutCellType = WorkoutType
 
@@ -12,4 +13,4 @@ export const MAINTENANCE_TYPE_STYLES: Record<WorkoutCellType, { badge: string; i
   Other:    { badge: 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300', icon: Activity },
 }
 
-export const MAINTENANCE_TYPE_ORDER: WorkoutCellType[] = ['Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Other']
+export const MAINTENANCE_TYPE_ORDER: readonly WorkoutCellType[] = WORKOUT_TYPES

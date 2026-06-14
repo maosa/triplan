@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { headers, cookies } from 'next/headers'
 import { logFailedLogin, logSecurityEvent, hashEmail } from '@/lib/security-events'
 import { REMEMBER_ME_COOKIE } from '@/lib/supabase/remember-me'
+import { validatePassword } from '@/lib/validation'
 
 type ActionResult = { error?: string; success?: boolean | string }
 
@@ -142,18 +143,8 @@ export async function updatePassword(formData: FormData): Promise<ActionResult> 
         return { error: 'Passwords do not match.' }
     }
 
-    if (password.length < 12) {
-        return { error: 'Password must be at least 12 characters.' }
-    }
-    if (!/[A-Z]/.test(password)) {
-        return { error: 'Password must contain at least one uppercase letter.' }
-    }
-    if (!/[a-z]/.test(password)) {
-        return { error: 'Password must contain at least one lowercase letter.' }
-    }
-    if (!/[0-9]/.test(password)) {
-        return { error: 'Password must contain at least one number.' }
-    }
+    const passwordError = validatePassword(password)
+    if (passwordError) return { error: passwordError }
 
     const supabase = await createClient()
     const { error } = await supabase.auth.updateUser({ password })
