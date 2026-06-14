@@ -5,11 +5,12 @@ import type { CookieOptions } from '@supabase/ssr'
 // cookies keep the right persistence as Supabase rotates the session token.
 export const REMEMBER_ME_COOKIE = 'remember_me'
 
-// Returns true unless the remember-me cookie is explicitly 'false'. Absent
-// cookie ⇒ persistent, so users already logged in before this feature shipped
-// (and signups, which don't set the cookie) keep their long-lived session.
+// Persistent only when the cookie is explicitly 'true'. Absent cookie ⇒
+// session-only, so closing the browser ends the session unless the user opted
+// into "Remember me". (Existing sessions with no cookie become session-only on
+// their next browser close — the privacy-safe default.)
 export function isPersistentSession(value: string | undefined): boolean {
-    return value !== 'false'
+    return value === 'true'
 }
 
 // When the session is NOT persistent ("Remember me" unchecked), strip the

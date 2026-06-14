@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment } from 'react'
+import { Fragment, useMemo } from 'react'
 import {
     BarChart,
     Bar,
@@ -166,10 +166,22 @@ function ChartCell({ data, type, field, units }: ChartCellProps) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function TrainingCharts({ workouts, units, raceDate }: TrainingChartsProps) {
-    // Compute a single week range spanning all workouts (any type).
-    // Passing this as forcedRange to every buildWeeklyData call ensures all
-    // charts share the same x-axis, making week-over-week comparison easy.
-    const globalRange = buildGlobalWeekRange(workouts, raceDate) ?? undefined
+    // Build all chart series once per data change. A single shared globalRange
+    // (week span across every type) keeps the charts on a common x-axis. This is
+    // memoized so the ~12 buildWeeklyData passes don't rerun when only `units`
+    // or an unrelated parent state changes.
+    const chartRows = useMemo(() => {
+        const globalRange = buildGlobalWeekRange(workouts, raceDate) ?? undefined
+        return CHART_TYPES.map((type) => {
+            const durationData =
+                type === 'Rest'
+                    ? buildWeeklyData(workouts, 'Rest', 'count', raceDate, globalRange)
+                    : buildWeeklyData(workouts, type, 'duration', raceDate, globalRange)
+            const distanceData = buildWeeklyData(workouts, type, 'distance', raceDate, globalRange)
+            const durationField: ChartField = type === 'Rest' ? 'count' : 'duration'
+            return { type, durationData, distanceData, durationField }
+        })
+    }, [workouts, raceDate])
 
     return (
         <div className="overflow-x-auto">
@@ -184,17 +196,7 @@ export function TrainingCharts({ workouts, units, raceDate }: TrainingChartsProp
                     <p className="text-sm font-semibold text-foreground">Workout Distance</p>
 
                     {/* ── One row per workout type ── */}
-                    {CHART_TYPES.map((type) => {
-                        // Rest: duration column shows count of rest days per week
-                        const durationData =
-                            type === 'Rest'
-                                ? buildWeeklyData(workouts, 'Rest', 'count', raceDate, globalRange)
-                                : buildWeeklyData(workouts, type, 'duration', raceDate, globalRange)
-
-                        const distanceData = buildWeeklyData(workouts, type, 'distance', raceDate, globalRange)
-
-                        const durationField: ChartField = type === 'Rest' ? 'count' : 'duration'
-
+                    {chartRows.map(({ type, durationData, distanceData, durationField }) => {
                         return (
                             <Fragment key={type}>
                                 {/* Type label */}

@@ -5,10 +5,12 @@ import { Modal } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { createWorkout, updateWorkout, deleteWorkout, duplicateWorkout } from "@/app/actions"
 import type { Database, WorkoutType } from "@/types/database"
-import { ChevronDown } from "lucide-react"
 import { getDiscreteGradient } from "@/lib/colors"
+import { WORKOUT_TYPES } from "@/lib/workout-constants"
 
 type Workout = Database['public']['Tables']['workouts']['Row']
 
@@ -20,8 +22,6 @@ interface AddEditWorkoutModalProps {
     raceDate: string
     units?: string
 }
-
-const WORKOUT_TYPES = ["Swim", "Bike", "Run", "Strength", "Rest", "Other"]
 
 export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, raceDate, units }: AddEditWorkoutModalProps) {
     const [isPending, startTransition] = useTransition()
@@ -158,20 +158,16 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="type">Type</Label>
-                            <div className="relative">
-                                <select
-                                    id="type"
-                                    name="type"
-                                    className="flex h-10 w-full appearance-none rounded-md border border-input bg-background px-3 py-2 pr-10 text-base sm:text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                    value={type}
-                                    onChange={handleTypeChange}
-                                >
-                                    {WORKOUT_TYPES.map((t) => (
-                                        <option key={t} value={t}>{t}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                            </div>
+                            <Select
+                                id="type"
+                                name="type"
+                                value={type}
+                                onChange={handleTypeChange}
+                            >
+                                {WORKOUT_TYPES.map((t) => (
+                                    <option key={t} value={t}>{t}</option>
+                                ))}
+                            </Select>
                         </div>
                     </div>
 
@@ -231,13 +227,12 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
 
                     <div className="space-y-2">
                         <Label htmlFor="details">Details</Label>
-                        <textarea
+                        <Textarea
                             id="details"
                             name="details"
                             defaultValue={existingWorkout?.details || ''}
                             placeholder="Intervals, focus points..."
                             rows={3}
-                            className="flex w-full appearance-none rounded-md border border-input bg-background px-3 py-2 text-base sm:text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none min-h-[80px]"
                         />
                     </div>
 

@@ -4,11 +4,10 @@ import { Calendar, MapPin, Pencil, Waves, Bike, Footprints, Dumbbell, BedDouble,
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import type { Database } from "@/types/database"
+import { WORKOUT_TYPES } from "@/lib/workout-constants"
 import { MouseEvent } from "react"
 
 type Race = Database['public']['Tables']['races']['Row']
-
-const WORKOUT_TYPE_ORDER = ['Swim', 'Bike', 'Run', 'Strength', 'Rest', 'Other'] as const
 
 const WORKOUT_TYPE_ICONS: Record<string, typeof Waves> = {
     Swim: Waves,
@@ -92,7 +91,7 @@ export function RaceCard({ race, onEdit, workoutCounts }: RaceCardProps) {
 
                     {workoutCounts && Object.keys(workoutCounts).length > 0 && (
                         <div className="flex items-center gap-3 flex-wrap">
-                            {WORKOUT_TYPE_ORDER.filter(type => workoutCounts[type]).map(type => {
+                            {WORKOUT_TYPES.filter(type => workoutCounts[type]).map(type => {
                                 const Icon = WORKOUT_TYPE_ICONS[type]
                                 return (
                                     <div key={type} className="flex items-center gap-0.5 text-xs text-muted-foreground" title={type}>

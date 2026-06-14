@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { headers, cookies } from 'next/headers'
 import { logFailedLogin, logSecurityEvent, hashEmail } from '@/lib/security-events'
 import { REMEMBER_ME_COOKIE } from '@/lib/supabase/remember-me'
+import { validatePassword } from '@/lib/validation'
 
 type ActionResult = { error?: string; success?: boolean | string }
 
@@ -103,6 +104,16 @@ export async function signup(formData: FormData): Promise<{ error?: string; succ
     // Assuming auto-confirm for dev, but handling check email flow is better UX.
 
     if (data.session) {
+        // New accounts default to a session-only cookie (no "Remember me" at
+        // signup); the session ends when the browser closes until they opt in
+        // at login. Recorded explicitly so middleware keeps the right lifetime.
+        const cookieStore = await cookies()
+        cookieStore.set(REMEMBER_ME_COOKIE, 'false', {
+            path: '/',
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+            httpOnly: true,
+        })
         redirect('/')
     } else {
         // Email confirmation required case
@@ -142,18 +153,8 @@ export async function updatePassword(formData: FormData): Promise<ActionResult> 
         return { error: 'Passwords do not match.' }
     }
 
-    if (password.length < 12) {
-        return { error: 'Password must be at least 12 characters.' }
-    }
-    if (!/[A-Z]/.test(password)) {
-        return { error: 'Password must contain at least one uppercase letter.' }
-    }
-    if (!/[a-z]/.test(password)) {
-        return { error: 'Password must contain at least one lowercase letter.' }
-    }
-    if (!/[0-9]/.test(password)) {
-        return { error: 'Password must contain at least one number.' }
-    }
+    const passwordError = validatePassword(password)
+    if (passwordError) return { error: passwordError }
 
     const supabase = await createClient()
     const { error } = await supabase.auth.updateUser({ password })

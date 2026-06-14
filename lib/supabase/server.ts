@@ -42,3 +42,13 @@ export async function createClient(opts?: { rememberMe?: boolean }) {
         }
     )
 }
+
+// Convenience wrapper for server actions: builds the client and resolves the
+// authenticated user in one step, throwing if there is no session. Returns both
+// so callers can run queries and scope them by `user.id`.
+export async function getAuthenticatedUser() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+    return { supabase, user }
+}

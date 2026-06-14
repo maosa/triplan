@@ -23,13 +23,25 @@ export async function middleware(request: NextRequest) {
         scriptSrc,
         // next/font/google self-hosts fonts at build time — no external font CDN needed
         "font-src 'self'",
+        // 'unsafe-inline' is intentionally retained for styles only. React renders
+        // dynamic colors/layout as inline `style=` *attributes* (workout intensity,
+        // chart + maintenance grid templates, range gradient) which a nonce cannot
+        // cover, and next/font injects its own inline <style>. Style injection is
+        // low risk here: scripts are nonce-locked above and the app renders no
+        // user-controlled HTML (no dangerouslySetInnerHTML), so there is no vector
+        // to inject a <style>/style attribute in the first place.
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data: https:",
         // Supabase API + realtime WS, GA collection endpoints
         "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com",
         "frame-ancestors 'none'",
+        // The app embeds no <object>/<embed> and no <iframe>s of its own
+        "object-src 'none'",
+        "frame-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",
+        // Auto-rewrite any stray http:// subresource to https://
+        "upgrade-insecure-requests",
     ].join('; ')
 
     // Attach the nonce to the forwarded request headers so Server Components
