@@ -45,17 +45,25 @@ export function WorkoutList({ initialWorkouts, raceId, raceName, raceDate, units
     // Refs for scrolling
     const todayRef = useRef<HTMLDivElement | null>(null)
     const listRef = useRef<HTMLDivElement | null>(null)
+    const hasScrolledRef = useRef(false)
 
+    // Derived during render from the data (no ref reads): the first row that
+    // is "today" gets todayRef, and we only auto-scroll when future workouts
+    // exist. `today` is computed once and reused below.
+    const today = new Date()
+    const todayIndex = sortedWorkouts.findIndex(w => isSameDay(parseISO(w.date), today))
+    const hasFutureWorkouts = sortedWorkouts.some(
+        w => new Date(w.date) > today && !isSameDay(new Date(w.date), today)
+    )
+
+    // Scroll to today once, on first mount, if there are future workouts.
     useEffect(() => {
-        if (sortedWorkouts.length === 0) return;
-
-        const today = new Date()
-        const hasFutureWorkouts = sortedWorkouts.some(w => new Date(w.date) > today && !isSameDay(new Date(w.date), today))
-
+        if (hasScrolledRef.current) return
         if (hasFutureWorkouts && todayRef.current) {
             todayRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' })
+            hasScrolledRef.current = true
         }
-    }, [])
+    }, [hasFutureWorkouts])
 
 
     const handleEdit = (workout: Workout) => {
@@ -111,13 +119,13 @@ export function WorkoutList({ initialWorkouts, raceId, raceName, raceDate, units
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {sortedWorkouts.map((workout) => {
-                        const isToday = isSameDay(parseISO(workout.date), new Date())
+                    {sortedWorkouts.map((workout, index) => {
+                        const isToday = isSameDay(parseISO(workout.date), today)
 
                         return (
                             <div
                                 key={workout.id}
-                                ref={isToday && !todayRef.current ? (el) => { if (!todayRef.current) todayRef.current = el } : undefined}
+                                ref={index === todayIndex ? todayRef : undefined}
                                 data-today={isToday ? "true" : undefined}
                                 onClick={() => handleEdit(workout)}
                                 className={cn(
