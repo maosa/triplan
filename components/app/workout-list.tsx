@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { Plus, BarChart2, Info, X, Timer } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -50,18 +50,24 @@ export function WorkoutList({ initialWorkouts, raceId, raceName, raceDate, units
     const listRef = useRef<HTMLDivElement | null>(null)
     const hasScrolledRef = useRef(false)
 
-    // Derived during render from the data (no ref reads). `today` is computed
-    // once and reused below and in the row map.
-    const today = new Date()
-    const todayIndexes = sortedWorkouts.reduce<number[]>((acc, w, i) => {
-        if (isSameDay(parseISO(w.date), today)) acc.push(i)
-        return acc
-    }, [])
-    const firstTodayIndex = todayIndexes[0] ?? -1
-    const lastTodayIndex = todayIndexes[todayIndexes.length - 1] ?? -1
-    const hasFutureWorkouts = sortedWorkouts.some(
-        w => new Date(w.date) > today && !isSameDay(new Date(w.date), today)
-    )
+    // `today` is computed once (stable for the lifetime of the view) and reused
+    // below and in the row map. The today-block bounds and future-workout flag
+    // are memoized so they aren't recomputed (parseISO/isSameDay over every
+    // workout) on unrelated state changes like opening a modal.
+    const today = useMemo(() => new Date(), [])
+    const { firstTodayIndex, lastTodayIndex, hasFutureWorkouts } = useMemo(() => {
+        const indexes = sortedWorkouts.reduce<number[]>((acc, w, i) => {
+            if (isSameDay(parseISO(w.date), today)) acc.push(i)
+            return acc
+        }, [])
+        return {
+            firstTodayIndex: indexes[0] ?? -1,
+            lastTodayIndex: indexes[indexes.length - 1] ?? -1,
+            hasFutureWorkouts: sortedWorkouts.some(
+                w => new Date(w.date) > today && !isSameDay(new Date(w.date), today)
+            ),
+        }
+    }, [sortedWorkouts, today])
 
     // Scroll to today once, on first mount, if there are future workouts.
     // Centers the vertical midpoint of the today block in the viewport.

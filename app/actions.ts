@@ -61,7 +61,7 @@ export async function createRace(formData: FormData): Promise<ActionResult> {
 
     if (error) return dbError('createRace', error)
 
-    revalidatePath('/')
+    revalidatePath('/races')
     return { success: true }
 }
 
@@ -74,7 +74,8 @@ export async function deleteRace(raceId: string): Promise<ActionResult> {
 
     if (error) return dbError('deleteRace', error)
 
-    revalidatePath('/')
+    revalidatePath('/races')
+    revalidatePath('/results')
     return { success: true }
 }
 
@@ -100,7 +101,10 @@ export async function updateRace(raceId: string, formData: FormData): Promise<Ac
 
     if (error) return dbError('updateRace', error)
 
-    revalidatePath('/')
+    // Race name/date appear on the races list, the results cards and the detail page.
+    revalidatePath('/races')
+    revalidatePath('/results')
+    revalidatePath(`/${raceId}`)
     return { success: true }
 }
 
@@ -839,7 +843,8 @@ export async function importCsvData(formData: FormData): Promise<ActionResult> {
         metadata: { row_count: dedupedWorkouts.length, race_name: raceNameRef },
     })
 
-    revalidatePath('/')
+    revalidatePath('/races')
+    revalidatePath('/results')
     return { success: true }
 }
 
