@@ -115,6 +115,7 @@ export async function createWorkout(raceId: string, formData: FormData): Promise
     const details = ((formData.get('details') as string) || '').trim()
 
     if (details.length > LIMITS.DETAILS) return { error: 'Details must be under 5000 characters.' }
+    if (intensity !== null && (intensity < 0 || intensity > 10)) return { error: 'Intensity must be between 0 and 10.' }
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -156,6 +157,7 @@ export async function updateWorkout(workoutId: string, raceId: string, formData:
     const details = ((formData.get('details') as string) || '').trim()
 
     if (details.length > LIMITS.DETAILS) return { error: 'Details must be under 5000 characters.' }
+    if (intensity !== null && (intensity < 0 || intensity > 10)) return { error: 'Intensity must be between 0 and 10.' }
 
     const supabase = await createClient()
 

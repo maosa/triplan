@@ -32,6 +32,9 @@ export default async function RacePage({ params }: PageProps) {
             .select('*')
             .eq('id', raceId)
             .single(),
+        // Order by date, then recency fields as stable tiebreakers for same-day
+        // workouts. PostgREST applies each .order() cumulatively (ORDER BY date,
+        // updated_at, created_at, id — all descending).
         supabase
             .from('workouts')
             .select('*')
