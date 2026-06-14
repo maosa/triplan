@@ -5,8 +5,11 @@ import { Label } from "@/components/ui/label"
 import { updateProfile } from "@/app/actions"
 import { useTransition, useState } from "react"
 import { ChevronDown } from "lucide-react"
+import type { Database } from "@/types/database"
 
-export function ProfileForm({ profile }: { profile: any }) {
+type Profile = Database['public']['Tables']['profiles']['Row']
+
+export function ProfileForm({ profile }: { profile: Profile | null }) {
     const [isPending, startTransition] = useTransition()
     const [theme, setTheme] = useState(profile?.theme || 'dark')
     const [units, setUnits] = useState(profile?.units || 'metric')
@@ -19,9 +22,9 @@ export function ProfileForm({ profile }: { profile: any }) {
         startTransition(async () => {
             const result = await updateProfile(formData)
             if (result?.success) {
-                const newTheme = formData.get('theme') as string
-                const newUnits = formData.get('units') as string
-                const newLandingPage = formData.get('landing_page') as string
+                const newTheme = formData.get('theme') as Profile['theme']
+                const newUnits = formData.get('units') as Profile['units']
+                const newLandingPage = formData.get('landing_page') as Profile['landing_page']
 
                 // Apply theme class immediately
                 if (newTheme === 'dark') {
@@ -57,7 +60,7 @@ export function ProfileForm({ profile }: { profile: any }) {
                         id="units"
                         name="units"
                         value={units}
-                        onChange={(e) => setUnits(e.target.value)}
+                        onChange={(e) => setUnits(e.target.value as Profile['units'])}
                         className="flex h-10 w-full appearance-none rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                         <option value="metric">Metric (km)</option>
@@ -74,7 +77,7 @@ export function ProfileForm({ profile }: { profile: any }) {
                         id="theme"
                         name="theme"
                         value={theme}
-                        onChange={(e) => setTheme(e.target.value)}
+                        onChange={(e) => setTheme(e.target.value as Profile['theme'])}
                         className="flex h-10 w-full appearance-none rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                         <option value="dark">Dark</option>
@@ -91,7 +94,7 @@ export function ProfileForm({ profile }: { profile: any }) {
                         id="landing_page"
                         name="landing_page"
                         value={landingPage}
-                        onChange={(e) => setLandingPage(e.target.value)}
+                        onChange={(e) => setLandingPage(e.target.value as Profile['landing_page'])}
                         className="flex h-10 w-full appearance-none rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                         <option value="races">Your Races</option>

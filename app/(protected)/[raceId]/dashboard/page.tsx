@@ -4,9 +4,6 @@ import { Header } from '@/components/app/header'
 import { TrainingCharts } from '@/components/app/training-charts'
 import { MapPin, Calendar, Waves, Bike, Footprints, Dumbbell, BedDouble, Activity } from 'lucide-react'
 import { format } from 'date-fns'
-import type { Database } from '@/types/database'
-
-type Workout = Database['public']['Tables']['workouts']['Row']
 
 interface PageProps {
     params: Promise<{ raceId: string }>

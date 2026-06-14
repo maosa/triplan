@@ -34,11 +34,11 @@ export async function GET(request: Request) {
         return new NextResponse('Error fetching data', { status: 500 })
     }
 
-    const rows: any[] = []
+    const rows: Record<string, string | number>[] = []
 
     for (const race of races) {
         const workouts = race.workouts || []
-        workouts.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        workouts.sort((a: { date: string }, b: { date: string }) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
         if (workouts.length === 0) {
             rows.push({

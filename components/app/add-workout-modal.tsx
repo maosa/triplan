@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createWorkout, updateWorkout, deleteWorkout, duplicateWorkout } from "@/app/actions"
-import type { Database } from "@/types/database"
+import type { Database, WorkoutType } from "@/types/database"
 import { ChevronDown } from "lucide-react"
 import { getDiscreteGradient } from "@/lib/colors"
 
@@ -67,7 +67,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
     // Handle Type change
     const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newType = e.target.value
-        setType(newType as any)
+        setType(newType as WorkoutType)
         if (newType === "Rest") {
             setIntensity(0)
         }

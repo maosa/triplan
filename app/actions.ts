@@ -5,12 +5,10 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
-import { Database } from '@/types/database'
+import { Database, WorkoutType } from '@/types/database'
 import Papa from 'papaparse'
 import { logSecurityEvent, hashEmail } from '@/lib/security-events'
 import { parseTimeToSeconds, parsePaceToSeconds, isValidTimeString, isValidPaceString } from '@/lib/time-format'
-
-type Race = Database['public']['Tables']['races']['Row']
 
 // Consistent return type for all server actions so callers can safely do `result?.error`
 // without TypeScript complaining about discriminated union property access.
@@ -135,7 +133,7 @@ export async function createWorkout(raceId: string, formData: FormData): Promise
         race_id: raceId,
         user_id: user.id,
         date,
-        type: type as any, // Cast to enum
+        type: type as WorkoutType,
         duration: duration || null,
         distance,
         intensity: finalIntensity,
@@ -168,7 +166,7 @@ export async function updateWorkout(workoutId: string, raceId: string, formData:
 
     const { error } = await supabase.from('workouts').update({
         date,
-        type: type as any,
+        type: type as WorkoutType,
         duration: duration || null,
         distance,
         intensity: finalIntensity,
@@ -426,7 +424,7 @@ export async function upsertMaintenanceEntry(
         const { error } = await supabase
             .from('maintenance_entries')
             .upsert(
-                { user_id: user.id, date, session, type: type as any, updated_at: new Date().toISOString() },
+                { user_id: user.id, date, session, type: type as WorkoutType, updated_at: new Date().toISOString() },
                 { onConflict: 'user_id,date,session' }
             )
         if (error) return dbError('upsertMaintenanceEntry (upsert)', error)
@@ -490,7 +488,7 @@ export async function pasteDefaultSchedule(weekStartDate: string): Promise<Actio
     if (rowsToUpsert.length > 0) {
         const { error: insertError } = await supabase
             .from('maintenance_entries')
-            .insert(rowsToUpsert as any)
+            .insert(rowsToUpsert as Database['public']['Tables']['maintenance_entries']['Insert'][])
         if (insertError) return dbError('pasteDefaultSchedule (insert)', insertError)
     }
 
@@ -572,7 +570,7 @@ export async function fillRestWeek(weekStartDate: string): Promise<ActionResult>
     if (rowsToInsert.length > 0) {
         const { error: insertError } = await supabase
             .from('maintenance_entries')
-            .upsert(rowsToInsert as any, { onConflict: 'user_id,date,session', ignoreDuplicates: true })
+            .upsert(rowsToInsert as Database['public']['Tables']['maintenance_entries']['Insert'][], { onConflict: 'user_id,date,session', ignoreDuplicates: true })
         if (insertError) return dbError('fillRestWeek (insert)', insertError)
     }
 
@@ -680,7 +678,7 @@ export async function importCsvData(formData: FormData): Promise<ActionResult> {
 
     if (errors.length > 0) return { error: 'CSV parsing error. Please check format.' }
 
-    const rows = data as any[]
+    const rows = data as Record<string, string>[]
     if (rows.length === 0) return { error: 'CSV is empty.' }
     if (rows.length > MAX_ROWS) return { error: `CSV has too many rows. Maximum is ${MAX_ROWS} workouts per import.` }
 
@@ -904,7 +902,7 @@ function parseDate(dateStr: string): string | null {
     return null
 }
 
-async function validateWorkoutDate(supabase: any, raceId: string, workoutDate: string) {
+async function validateWorkoutDate(supabase: Awaited<ReturnType<typeof createClient>>, raceId: string, workoutDate: string) {
     const { data: race, error: raceError } = await supabase
         .from('races')
         .select('date')
