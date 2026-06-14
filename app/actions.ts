@@ -66,9 +66,11 @@ export async function createRace(formData: FormData): Promise<ActionResult> {
 }
 
 export async function deleteRace(raceId: string): Promise<ActionResult> {
-    const supabase = await createClient()
+    const { supabase, user } = await getAuthenticatedUser()
 
-    const { error } = await supabase.from('races').delete().eq('id', raceId)
+    // Scope by user_id as defense-in-depth alongside RLS — a single extra
+    // indexed predicate, no extra round-trip.
+    const { error } = await supabase.from('races').delete().eq('id', raceId).eq('user_id', user.id)
 
     if (error) return dbError('deleteRace', error)
 
@@ -87,14 +89,14 @@ export async function updateRace(raceId: string, formData: FormData): Promise<Ac
     if (details && details.length > LIMITS.DETAILS) return { error: 'Details must be under 5000 characters.' }
     if (!date) return { error: 'Race date is required.' }
 
-    const supabase = await createClient()
+    const { supabase, user } = await getAuthenticatedUser()
 
     const { error } = await supabase.from('races').update({
         name,
         location,
         date,
         details,
-    }).eq('id', raceId)
+    }).eq('id', raceId).eq('user_id', user.id)
 
     if (error) return dbError('updateRace', error)
 
@@ -152,7 +154,7 @@ export async function updateWorkout(workoutId: string, raceId: string, formData:
     if (details.length > LIMITS.DETAILS) return { error: 'Details must be under 5000 characters.' }
     if (intensity !== null && (intensity < 0 || intensity > 10)) return { error: 'Intensity must be between 0 and 10.' }
 
-    const supabase = await createClient()
+    const { supabase, user } = await getAuthenticatedUser()
 
     const dateCheck = await validateWorkoutDate(supabase, raceId, date)
     if (dateCheck.error) return { error: dateCheck.error }
@@ -167,7 +169,7 @@ export async function updateWorkout(workoutId: string, raceId: string, formData:
         intensity: finalIntensity,
         details,
         updated_at: new Date().toISOString()
-    }).eq('id', workoutId)
+    }).eq('id', workoutId).eq('user_id', user.id)
 
     if (error) return dbError('updateWorkout', error)
 
@@ -176,9 +178,9 @@ export async function updateWorkout(workoutId: string, raceId: string, formData:
 }
 
 export async function deleteWorkout(workoutId: string, raceId: string): Promise<ActionResult> {
-    const supabase = await createClient()
+    const { supabase, user } = await getAuthenticatedUser()
 
-    const { error } = await supabase.from('workouts').delete().eq('id', workoutId)
+    const { error } = await supabase.from('workouts').delete().eq('id', workoutId).eq('user_id', user.id)
 
     if (error) return dbError('deleteWorkout', error)
 
