@@ -1,10 +1,22 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import {
+    REMEMBER_ME_COOKIE,
+    isPersistentSession,
+    adjustAuthCookieOptions,
+} from './remember-me'
 
 export async function updateSession(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
         request,
     })
+
+    // Honor the user's "Remember me" choice as Supabase rotates the session
+    // token on refresh — without this the refreshed auth cookies would revert
+    // to the library's default (persistent) lifetime.
+    const persistent = isPersistentSession(
+        request.cookies.get(REMEMBER_ME_COOKIE)?.value
+    )
 
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,7 +34,11 @@ export async function updateSession(request: NextRequest) {
                         request,
                     })
                     cookiesToSet.forEach(({ name, value, options }) =>
-                        supabaseResponse.cookies.set(name, value, options)
+                        supabaseResponse.cookies.set(
+                            name,
+                            value,
+                            adjustAuthCookieOptions(name, options, persistent)
+                        )
                     )
                 },
             },

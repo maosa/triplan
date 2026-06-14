@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
@@ -7,11 +7,20 @@ export async function middleware(request: NextRequest) {
     // base64-encoded to keep it safe for use in HTTP headers and HTML attributes.
     const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
 
+    // Next.js dev mode (webpack HMR + React Refresh) evaluates code via eval()/
+    // new Function(), which a strict CSP blocks — silently breaking client
+    // hydration so the app is inert. Allow 'unsafe-eval' in development only;
+    // production builds don't use eval, so the directive stays strict there.
+    const scriptSrc =
+        process.env.NODE_ENV === 'production'
+            ? `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com`
+            : `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com`
+
     const csp = [
         "default-src 'self'",
         // 'nonce-...' replaces 'unsafe-inline'. The nonce is passed to <Script>
         // components in layout.tsx so Next.js renders <script nonce="..."> tags.
-        `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com`,
+        scriptSrc,
         // next/font/google self-hosts fonts at build time — no external font CDN needed
         "font-src 'self'",
         "style-src 'self' 'unsafe-inline'",

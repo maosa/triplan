@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { headers, cookies } from 'next/headers'
 import { logFailedLogin, logSecurityEvent, hashEmail } from '@/lib/security-events'
+import { REMEMBER_ME_COOKIE } from '@/lib/supabase/remember-me'
 
 type ActionResult = { error?: string; success?: boolean | string }
 
@@ -12,7 +13,9 @@ export async function login(formData: FormData): Promise<ActionResult> {
     const password = formData.get('password') as string
     const rememberMe = formData.get('rememberMe') === 'on'
 
-    const supabase = await createClient()
+    // Pass the choice so the auth cookies are written with the right lifetime:
+    // persistent when "Remember me" is checked, session-only otherwise.
+    const supabase = await createClient({ rememberMe })
 
     const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -31,9 +34,22 @@ export async function login(formData: FormData): Promise<ActionResult> {
         return { error: 'Invalid email or password.' }
     }
 
-    // Bootstrap theme cookie from user's profile so the root layout
-    // can render the correct theme without a DB query on every navigation
     if (data.user) {
+        const cookieStore = await cookies()
+
+        // Record the "Remember me" choice so middleware keeps the right cookie
+        // lifetime on session refresh. Mirror the session's persistence: a
+        // persistent flag for "remember me", a session cookie otherwise.
+        cookieStore.set(REMEMBER_ME_COOKIE, rememberMe ? 'true' : 'false', {
+            path: '/',
+            ...(rememberMe ? { maxAge: 60 * 60 * 24 * 365 } : {}),
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+            httpOnly: true,
+        })
+
+        // Bootstrap theme cookie from user's profile so the root layout
+        // can render the correct theme without a DB query on every navigation
         const { data: profile } = await supabase
             .from('profiles')
             .select('theme')
@@ -41,7 +57,6 @@ export async function login(formData: FormData): Promise<ActionResult> {
             .single()
 
         if (profile?.theme) {
-            const cookieStore = await cookies()
             cookieStore.set('theme', profile.theme, {
                 path: '/',
                 maxAge: 60 * 60 * 24 * 365,
@@ -154,9 +169,10 @@ export async function logout() {
     const supabase = await createClient()
     await supabase.auth.signOut()
 
-    // Clear theme cookie so the next user starts fresh
+    // Clear theme + remember-me cookies so the next user starts fresh
     const cookieStore = await cookies()
     cookieStore.delete('theme')
+    cookieStore.delete(REMEMBER_ME_COOKIE)
 
     redirect('/login')
 }
