@@ -50,38 +50,43 @@ const TYPE_TEXT_COLORS: Record<WorkoutType, string> = {
 
 type ChartField = 'duration' | 'distance' | 'count'
 
-function makeTooltipContent(field: ChartField, units: string) {
-    return function TooltipContent({
-        active,
-        payload,
-        label,
-    }: {
-        active?: boolean
-        payload?: ReadonlyArray<{ value?: number | string }>
-        label?: string
-    }) {
-        if (!active || !payload?.length) return null
-        const raw = payload[0].value
-        const value = typeof raw === 'number' ? raw : 0
+// Module-level so we never create a new component type during render. Recharts
+// clones this element and injects active/payload/label; field/units are passed
+// by us at the call site.
+function ChartTooltip({
+    active,
+    payload,
+    label,
+    field,
+    units,
+}: {
+    active?: boolean
+    payload?: ReadonlyArray<{ value?: number | string }>
+    label?: string
+    field: ChartField
+    units: string
+}) {
+    if (!active || !payload?.length) return null
+    const raw = payload[0].value
+    const value = typeof raw === 'number' ? raw : 0
 
-        const formatted =
-            field === 'duration'
-                ? (() => {
-                    const h = Math.floor(value / 60)
-                    const m = value % 60
-                    return h > 0 ? `${h}h ${m}m` : `${m}m`
-                })()
-                : field === 'count'
-                ? `${value} session${value === 1 ? '' : 's'}`
-                : `${value.toFixed(1)} ${units === 'imperial' ? 'mi' : 'km'}`
+    const formatted =
+        field === 'duration'
+            ? (() => {
+                const h = Math.floor(value / 60)
+                const m = value % 60
+                return h > 0 ? `${h}h ${m}m` : `${m}m`
+            })()
+            : field === 'count'
+            ? `${value} session${value === 1 ? '' : 's'}`
+            : `${value.toFixed(1)} ${units === 'imperial' ? 'mi' : 'km'}`
 
-        return (
-            <div className="rounded-md border border-border bg-card px-3 py-2 text-xs shadow-md">
-                <p className="font-medium text-foreground">{label}</p>
-                <p className="text-muted-foreground mt-0.5">{formatted}</p>
-            </div>
-        )
-    }
+    return (
+        <div className="rounded-md border border-border bg-card px-3 py-2 text-xs shadow-md">
+            <p className="font-medium text-foreground">{label}</p>
+            <p className="text-muted-foreground mt-0.5">{formatted}</p>
+        </div>
+    )
 }
 
 // ── Single chart cell ─────────────────────────────────────────────────────────
@@ -117,8 +122,6 @@ function ChartCell({ data, type, field, units }: ChartCellProps) {
                 return                      `Total: ${m}mins`
             })()
 
-    const TooltipContent = makeTooltipContent(field, units)
-
     return (
         <div className="pt-6 relative">
             {/* Total — top-right */}
@@ -146,7 +149,7 @@ function ChartCell({ data, type, field, units }: ChartCellProps) {
                     />
                     <Tooltip
                         cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
-                        content={<TooltipContent />}
+                        content={<ChartTooltip field={field} units={units} />}
                     />
                     <Bar
                         dataKey="value"
