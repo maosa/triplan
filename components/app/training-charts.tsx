@@ -1,5 +1,6 @@
 "use client"
 
+import { Fragment } from 'react'
 import {
     BarChart,
     Bar,
@@ -195,9 +196,9 @@ export function TrainingCharts({ workouts, units, raceDate }: TrainingChartsProp
                         const durationField: ChartField = type === 'Rest' ? 'count' : 'duration'
 
                         return (
-                            <>
+                            <Fragment key={type}>
                                 {/* Type label */}
-                                <div key={`${type}-label`} className="flex items-center gap-2 pt-6">
+                                <div className="flex items-center gap-2 pt-6">
                                     {getWorkoutIcon(type)}
                                     <span className={`text-sm font-medium ${TYPE_TEXT_COLORS[type]}`}>
                                         {type}
@@ -206,7 +207,6 @@ export function TrainingCharts({ workouts, units, raceDate }: TrainingChartsProp
 
                                 {/* Duration chart (or rest-day count for Rest) */}
                                 <ChartCell
-                                    key={`${type}-duration`}
                                     data={durationData}
                                     type={type}
                                     field={durationField}
@@ -215,13 +215,12 @@ export function TrainingCharts({ workouts, units, raceDate }: TrainingChartsProp
 
                                 {/* Distance chart */}
                                 <ChartCell
-                                    key={`${type}-distance`}
                                     data={distanceData}
                                     type={type}
                                     field="distance"
                                     units={units}
                                 />
-                            </>
+                            </Fragment>
                         )
                     })}
                 </div>
