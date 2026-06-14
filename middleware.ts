@@ -28,8 +28,13 @@ export async function middleware(request: NextRequest) {
         // Supabase API + realtime WS, GA collection endpoints
         "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com",
         "frame-ancestors 'none'",
+        // The app embeds no <object>/<embed> and no <iframe>s of its own
+        "object-src 'none'",
+        "frame-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",
+        // Auto-rewrite any stray http:// subresource to https://
+        "upgrade-insecure-requests",
     ].join('; ')
 
     // Attach the nonce to the forwarded request headers so Server Components
