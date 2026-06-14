@@ -10,8 +10,7 @@ export function DeleteAccountSection() {
 
     const handleDelete = () => {
         startTransition(async () => {
-            const formData = new FormData()
-            await deleteAccount(formData)
+            await deleteAccount()
         })
     }
 

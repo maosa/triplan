@@ -579,7 +579,7 @@ export async function fillRestWeek(weekStartDate: string): Promise<ActionResult>
     return { success: true }
 }
 
-export async function deleteAccount(formData: FormData) {
+export async function deleteAccount() {
     const supabase = await createClient()
 
     // Fetch the user first so we can log the event with their ID before deletion.
