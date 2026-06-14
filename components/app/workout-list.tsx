@@ -42,27 +42,37 @@ export function WorkoutList({ initialWorkouts, raceId, raceName, raceDate, units
     // Workouts are already sorted by the server (Date DESC, Updated DESC, Created DESC)
     const sortedWorkouts = initialWorkouts
 
-    // Refs for scrolling
-    const todayRef = useRef<HTMLDivElement | null>(null)
+    // Refs for scrolling. Today's workouts are contiguous (rows are date-sorted),
+    // so we tag the first and last "today" rows and center the whole block —
+    // whether that's one row or several on the same day.
+    const firstTodayRef = useRef<HTMLDivElement | null>(null)
+    const lastTodayRef = useRef<HTMLDivElement | null>(null)
     const listRef = useRef<HTMLDivElement | null>(null)
     const hasScrolledRef = useRef(false)
 
-    // Derived during render from the data (no ref reads): the first row that
-    // is "today" gets todayRef, and we only auto-scroll when future workouts
-    // exist. `today` is computed once and reused below.
+    // Derived during render from the data (no ref reads). `today` is computed
+    // once and reused below and in the row map.
     const today = new Date()
-    const todayIndex = sortedWorkouts.findIndex(w => isSameDay(parseISO(w.date), today))
+    const todayIndexes = sortedWorkouts.reduce<number[]>((acc, w, i) => {
+        if (isSameDay(parseISO(w.date), today)) acc.push(i)
+        return acc
+    }, [])
+    const firstTodayIndex = todayIndexes[0] ?? -1
+    const lastTodayIndex = todayIndexes[todayIndexes.length - 1] ?? -1
     const hasFutureWorkouts = sortedWorkouts.some(
         w => new Date(w.date) > today && !isSameDay(new Date(w.date), today)
     )
 
     // Scroll to today once, on first mount, if there are future workouts.
+    // Centers the vertical midpoint of the today block in the viewport.
     useEffect(() => {
         if (hasScrolledRef.current) return
-        if (hasFutureWorkouts && todayRef.current) {
-            todayRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' })
-            hasScrolledRef.current = true
-        }
+        const first = firstTodayRef.current
+        if (!hasFutureWorkouts || !first) return
+        const last = lastTodayRef.current ?? first
+        const blockCenter = (first.getBoundingClientRect().top + last.getBoundingClientRect().bottom) / 2
+        window.scrollBy({ top: blockCenter - window.innerHeight / 2, behavior: 'smooth' })
+        hasScrolledRef.current = true
     }, [hasFutureWorkouts])
 
 
@@ -125,7 +135,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceName, raceDate, units
                         return (
                             <div
                                 key={workout.id}
-                                ref={index === todayIndex ? todayRef : undefined}
+                                ref={index === firstTodayIndex ? firstTodayRef : index === lastTodayIndex ? lastTodayRef : undefined}
                                 data-today={isToday ? "true" : undefined}
                                 onClick={() => handleEdit(workout)}
                                 className={cn(
