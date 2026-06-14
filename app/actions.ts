@@ -816,8 +816,18 @@ export async function importCsvData(formData: FormData): Promise<ActionResult> {
         })
     }
 
-    if (workoutsToInsert.length > 0) {
-        const { error: wError } = await supabase.from('workouts').insert(workoutsToInsert)
+    // Drop exact duplicate workouts within the file (same date + type) so a
+    // repeated row in the CSV doesn't create two identical sessions.
+    const seen = new Set<string>()
+    const dedupedWorkouts = workoutsToInsert.filter((w) => {
+        const key = `${w.date}|${w.type}`
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+    })
+
+    if (dedupedWorkouts.length > 0) {
+        const { error: wError } = await supabase.from('workouts').insert(dedupedWorkouts)
         if (wError) {
             return dbError('importCsvData (workouts insert)', wError)
         }
@@ -826,7 +836,7 @@ export async function importCsvData(formData: FormData): Promise<ActionResult> {
     await logSecurityEvent({
         userId: user.id,
         eventType: 'csv_import',
-        metadata: { row_count: workoutsToInsert.length, race_name: raceNameRef },
+        metadata: { row_count: dedupedWorkouts.length, race_name: raceNameRef },
     })
 
     revalidatePath('/')
