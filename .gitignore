@@ -42,3 +42,6 @@ next-env.d.ts
 
 # other
 node_modules/
+
+# local editor/runtime config (machine-specific paths)
+.claude/launch.json
