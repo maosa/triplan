@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, useEffect } from "react"
+import { useState, useTransition } from "react"
 import { Modal } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,19 +29,11 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
     const [durationError, setDurationError] = useState<string | null>(null)
     const [confirmAction, setConfirmAction] = useState<'delete' | null>(null)
 
-    // Local state for Type to handle Rest logic
+    // Local state for Type to handle Rest logic. These initialize from
+    // existingWorkout on mount; the modal is keyed by workout id at the call
+    // site so it remounts (and re-initializes) whenever the target changes.
     const [type, setType] = useState(existingWorkout?.type || "Swim")
     const [intensity, setIntensity] = useState(existingWorkout?.intensity ?? 5)
-
-    useEffect(() => {
-        if (existingWorkout) {
-            setType(existingWorkout.type)
-            setIntensity(existingWorkout.intensity ?? 5)
-        } else {
-            setType("Swim")
-            setIntensity(5)
-        }
-    }, [existingWorkout, isOpen])
 
     const handleClose = () => {
         setConfirmAction(null)

@@ -234,6 +234,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceName, raceDate, units
 
             {isAddModalOpen && (
                 <AddEditWorkoutModal
+                    key={editingWorkout?.id ?? 'new'}
                     isOpen={isAddModalOpen}
                     onClose={handleClose}
                     existingWorkout={editingWorkout}
