@@ -38,6 +38,7 @@ export function SecurityForm({ currentEmail }: { currentEmail: string }) {
                 <div className="space-y-2">
                     <Label htmlFor="password">New Password</Label>
                     <Input id="password" name="password" type="password" placeholder="Leave blank to keep current" ref={passwordRef} />
+                    <p className="text-xs text-muted-foreground">Must be at least 8 characters.</p>
                 </div>
                 <Button type="submit" isLoading={isPending}>Update Security Settings</Button>
             </form>

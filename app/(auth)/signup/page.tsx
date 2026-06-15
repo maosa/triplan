@@ -63,7 +63,7 @@ export default function SignupPage() {
 
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
-                            <Input id="password" name="password" type="password" required />
+                            <Input id="password" name="password" type="password" required placeholder="At least 8 characters" />
                         </div>
 
                         {error && <Alert type="error">{error}</Alert>}

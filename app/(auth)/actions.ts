@@ -77,6 +77,9 @@ export async function signup(formData: FormData): Promise<{ error?: string; succ
     const firstName = formData.get('firstName') as string
     const lastName = formData.get('lastName') as string
 
+    const passwordError = validatePassword(password)
+    if (passwordError) return { error: passwordError }
+
     const supabase = await createClient()
 
     const { data, error } = await supabase.auth.signUp({
