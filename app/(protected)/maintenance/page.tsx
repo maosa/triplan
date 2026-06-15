@@ -58,7 +58,7 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       <main className="container mx-auto px-4 py-8 sm:px-8">
-        <div className="mx-auto max-w-4xl space-y-6">
+        <div className="space-y-6">
           <h1 className="text-2xl font-semibold text-foreground">Maintenance Training</h1>
           <MaintenanceWeekView
             initialWeekStart={weekStart}
