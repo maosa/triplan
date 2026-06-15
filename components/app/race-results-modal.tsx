@@ -224,11 +224,11 @@ export function RaceResultsModal({
     const footer = (
         <div className="space-y-3">
             <div className="flex justify-between">
-                <Button type="button" variant="ghost" size="sm" onClick={handleClearAll} disabled={isPending}>
+                <Button type="button" variant="secondary" size="sm" onClick={handleClearAll} disabled={isPending}>
                     Clear all
                 </Button>
                 <div className="flex space-x-2">
-                    <Button type="button" variant="ghost" onClick={handleClose} disabled={isPending}>
+                    <Button type="button" variant="secondary" onClick={handleClose} disabled={isPending}>
                         Cancel
                     </Button>
                     <Button type="button" onClick={handleSubmit} isLoading={isPending}>

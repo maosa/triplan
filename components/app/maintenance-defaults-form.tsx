@@ -67,7 +67,7 @@ export function MaintenanceDefaultsForm({ initialDefaults }: { initialDefaults: 
         <Button type="button" onClick={handleSave} isLoading={isPending}>
           Save Schedule
         </Button>
-        <Button type="button" variant="ghost" onClick={handleClear} disabled={isPending}>
+        <Button type="button" variant="secondary" onClick={handleClear} disabled={isPending}>
           Clear
         </Button>
       </div>

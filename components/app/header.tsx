@@ -28,7 +28,7 @@ export function Header({ backLink, backLinkLabel = 'Back to Plan' }: HeaderProps
                     {/* Optional back link (e.g. "Back to Plan" on the dashboard) — far right */}
                     {backLink && (
                         <Link href={backLink}>
-                            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground px-3">
+                            <Button variant="secondary" size="sm" className="px-3">
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 {backLinkLabel}
                             </Button>

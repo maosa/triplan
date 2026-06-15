@@ -393,7 +393,7 @@ export function MaintenanceWeekView({
               existing entries for this week. Continue?
             </p>
             <div className="mt-6 flex justify-end gap-3">
-              <Button variant="ghost" onClick={() => setPasteOpen(false)}>
+              <Button variant="secondary" onClick={() => setPasteOpen(false)}>
                 Cancel
               </Button>
               <Button onClick={handlePasteConfirm}>Paste Schedule</Button>
@@ -405,7 +405,7 @@ export function MaintenanceWeekView({
               You haven&apos;t set up a default schedule yet — set one up in Account Settings first.
             </p>
             <div className="mt-6 flex justify-end">
-              <Button variant="ghost" onClick={() => setPasteOpen(false)}>
+              <Button variant="secondary" onClick={() => setPasteOpen(false)}>
                 Close
               </Button>
             </div>
@@ -421,7 +421,7 @@ export function MaintenanceWeekView({
           sessions are left unchanged.
         </p>
         <div className="mt-6 flex justify-end gap-3">
-          <Button variant="ghost" onClick={() => setRestOpen(false)}>
+          <Button variant="secondary" onClick={() => setRestOpen(false)}>
             Cancel
           </Button>
           <Button onClick={handleRestConfirm}>Fill with Rest</Button>
@@ -436,7 +436,7 @@ export function MaintenanceWeekView({
           undone.
         </p>
         <div className="mt-6 flex justify-end gap-3">
-          <Button variant="ghost" onClick={() => setClearOpen(false)}>
+          <Button variant="secondary" onClick={() => setClearOpen(false)}>
             Cancel
           </Button>
           <Button variant="destructive" onClick={handleClearConfirm}>

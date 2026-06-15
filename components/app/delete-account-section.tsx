@@ -33,7 +33,7 @@ export function DeleteAccountSection() {
                         </p>
                         <div className="flex space-x-2">
                             <Button
-                                variant="ghost"
+                                variant="secondary"
                                 onClick={() => setShowConfirm(false)}
                                 disabled={isPending}
                             >

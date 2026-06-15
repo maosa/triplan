@@ -65,7 +65,7 @@ export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceM
                         Deleting this race will permanently delete all associated workouts. This cannot be undone.
                     </p>
                     <div className="flex justify-end space-x-2">
-                        <Button type="button" variant="ghost" onClick={() => setConfirmAction(null)} disabled={isPending}>
+                        <Button type="button" variant="secondary" onClick={() => setConfirmAction(null)} disabled={isPending}>
                             Cancel
                         </Button>
                         <Button type="button" variant="destructive" onClick={handleDeleteConfirm} isLoading={isPending}>
@@ -125,7 +125,7 @@ export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceM
                         ) : <div />}
 
                         <div className="flex space-x-2">
-                            <Button type="button" variant="ghost" onClick={handleClose} disabled={isPending}>
+                            <Button type="button" variant="secondary" onClick={handleClose} disabled={isPending}>
                                 Cancel
                             </Button>
                             <Button type="submit" isLoading={isPending}>

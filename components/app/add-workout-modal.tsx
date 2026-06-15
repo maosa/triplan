@@ -132,7 +132,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
                         Are you sure you want to delete this workout? This cannot be undone.
                     </p>
                     <div className="flex justify-end space-x-2">
-                        <Button type="button" variant="ghost" onClick={() => setConfirmAction(null)} disabled={isPending}>
+                        <Button type="button" variant="secondary" onClick={() => setConfirmAction(null)} disabled={isPending}>
                             Cancel
                         </Button>
                         <Button type="button" variant="destructive" onClick={handleDeleteConfirm} isLoading={isPending}>
@@ -250,7 +250,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
                         </div>
 
                         <div className="flex space-x-2">
-                            <Button type="button" variant="ghost" onClick={handleClose} disabled={isPending}>
+                            <Button type="button" variant="secondary" onClick={handleClose} disabled={isPending}>
                                 Cancel
                             </Button>
                             <Button type="submit" isLoading={isPending}>
