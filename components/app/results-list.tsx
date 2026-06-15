@@ -36,7 +36,7 @@ export function ResultsList({ races, results, units }: ResultsListProps) {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between gap-4">
-                <h2 className="text-lg font-semibold text-foreground">Race Results</h2>
+                <h1 className="flex h-10 items-center text-lg font-semibold text-foreground">Race Results</h1>
 
                 {races.length > 0 && (
                     <Button

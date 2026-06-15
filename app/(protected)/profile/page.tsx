@@ -28,7 +28,7 @@ export default async function ProfilePage() {
 
             <main className="container mx-auto px-4 py-8 sm:px-8 space-y-8">
                 <div className="space-y-2">
-                    <h2 className="text-lg font-semibold text-foreground">Account Settings</h2>
+                    <h1 className="flex h-10 items-center text-lg font-semibold text-foreground">Account Settings</h1>
                     <p className="text-muted-foreground">
                         Manage your profile, preferences, and account settings.
                     </p>

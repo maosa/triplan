@@ -78,7 +78,7 @@ export default async function DashboardPage({ params }: PageProps) {
 
                 {/* Race details */}
                 <div className="space-y-2">
-                    <h2 className="text-lg font-semibold text-foreground">{race.name}</h2>
+                    <h1 className="flex h-10 items-center text-lg font-semibold text-foreground">{race.name}</h1>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 text-muted-foreground">
                         <div className="flex items-center">
                             <Calendar className="mr-2 h-4 w-4" />
