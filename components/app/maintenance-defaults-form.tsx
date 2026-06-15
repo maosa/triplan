@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { MaintenanceGrid } from './maintenance-grid'
+import { useToast } from '@/components/ui/toast'
 import { updateMaintenanceDefaults } from '@/app/actions'
 import { type WorkoutCellType } from '@/lib/maintenance-colors'
 import { type MaintenanceDefaults, type MaintenanceSession } from '@/types/database'
@@ -33,7 +34,7 @@ function seedFromDefaults(defaults: MaintenanceDefaults): MaintenanceDefaults {
 export function MaintenanceDefaultsForm({ initialDefaults }: { initialDefaults: MaintenanceDefaults }) {
   const [schedule, setSchedule] = useState<MaintenanceDefaults>(() => seedFromDefaults(initialDefaults))
   const [isPending, startTransition] = useTransition()
-  const [success, setSuccess] = useState(false)
+  const { toast } = useToast()
 
   const handleChange = (key: string, session: MaintenanceSession, value: WorkoutCellType | null) => {
     setSchedule((prev) => ({
@@ -45,15 +46,12 @@ export function MaintenanceDefaultsForm({ initialDefaults }: { initialDefaults: 
   const handleClear = () => setSchedule(emptySchedule())
 
   const handleSave = () => {
-    setSuccess(false)
     startTransition(async () => {
       const formData = new FormData()
       formData.set('schedule', JSON.stringify(schedule))
       const result = await updateMaintenanceDefaults(formData)
-      if (result?.success) {
-        setSuccess(true)
-        setTimeout(() => setSuccess(false), 3000)
-      }
+      if (result?.error) toast(result.error, 'error')
+      else toast('Schedule saved.', 'success')
     })
   }
 
@@ -72,11 +70,6 @@ export function MaintenanceDefaultsForm({ initialDefaults }: { initialDefaults: 
         <Button type="button" variant="ghost" onClick={handleClear} disabled={isPending}>
           Clear
         </Button>
-        {success && (
-          <span className="text-sm font-medium text-green-500 animate-in fade-in slide-in-from-top-2">
-            Schedule saved.
-          </span>
-        )}
       </div>
     </div>
   )

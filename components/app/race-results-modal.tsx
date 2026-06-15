@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { upsertRaceResult } from "@/app/actions"
+import { useToast } from "@/components/ui/toast"
 import type { Database } from "@/types/database"
 import {
     formatSecondsToHMS,
@@ -49,8 +50,8 @@ export function RaceResultsModal({
     units,
 }: RaceResultsModalProps) {
     const [isPending, startTransition] = useTransition()
-    const [error, setError] = useState<string | null>(null)
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+    const { toast } = useToast()
 
     const isMetric = units !== 'imperial'
 
@@ -131,13 +132,11 @@ export function RaceResultsModal({
 
     useEffect(() => {
         setValues(initialValues())
-        setError(null)
         setFieldErrors({})
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [existingResult, isOpen])
 
     const handleClose = () => {
-        setError(null)
         setFieldErrors({})
         onClose()
     }
@@ -193,8 +192,6 @@ export function RaceResultsModal({
     }
 
     async function handleSubmit() {
-        setError(null)
-
         // Validate all fields before submitting.
         const errs: Record<string, string> = {}
         for (const section of sections) {
@@ -216,8 +213,9 @@ export function RaceResultsModal({
         startTransition(async () => {
             const result = await upsertRaceResult(raceId, formData)
             if (result?.error) {
-                setError(result.error)
+                toast(result.error, 'error')
             } else {
+                toast('Race results saved.', 'success')
                 handleClose()
             }
         })
@@ -225,7 +223,6 @@ export function RaceResultsModal({
 
     const footer = (
         <div className="space-y-3">
-            {error && <p className="text-destructive text-sm">{error}</p>}
             <div className="flex justify-between">
                 <Button type="button" variant="ghost" size="sm" onClick={handleClearAll} disabled={isPending}>
                     Clear all

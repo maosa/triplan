@@ -4,25 +4,22 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { updateSecuritySettings } from "@/app/actions"
-import { useTransition, useState, useRef } from "react"
+import { useToast } from "@/components/ui/toast"
+import { useTransition, useRef } from "react"
 
 export function SecurityForm({ currentEmail }: { currentEmail: string }) {
     const [isPending, startTransition] = useTransition()
-    const [error, setError] = useState<string | null>(null)
-    const [success, setSuccess] = useState(false)
     const passwordRef = useRef<HTMLInputElement>(null)
+    const { toast } = useToast()
 
     const handleSubmit = (formData: FormData) => {
-        setError(null)
-        setSuccess(false)
         startTransition(async () => {
             const result = await updateSecuritySettings(formData)
             if (result?.error) {
-                setError(result.error)
+                toast(result.error, 'error')
             } else if (result?.success) {
-                setSuccess(true)
                 if (passwordRef.current) passwordRef.current.value = ''
-                setTimeout(() => setSuccess(false), 3000)
+                toast(typeof result.success === 'string' ? result.success : 'Security settings updated successfully.', 'success')
             }
         })
     }
@@ -43,18 +40,6 @@ export function SecurityForm({ currentEmail }: { currentEmail: string }) {
                     <Input id="password" name="password" type="password" placeholder="Leave blank to keep current" ref={passwordRef} />
                 </div>
                 <Button type="submit" isLoading={isPending}>Update Security Settings</Button>
-
-                {error && (
-                    <div className="text-sm text-destructive">
-                        {error}
-                    </div>
-                )}
-
-                {success && (
-                    <div className="text-sm font-medium text-green-500 animate-in fade-in slide-in-from-top-2">
-                        Security settings updated successfully.
-                    </div>
-                )}
             </form>
         </div>
     )

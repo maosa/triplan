@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/components/ui/toast"
 import { createWorkout, updateWorkout, deleteWorkout, duplicateWorkout } from "@/app/actions"
 import type { Database, WorkoutType } from "@/types/database"
 import { getDiscreteGradient } from "@/lib/colors"
@@ -25,9 +26,9 @@ interface AddEditWorkoutModalProps {
 
 export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, raceDate, units }: AddEditWorkoutModalProps) {
     const [isPending, startTransition] = useTransition()
-    const [error, setError] = useState<string | null>(null)
     const [durationError, setDurationError] = useState<string | null>(null)
     const [confirmAction, setConfirmAction] = useState<'delete' | null>(null)
+    const { toast } = useToast()
 
     // Local state for Type to handle Rest logic. These initialize from
     // existingWorkout on mount; the modal is keyed by workout id at the call
@@ -37,7 +38,6 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
 
     const handleClose = () => {
         setConfirmAction(null)
-        setError(null)
         setDurationError(null)
         onClose()
     }
@@ -66,13 +66,12 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
     }
 
     async function handleSubmit(formData: FormData) {
-        setError(null)
         const date = formData.get("date") as string
         const duration = ((formData.get("duration") as string) || '').trim()
 
         // Client-side date validation
         if (new Date(date) > new Date(raceDate)) {
-            setError("Date cannot be after race date.")
+            toast("Date cannot be after race date.", 'error')
             return
         }
 
@@ -91,7 +90,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
             }
 
             if (result?.error) {
-                setError(result.error)
+                toast(result.error, 'error')
             } else {
                 handleClose()
             }
@@ -104,7 +103,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
         startTransition(async () => {
             const result = await deleteWorkout(existingWorkout.id, raceId)
             if (result?.error) {
-                setError(result.error)
+                toast(result.error, 'error')
                 setConfirmAction(null)
             } else {
                 handleClose()
@@ -118,7 +117,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
         startTransition(async () => {
             const result = await duplicateWorkout(existingWorkout)
             if (result?.error) {
-                setError(result.error)
+                toast(result.error, 'error')
             } else {
                 handleClose()
             }
@@ -132,7 +131,6 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
                     <p className="text-sm text-muted-foreground">
                         Are you sure you want to delete this workout? This cannot be undone.
                     </p>
-                    {error && <p className="text-destructive text-sm">{error}</p>}
                     <div className="flex justify-end space-x-2">
                         <Button type="button" variant="ghost" onClick={() => setConfirmAction(null)} disabled={isPending}>
                             Cancel
@@ -236,8 +234,6 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
                             rows={3}
                         />
                     </div>
-
-                    {error && <p className="text-destructive text-sm">{error}</p>}
 
                     <div className="flex justify-between pt-4">
                         <div className="flex space-x-2">

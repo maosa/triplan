@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
+import { useToast } from "@/components/ui/toast"
 import { updateProfile } from "@/app/actions"
 import { useTransition, useState } from "react"
 import type { Database } from "@/types/database"
@@ -15,34 +16,33 @@ export function ProfileForm({ profile }: { profile: Profile | null }) {
     const [theme, setTheme] = useState(profile?.theme || 'dark')
     const [units, setUnits] = useState(profile?.units || 'metric')
     const [landingPage, setLandingPage] = useState(profile?.landing_page || 'races')
-
-    const [success, setSuccess] = useState(false)
+    const { toast } = useToast()
 
     const handleSubmit = (formData: FormData) => {
-        setSuccess(false)
         startTransition(async () => {
             const result = await updateProfile(formData)
-            if (result?.success) {
-                const newTheme = formData.get('theme') as Profile['theme']
-                const newUnits = formData.get('units') as Profile['units']
-                const newLandingPage = formData.get('landing_page') as Profile['landing_page']
-
-                // Apply theme class immediately
-                if (newTheme === 'dark') {
-                    document.documentElement.classList.add('dark')
-                } else {
-                    document.documentElement.classList.remove('dark')
-                }
-
-                // Sync theme cookie so the root layout reads it on next navigation
-                document.cookie = `theme=${newTheme};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`
-
-                setTheme(newTheme)
-                setUnits(newUnits)
-                setLandingPage(newLandingPage)
-                setSuccess(true)
-                setTimeout(() => setSuccess(false), 3000)
+            if (result?.error) {
+                toast(result.error, 'error')
+                return
             }
+            const newTheme = formData.get('theme') as Profile['theme']
+            const newUnits = formData.get('units') as Profile['units']
+            const newLandingPage = formData.get('landing_page') as Profile['landing_page']
+
+            // Apply theme class immediately
+            if (newTheme === 'dark') {
+                document.documentElement.classList.add('dark')
+            } else {
+                document.documentElement.classList.remove('dark')
+            }
+
+            // Sync theme cookie so the root layout reads it on next navigation
+            document.cookie = `theme=${newTheme};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`
+
+            setTheme(newTheme)
+            setUnits(newUnits)
+            setLandingPage(newLandingPage)
+            toast('Your preferences have been saved.', 'success')
         })
     }
 
@@ -88,19 +88,13 @@ export function ProfileForm({ profile }: { profile: Profile | null }) {
                     value={landingPage}
                     onChange={(e) => setLandingPage(e.target.value as Profile['landing_page'])}
                 >
-                    <option value="races">Your Races</option>
+                    <option value="races">My Races</option>
                     <option value="maintenance">Maintenance Training</option>
                     <option value="results">Race Results</option>
                 </Select>
             </div>
 
             <Button type="submit" isLoading={isPending}>Save Preferences</Button>
-
-            {success && (
-                <div className="text-sm font-medium text-green-500 animate-in fade-in slide-in-from-top-2">
-                    Your preferences have been saved.
-                </div>
-            )}
         </form>
     )
 }

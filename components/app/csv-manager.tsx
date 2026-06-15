@@ -3,26 +3,20 @@
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useToast } from "@/components/ui/toast"
 import { importCsvData } from "@/app/actions"
-import { Download, Upload, AlertCircle } from "lucide-react"
+import { Download, Upload } from "lucide-react"
 
 export function CsvManager() {
     const [isPending, startTransition] = useTransition()
-    const [error, setError] = useState<string | null>(null)
-    const [success, setSuccess] = useState<string | null>(null)
     const [fileName, setFileName] = useState<string | null>(null)
+    const { toast } = useToast()
 
     const handleImport = async (formData: FormData) => {
-        setError(null)
-        setSuccess(null)
         startTransition(async () => {
             const result = await importCsvData(formData)
-            if (result?.error) {
-                setError(result.error)
-            } else {
-                setSuccess('Data imported successfully!')
-                // Optional: clear file input
-            }
+            if (result?.error) toast(result.error, 'error')
+            else toast('Data imported successfully!', 'success')
         })
     }
 
@@ -78,18 +72,6 @@ export function CsvManager() {
                         Import
                     </Button>
                 </form>
-                {/* Status Messages */}
-                {error && (
-                    <div className="mt-2 flex items-center text-sm text-red-500">
-                        <AlertCircle className="mr-2 h-4 w-4" />
-                        {error}
-                    </div>
-                )}
-                {success && (
-                    <div className="mt-2 text-sm text-green-500">
-                        {success}
-                    </div>
-                )}
             </div>
         </div>
     )

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/components/ui/toast"
 import { createRace, deleteRace, updateRace } from "@/app/actions"
 import type { RaceListItem } from "@/components/app/race-card"
 
@@ -17,17 +18,15 @@ interface AddEditRaceModalProps {
 
 export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceModalProps) {
     const [isPending, startTransition] = useTransition()
-    const [error, setError] = useState<string | null>(null)
     const [confirmAction, setConfirmAction] = useState<'delete' | null>(null)
+    const { toast } = useToast()
 
     const handleClose = () => {
         setConfirmAction(null)
-        setError(null)
         onClose()
     }
 
     async function handleSubmit(formData: FormData) {
-        setError(null)
         startTransition(async () => {
             let result
             if (existingRace) {
@@ -37,7 +36,7 @@ export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceM
             }
 
             if (result?.error) {
-                setError(result.error)
+                toast(result.error, 'error')
             } else {
                 handleClose()
             }
@@ -50,7 +49,7 @@ export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceM
         startTransition(async () => {
             const result = await deleteRace(existingRace.id)
             if (result?.error) {
-                setError(result.error)
+                toast(result.error, 'error')
                 setConfirmAction(null)
             } else {
                 handleClose()
@@ -65,7 +64,6 @@ export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceM
                     <p className="text-sm text-muted-foreground">
                         Deleting this race will permanently delete all associated workouts. This cannot be undone.
                     </p>
-                    {error && <p className="text-destructive text-sm">{error}</p>}
                     <div className="flex justify-end space-x-2">
                         <Button type="button" variant="ghost" onClick={() => setConfirmAction(null)} disabled={isPending}>
                             Cancel
@@ -118,8 +116,6 @@ export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceM
                             rows={3}
                         />
                     </div>
-
-                    {error && <p className="text-destructive text-sm">{error}</p>}
 
                     <div className="flex justify-between pt-4">
                         {existingRace ? (

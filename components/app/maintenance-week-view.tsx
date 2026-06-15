@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { format, addWeeks, subWeeks, isSameWeek, isSameDay } from 'date-fns'
-import { ChevronLeft, ChevronRight, ClipboardPaste, Eraser, CalendarCheck, BedDouble, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ClipboardPaste, Eraser, CalendarCheck, BedDouble } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
+import { useToast } from '@/components/ui/toast'
 import { MaintenanceGrid } from './maintenance-grid'
 import { MAINTENANCE_TYPE_STYLES, MAINTENANCE_TYPE_ORDER, type WorkoutCellType } from '@/lib/maintenance-colors'
 import { getWeekStart, getWeekDays, formatWeekRange, toDateString, parseDateString } from '@/lib/date-utils'
@@ -46,8 +47,7 @@ export function MaintenanceWeekView({
   const [pasteOpen, setPasteOpen] = useState(false)
   const [restOpen, setRestOpen] = useState(false)
   const [clearOpen, setClearOpen] = useState(false)
-  // Surfaced when a background save fails (after the optimistic change is rolled back).
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const { toast } = useToast()
 
   // Client-owned state. The store holds every loaded session keyed by `${date}|AM|PM`
   // so navigation and edits are instant; the DB is updated in the background.
@@ -187,7 +187,7 @@ export function MaintenanceWeekView({
           else delete next[key]
           return next
         })
-        setSaveError(result.error)
+        toast(`${result.error}. Your change wasn't saved — please try again.`, 'error')
       }
     })
   }
@@ -210,7 +210,7 @@ export function MaintenanceWeekView({
       const result = await persist()
       if (result?.error) {
         setStore(snapshot)
-        setSaveError(result.error)
+        toast(`${result.error}. Your change wasn't saved — please try again.`, 'error')
       }
     })
   }
@@ -287,23 +287,6 @@ export function MaintenanceWeekView({
 
   return (
     <div className="space-y-8">
-      {/* Background-save failure notice (the optimistic change was rolled back) */}
-      {saveError && (
-        <div
-          role="alert"
-          className="flex items-start justify-between gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive animate-in fade-in slide-in-from-top-2"
-        >
-          <span>{saveError}. Your change wasn&apos;t saved — please try again.</span>
-          <button
-            onClick={() => setSaveError(null)}
-            aria-label="Dismiss error"
-            className="shrink-0 rounded p-0.5 hover:bg-destructive/20 transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
       {/* Navigation + actions */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1">

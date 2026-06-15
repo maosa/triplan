@@ -2,15 +2,19 @@
 
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/toast"
 import { deleteAccount } from "@/app/actions"
 
 export function DeleteAccountSection() {
     const [showConfirm, setShowConfirm] = useState(false)
     const [isPending, startTransition] = useTransition()
+    const { toast } = useToast()
 
     const handleDelete = () => {
         startTransition(async () => {
-            await deleteAccount()
+            // On success this redirects; only a failure returns here.
+            const result = await deleteAccount()
+            if (result?.error) toast(result.error, 'error')
         })
     }
 
