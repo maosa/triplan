@@ -3,8 +3,9 @@
 import * as React from "react"
 import { CheckCircle2, AlertCircle, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { messageVariant, type MessageType } from "@/components/ui/alert"
 
-export type ToastType = "success" | "error"
+export type ToastType = MessageType
 
 interface ToastItem {
     id: number
@@ -60,12 +61,6 @@ function Toast({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: number)
         return () => clearTimeout(timer)
     }, [toast.id, onDismiss])
 
-    // Lighter fill, darker border, and text in the same dark shade as the border.
-    const variant =
-        toast.type === "success"
-            ? "border-green-700 bg-green-50 text-green-700 dark:border-green-400 dark:bg-green-950/60 dark:text-green-400"
-            : "border-red-700 bg-red-50 text-red-700 dark:border-red-400 dark:bg-red-950/60 dark:text-red-400"
-
     const Icon = toast.type === "success" ? CheckCircle2 : AlertCircle
 
     return (
@@ -74,7 +69,7 @@ function Toast({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: number)
             className={cn(
                 "pointer-events-auto flex items-start gap-2.5 rounded-lg border p-3 text-sm font-medium shadow-lg",
                 "animate-in fade-in slide-in-from-bottom-2 duration-200",
-                variant
+                messageVariant[toast.type]
             )}
         >
             <Icon className="mt-0.5 h-4 w-4 shrink-0" />

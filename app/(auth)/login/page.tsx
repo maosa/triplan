@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Alert } from "@/components/ui/alert"
 import Link from "next/link"
 import { useState, useTransition } from "react"
 
@@ -65,11 +66,7 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    {error && (
-                        <div className="text-sm text-destructive">
-                            {error}
-                        </div>
-                    )}
+                    {error && <Alert type="error">{error}</Alert>}
 
                     <Button type="submit" className="w-full" isLoading={isPending}>
                         Log in

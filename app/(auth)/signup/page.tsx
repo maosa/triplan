@@ -4,6 +4,7 @@ import { signup } from "../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Alert } from "@/components/ui/alert"
 import Link from "next/link"
 import { useState, useTransition } from "react"
 
@@ -40,44 +41,38 @@ export default function SignupPage() {
                     <p className="mt-2 text-sm text-muted-foreground">Start planning your race</p>
                 </div>
 
-                <form action={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
+                {success ? (
+                    <Alert type="success">{success}</Alert>
+                ) : (
+                    <form action={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="firstName">First name</Label>
+                                <Input id="firstName" name="firstName" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="lastName">Last name</Label>
+                                <Input id="lastName" name="lastName" required />
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
-                            <Label htmlFor="firstName">First name</Label>
-                            <Input id="firstName" name="firstName" required />
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" name="email" type="email" required placeholder="email@domain.com" />
                         </div>
+
                         <div className="space-y-2">
-                            <Label htmlFor="lastName">Last name</Label>
-                            <Input id="lastName" name="lastName" required />
+                            <Label htmlFor="password">Password</Label>
+                            <Input id="password" name="password" type="password" required />
                         </div>
-                    </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" name="email" type="email" required placeholder="email@domain.com" />
-                    </div>
+                        {error && <Alert type="error">{error}</Alert>}
 
-                    <div className="space-y-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input id="password" name="password" type="password" required />
-                    </div>
-
-                    {error && (
-                        <div className="text-sm text-destructive">
-                            {error}
-                        </div>
-                    )}
-
-                    {success && (
-                        <div className="text-sm text-green-500">
-                            {success}
-                        </div>
-                    )}
-
-                    <Button type="submit" className="w-full" isLoading={isPending}>
-                        Sign up
-                    </Button>
-                </form>
+                        <Button type="submit" className="w-full" isLoading={isPending}>
+                            Sign up
+                        </Button>
+                    </form>
+                )}
 
                 <div className="text-center text-sm text-muted-foreground">
                     Already have an account?{" "}

@@ -5,6 +5,7 @@ import { resetPassword } from "../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Alert } from "@/components/ui/alert"
 import { useState, useTransition } from "react"
 
 export default function ForgotPasswordPage() {
@@ -40,28 +41,22 @@ export default function ForgotPasswordPage() {
                     <p className="mt-2 text-sm text-muted-foreground">Enter your email to receive a reset link</p>
                 </div>
 
-                <form action={handleSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" name="email" type="email" required placeholder="email@domain.com" />
-                    </div>
-
-                    {error && (
-                        <div className="text-sm text-destructive">
-                            {error}
+                {success ? (
+                    <Alert type="success">{success}</Alert>
+                ) : (
+                    <form action={handleSubmit} className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" name="email" type="email" required placeholder="email@domain.com" />
                         </div>
-                    )}
 
-                    {success && (
-                        <div className="text-sm font-medium text-green-500">
-                            {success}
-                        </div>
-                    )}
+                        {error && <Alert type="error">{error}</Alert>}
 
-                    <Button type="submit" className="w-full" isLoading={isPending}>
-                        Send Reset Link
-                    </Button>
-                </form>
+                        <Button type="submit" className="w-full" isLoading={isPending}>
+                            Send Reset Link
+                        </Button>
+                    </form>
+                )}
 
                 <div className="text-center text-sm">
                     <Link href="/login" className="font-medium text-primary hover:text-primary/80">

@@ -4,6 +4,7 @@ import { updatePassword } from "../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Alert } from "@/components/ui/alert"
 import { useState, useTransition } from "react"
 
 export default function ResetPasswordPage() {
@@ -38,7 +39,7 @@ export default function ResetPasswordPage() {
                 <form action={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="password">New Password</Label>
-                        <Input id="password" name="password" type="password" required placeholder="At least 6 characters" />
+                        <Input id="password" name="password" type="password" required placeholder="At least 12 characters" />
                     </div>
 
                     <div className="space-y-2">
@@ -46,11 +47,7 @@ export default function ResetPasswordPage() {
                         <Input id="confirmPassword" name="confirmPassword" type="password" required />
                     </div>
 
-                    {error && (
-                        <div className="text-sm text-destructive">
-                            {error}
-                        </div>
-                    )}
+                    {error && <Alert type="error">{error}</Alert>}
 
                     <Button type="submit" className="w-full" isLoading={isPending}>
                         Update Password
