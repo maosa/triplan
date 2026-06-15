@@ -59,7 +59,7 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
       <Header />
       <main className="container mx-auto px-4 py-8 sm:px-8">
         <div className="space-y-6">
-          <h1 className="text-2xl font-semibold text-foreground">Maintenance Training</h1>
+          <h2 className="text-lg font-semibold text-foreground">Maintenance Training</h2>
           <MaintenanceWeekView
             initialWeekStart={weekStart}
             entries={entries || []}

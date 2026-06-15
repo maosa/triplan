@@ -28,7 +28,7 @@ export function RaceList({ initialRaces, workoutCounts }: RaceListProps) {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-foreground">Your Races</h2>
+                <h2 className="text-lg font-semibold text-foreground">My Races</h2>
                 <Button onClick={() => setIsAddModalOpen(true)} className="bg-primary text-primary-foreground hover:bg-primary/90">
                     <Plus className="mr-2 h-4 w-4" />
                     Add Race
