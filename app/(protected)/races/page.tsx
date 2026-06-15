@@ -13,7 +13,7 @@ export default async function RacesPage() {
   }
 
   const [{ data: races, error }, { data: workouts, error: workoutsError }] = await Promise.all([
-    supabase.from('races').select('*').order('date', { ascending: false }),
+    supabase.from('races').select('id, name, location, date, details').order('date', { ascending: false }),
     supabase.from('workouts').select('race_id, type'),
   ])
 

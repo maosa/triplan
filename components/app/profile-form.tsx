@@ -7,7 +7,8 @@ import { updateProfile } from "@/app/actions"
 import { useTransition, useState } from "react"
 import type { Database } from "@/types/database"
 
-type Profile = Database['public']['Tables']['profiles']['Row']
+// Only the preference columns this form reads (the page selects these explicitly).
+type Profile = Pick<Database['public']['Tables']['profiles']['Row'], 'units' | 'theme' | 'landing_page'>
 
 export function ProfileForm({ profile }: { profile: Profile | null }) {
     const [isPending, startTransition] = useTransition()

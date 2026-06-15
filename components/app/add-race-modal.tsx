@@ -7,14 +7,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { createRace, deleteRace, updateRace } from "@/app/actions"
-import type { Database } from "@/types/database"
-
-type Race = Database['public']['Tables']['races']['Row']
+import type { RaceListItem } from "@/components/app/race-card"
 
 interface AddEditRaceModalProps {
     isOpen: boolean
     onClose: () => void
-    existingRace?: Race
+    existingRace?: RaceListItem
 }
 
 export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceModalProps) {
@@ -85,6 +83,7 @@ export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceM
                             id="name"
                             name="name"
                             required
+                            aria-required="true"
                             defaultValue={existingRace?.name}
                             placeholder="Ironman 70.3"
                         />
@@ -105,6 +104,7 @@ export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceM
                             name="date"
                             type="date"
                             required
+                            aria-required="true"
                             defaultValue={existingRace?.date}
                         />
                     </div>

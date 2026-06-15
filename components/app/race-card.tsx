@@ -7,7 +7,12 @@ import type { Database } from "@/types/database"
 import { WORKOUT_TYPES } from "@/lib/workout-constants"
 import { MouseEvent } from "react"
 
-type Race = Database['public']['Tables']['races']['Row']
+// Only the columns the list, card, and edit modal actually use — lets the
+// races query select these explicitly instead of `*`.
+export type RaceListItem = Pick<
+    Database['public']['Tables']['races']['Row'],
+    'id' | 'name' | 'location' | 'date' | 'details'
+>
 
 const WORKOUT_TYPE_ICONS: Record<string, typeof Waves> = {
     Swim: Waves,
@@ -19,8 +24,8 @@ const WORKOUT_TYPE_ICONS: Record<string, typeof Waves> = {
 }
 
 interface RaceCardProps {
-    race: Race
-    onEdit: (race: Race) => void
+    race: RaceListItem
+    onEdit: (race: RaceListItem) => void
     workoutCounts?: Record<string, number>
 }
 

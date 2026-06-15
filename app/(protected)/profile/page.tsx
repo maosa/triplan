@@ -18,7 +18,7 @@ export default async function ProfilePage() {
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('*')
+        .select('units, theme, landing_page, maintenance_defaults')
         .eq('id', user.id)
         .single()
 

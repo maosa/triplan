@@ -152,6 +152,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
                                 name="date"
                                 type="date"
                                 required
+                                aria-required="true"
                                 max={raceDate}
                                 defaultValue={existingWorkout?.date || new Date().toISOString().split('T')[0]}
                             />

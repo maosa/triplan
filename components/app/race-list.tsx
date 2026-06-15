@@ -3,22 +3,19 @@
 import { useState } from "react"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { RaceCard } from "@/components/app/race-card"
+import { RaceCard, type RaceListItem } from "@/components/app/race-card"
 import { AddEditRaceModal } from "@/components/app/add-race-modal"
-import type { Database } from "@/types/database"
-
-type Race = Database['public']['Tables']['races']['Row']
 
 interface RaceListProps {
-    initialRaces: Race[]
+    initialRaces: RaceListItem[]
     workoutCounts: Record<string, Record<string, number>>
 }
 
 export function RaceList({ initialRaces, workoutCounts }: RaceListProps) {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-    const [editingRace, setEditingRace] = useState<Race | undefined>(undefined)
+    const [editingRace, setEditingRace] = useState<RaceListItem | undefined>(undefined)
 
-    const handleEdit = (race: Race) => {
+    const handleEdit = (race: RaceListItem) => {
         setEditingRace(race)
         setIsAddModalOpen(true)
     }
