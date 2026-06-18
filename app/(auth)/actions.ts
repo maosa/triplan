@@ -6,13 +6,24 @@ import { headers, cookies } from 'next/headers'
 import { logFailedLogin, logSecurityEvent, hashEmail } from '@/lib/security-events'
 import { REMEMBER_ME_COOKIE } from '@/lib/supabase/remember-me'
 import { validatePassword } from '@/lib/validation'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 type ActionResult = { error?: string; success?: boolean | string }
+
+const RATE_LIMITED = 'Too many attempts. Please try again in a few minutes.'
 
 export async function login(formData: FormData): Promise<ActionResult> {
     const email = formData.get('email') as string
     const password = formData.get('password') as string
     const rememberMe = formData.get('rememberMe') === 'on'
+
+    // IP/UA are best-effort — proxies may strip them.
+    const h = await headers()
+    const ip = h.get('x-forwarded-for') ?? h.get('x-real-ip')
+
+    // Throttle by email + IP to blunt brute-force / credential stuffing.
+    const allowed = await checkRateLimit('login', `${(email ?? '').toLowerCase()}:${ip ?? 'unknown'}`)
+    if (!allowed) return { error: RATE_LIMITED }
 
     // Pass the choice so the auth cookies are written with the right lifetime:
     // persistent when "Remember me" is checked, session-only otherwise.
@@ -24,13 +35,7 @@ export async function login(formData: FormData): Promise<ActionResult> {
     })
 
     if (error) {
-        // Log the failed attempt. IP and UA are best-effort — proxies may strip them.
-        const h = await headers()
-        await logFailedLogin(
-            email,
-            h.get('x-forwarded-for') ?? h.get('x-real-ip'),
-            h.get('user-agent'),
-        )
+        await logFailedLogin(email, ip, h.get('user-agent'))
         // Return a generic message to avoid leaking whether an email exists
         return { error: 'Invalid email or password.' }
     }
@@ -80,6 +85,12 @@ export async function signup(formData: FormData): Promise<{ error?: string; succ
     const passwordError = validatePassword(password)
     if (passwordError) return { error: passwordError }
 
+    // Throttle by IP to blunt mass account creation / enumeration.
+    const h = await headers()
+    const ip = h.get('x-forwarded-for') ?? h.get('x-real-ip') ?? 'unknown'
+    const allowed = await checkRateLimit('signup', ip)
+    if (!allowed) return { error: RATE_LIMITED }
+
     const supabase = await createClient()
 
     const { data, error } = await supabase.auth.signUp({
@@ -127,8 +138,14 @@ export async function signup(formData: FormData): Promise<{ error?: string; succ
 export async function resetPassword(formData: FormData): Promise<{ error?: string; success?: string }> {
     const email = formData.get('email') as string
 
-    const supabase = await createClient()
     const headersList = await headers()
+    const ip = headersList.get('x-forwarded-for') ?? headersList.get('x-real-ip')
+
+    // Throttle by email + IP to blunt reset-email spam.
+    const allowed = await checkRateLimit('resetPassword', `${(email ?? '').toLowerCase()}:${ip ?? 'unknown'}`)
+    if (!allowed) return { error: RATE_LIMITED }
+
+    const supabase = await createClient()
     const origin = headersList.get('origin') || 'https://triathlonplan.vercel.app'
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
