@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useRef, useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/toast"
@@ -10,13 +10,24 @@ import { Download, Upload } from "lucide-react"
 export function CsvManager() {
     const [isPending, startTransition] = useTransition()
     const [fileName, setFileName] = useState<string | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
     const { toast } = useToast()
+
+    // Clear the chosen file from both the display and the underlying input
+    // (so the same file can be re-selected afterwards).
+    const clearFile = () => {
+        setFileName(null)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+    }
 
     const handleImport = async (formData: FormData) => {
         startTransition(async () => {
             const result = await importCsvData(formData)
             if (result?.error) toast(result.error, 'error')
             else toast('Data imported successfully!', 'success')
+            // Reset the picker once the attempt resolves (success or failure) so a
+            // stale filename never lingers. Pure client state — no reload/flicker.
+            clearFile()
         })
     }
 
@@ -46,6 +57,7 @@ export function CsvManager() {
                         <label htmlFor="file" className="text-sm font-medium text-muted-foreground">Import CSV</label>
                         <div className="relative">
                             <Input
+                                ref={fileInputRef}
                                 id="file"
                                 name="file"
                                 type="file"
