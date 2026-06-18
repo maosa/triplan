@@ -80,7 +80,7 @@ export function CsvManager() {
                         </div>
                     </div>
                     <Button type="submit" isLoading={isPending} disabled={isPending} variant="primary" className="w-[100px]">
-                        <Upload className="mr-2 h-4 w-4" />
+                        {!isPending && <Upload className="mr-2 h-4 w-4" />}
                         Import
                     </Button>
                 </form>
