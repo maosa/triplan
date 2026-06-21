@@ -190,10 +190,12 @@ export async function logout() {
     const supabase = await createClient()
     await supabase.auth.signOut()
 
-    // Clear theme + remember-me cookies so the next user starts fresh
+    // Clear the remember-me cookie so the next session starts fresh. Keep the
+    // theme cookie: we send users to the landing page after logout, and the
+    // landing reads this cookie — so their preferred theme carries over for a
+    // more seamless exit (and re-login re-bootstraps it from their profile).
     const cookieStore = await cookies()
-    cookieStore.delete('theme')
     cookieStore.delete(REMEMBER_ME_COOKIE)
 
-    redirect('/login')
+    redirect('/')
 }
