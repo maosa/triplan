@@ -22,7 +22,7 @@ export async function login(formData: FormData): Promise<ActionResult> {
     const ip = h.get('x-forwarded-for') ?? h.get('x-real-ip')
 
     // Throttle by email + IP to blunt brute-force / credential stuffing.
-    const allowed = await checkRateLimit('login', `${(email ?? '').toLowerCase()}:${ip ?? 'unknown'}`)
+    const allowed = await checkRateLimit('login', `${hashEmail(email ?? '')}:${ip ?? 'unknown'}`)
     if (!allowed) return { error: RATE_LIMITED }
 
     // Pass the choice so the auth cookies are written with the right lifetime:
@@ -142,7 +142,7 @@ export async function resetPassword(formData: FormData): Promise<{ error?: strin
     const ip = headersList.get('x-forwarded-for') ?? headersList.get('x-real-ip')
 
     // Throttle by email + IP to blunt reset-email spam.
-    const allowed = await checkRateLimit('resetPassword', `${(email ?? '').toLowerCase()}:${ip ?? 'unknown'}`)
+    const allowed = await checkRateLimit('resetPassword', `${hashEmail(email ?? '')}:${ip ?? 'unknown'}`)
     if (!allowed) return { error: RATE_LIMITED }
 
     const supabase = await createClient()
