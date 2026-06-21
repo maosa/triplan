@@ -43,6 +43,11 @@ export function HeroCanvas() {
             isSmall ? 220 : 420,
             isSmall ? 16 : 28
         )
+        // Drop the geometry's uv attribute: with it present, three enables
+        // USE_POINTS_UV and samples the sprite at each point's per-vertex uv (a
+        // single texel) instead of across gl_PointCoord — which renders every
+        // point as a flat square. Removing it restores per-sprite round dots.
+        geometry.deleteAttribute("uv")
 
         // Soft circular sprite so points render as round dots rather than the
         // default hard squares. White texture so material.color still tints it.
@@ -59,8 +64,10 @@ export function HeroCanvas() {
                 size / 2,
                 size / 2
             )
+            // Round dot with a soft edge. Kept airy (not a hard opaque disc) so
+            // the dense knot reads as a fine field rather than a solid mass.
             g.addColorStop(0, "rgba(255,255,255,1)")
-            g.addColorStop(0.5, "rgba(255,255,255,1)")
+            g.addColorStop(0.55, "rgba(255,255,255,0.85)")
             g.addColorStop(1, "rgba(255,255,255,0)")
             ctx.fillStyle = g
             ctx.fillRect(0, 0, size, size)
@@ -71,16 +78,15 @@ export function HeroCanvas() {
         const sprite = makeCircleTexture()
 
         const material = new THREE.PointsMaterial({
-            // Larger than the old hard squares: the soft sprite has transparent
-            // margins, and bigger dots make the round shape clearly visible
-            // (at ~3px the circle reads almost identical to a square).
-            size: isSmall ? 0.26 : 0.2,
+            // Fine dots — round sprites cover less area than the old squares, so
+            // the dense knot stays a delicate field at this small size.
+            size: isSmall ? 0.14 : 0.11,
             sizeAttenuation: true,
             map: sprite,
             // Discard fully-transparent fragments so the square quad never shows.
             alphaTest: 0.01,
             transparent: true,
-            opacity: 0.55,
+            opacity: 0.5,
             // Avoid the opaque-square z-buffer artifacts when sprites overlap.
             depthWrite: false,
         })
