@@ -71,13 +71,16 @@ export function HeroCanvas() {
         const sprite = makeCircleTexture()
 
         const material = new THREE.PointsMaterial({
-            // Slightly larger than the old squares since the soft sprite has
-            // transparent margins, keeping the visible dot density similar.
-            size: isSmall ? 0.16 : 0.13,
+            // Larger than the old hard squares: the soft sprite has transparent
+            // margins, and bigger dots make the round shape clearly visible
+            // (at ~3px the circle reads almost identical to a square).
+            size: isSmall ? 0.26 : 0.2,
             sizeAttenuation: true,
             map: sprite,
+            // Discard fully-transparent fragments so the square quad never shows.
+            alphaTest: 0.01,
             transparent: true,
-            opacity: 0.5,
+            opacity: 0.55,
             // Avoid the opaque-square z-buffer artifacts when sprites overlap.
             depthWrite: false,
         })
