@@ -40,14 +40,23 @@ export async function middleware(request: NextRequest) {
         "frame-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",
-        // Auto-rewrite any stray http:// subresource to https://
-        "upgrade-insecure-requests",
+        // Auto-rewrite any stray http:// subresource to https:// — production
+        // only. In dev the server speaks plain HTTP on localhost, so upgrading
+        // would force failing https://localhost requests (net::ERR_SSL_PROTOCOL_ERROR).
+        ...(process.env.NODE_ENV === 'production'
+            ? ['upgrade-insecure-requests']
+            : []),
     ].join('; ')
 
     // Attach the nonce to the forwarded request headers so Server Components
     // can read it via headers() from next/headers (used in app/layout.tsx).
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-nonce', nonce)
+    // Also forward the CSP on the *request*: Next.js reads the nonce from this
+    // header during SSR to stamp it onto its own framework/bootstrap scripts.
+    // Without it, those scripts render with no nonce on the server but the real
+    // nonce on the client, causing a hydration mismatch warning in dev.
+    requestHeaders.set('Content-Security-Policy', csp)
 
     // Create a new NextRequest with the modified headers so updateSession
     // forwards them to the Server Component render context.

@@ -39,9 +39,13 @@ export default async function RootLayout({
         {/* Resolve theme (cookie ?? OS preference) before paint to avoid a
             light/dark flash. A raw nonce'd inline <script> in <head> runs
             synchronously during HTML parsing (before first paint); the nonce
-            satisfies the strict CSP without needing 'unsafe-inline'. */}
+            satisfies the strict CSP without needing 'unsafe-inline'.
+            suppressHydrationWarning: browsers strip the nonce attribute from the
+            DOM after applying CSP, so React would otherwise flag a (benign)
+            server/client nonce mismatch on this element during hydration. */}
         <script
           nonce={nonce}
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var m=document.cookie.match(/(?:^|;\\s*)theme=(dark|light)/);var t=m?m[1]:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');if(t==='dark'){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}}catch(e){}})();`,
           }}
