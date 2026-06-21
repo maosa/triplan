@@ -49,10 +49,7 @@ export function LandingPage() {
 
                     <div className="container relative z-10 mx-auto px-4 py-24 sm:px-8">
                         <div className="mx-auto max-w-3xl text-center">
-                            <span className="inline-block rounded-full border border-border bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm">
-                                Race-centric training, organised
-                            </span>
-                            <h1 className="mt-6 text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
+                            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
                                 Plan every race.
                                 <br className="hidden sm:block" /> Train with
                                 purpose.
