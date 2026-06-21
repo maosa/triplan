@@ -44,11 +44,42 @@ export function HeroCanvas() {
             isSmall ? 16 : 28
         )
 
+        // Soft circular sprite so points render as round dots rather than the
+        // default hard squares. White texture so material.color still tints it.
+        const makeCircleTexture = () => {
+            const size = 64
+            const canvas = document.createElement("canvas")
+            canvas.width = canvas.height = size
+            const ctx = canvas.getContext("2d")!
+            const g = ctx.createRadialGradient(
+                size / 2,
+                size / 2,
+                0,
+                size / 2,
+                size / 2,
+                size / 2
+            )
+            g.addColorStop(0, "rgba(255,255,255,1)")
+            g.addColorStop(0.5, "rgba(255,255,255,1)")
+            g.addColorStop(1, "rgba(255,255,255,0)")
+            ctx.fillStyle = g
+            ctx.fillRect(0, 0, size, size)
+            const tex = new THREE.CanvasTexture(canvas)
+            tex.colorSpace = THREE.SRGBColorSpace
+            return tex
+        }
+        const sprite = makeCircleTexture()
+
         const material = new THREE.PointsMaterial({
-            size: isSmall ? 0.12 : 0.1,
+            // Slightly larger than the old squares since the soft sprite has
+            // transparent margins, keeping the visible dot density similar.
+            size: isSmall ? 0.16 : 0.13,
             sizeAttenuation: true,
+            map: sprite,
             transparent: true,
             opacity: 0.5,
+            // Avoid the opaque-square z-buffer artifacts when sprites overlap.
+            depthWrite: false,
         })
 
         // Colour the points from the live theme token so it works in both
@@ -129,6 +160,7 @@ export function HeroCanvas() {
             themeObserver.disconnect()
             geometry.dispose()
             material.dispose()
+            sprite.dispose()
             renderer.dispose()
             if (renderer.domElement.parentNode === mount) {
                 mount.removeChild(renderer.domElement)
