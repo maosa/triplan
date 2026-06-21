@@ -31,7 +31,7 @@ export default function ForgotPasswordPage() {
             {/* Standard Header Logo Position */}
             <div className="absolute top-0 left-0 w-full border-b border-transparent">
                 <div className="container mx-auto flex h-16 items-center px-4 sm:px-8">
-                    <span className="text-xl font-bold tracking-tight text-foreground">TriPlan</span>
+                    <Link href="/" className="text-xl font-bold tracking-tight text-foreground transition-opacity hover:opacity-80">TriPlan</Link>
                 </div>
             </div>
 
