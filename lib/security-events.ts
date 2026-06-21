@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createHash } from 'crypto'
+import * as Sentry from '@sentry/nextjs'
 
 export type SecurityEventType =
     | 'account_deleted'
@@ -45,9 +46,11 @@ export async function logSecurityEvent(opts: LogEventOptions): Promise<void> {
         })
         if (error) {
             console.error('[security_events] insert failed:', error)
+            Sentry.captureException(error, { tags: { context: 'security_events.insert' } })
         }
     } catch (err) {
         console.error('[security_events] unexpected error:', err)
+        Sentry.captureException(err, { tags: { context: 'security_events' } })
     }
 }
 

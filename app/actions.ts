@@ -8,6 +8,7 @@ import { cookies } from 'next/headers'
 import { Database, WorkoutType, MaintenanceSession } from '@/types/database'
 import { WORKOUT_TYPES, WORKOUT_TYPE_SET, MAINTENANCE_SESSIONS, DAY_KEYS } from '@/lib/workout-constants'
 import Papa from 'papaparse'
+import * as Sentry from '@sentry/nextjs'
 import { logSecurityEvent, hashEmail } from '@/lib/security-events'
 import { parseTimeToSeconds, parsePaceToSeconds, isValidTimeString, isValidPaceString } from '@/lib/time-format'
 import { toDateString } from '@/lib/date-utils'
@@ -35,6 +36,9 @@ function isValidEmail(email: string): boolean {
 // Always log the real error server-side for debugging.
 function dbError(context: string, error: unknown): { error: string } {
     console.error(`[DB Error] ${context}:`, error)
+    // Report to Sentry — these are otherwise swallowed (the user only sees a
+    // generic message), so without this they'd be invisible.
+    Sentry.captureException(error, { tags: { context } })
     return { error: 'Something went wrong. Please try again.' }
 }
 

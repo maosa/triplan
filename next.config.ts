@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const securityHeaders = [
   // Prevent embedding in iframes (clickjacking)
@@ -26,4 +27,14 @@ const nextConfig: NextConfig = {
   ],
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Org/project on Sentry's EU region. The auth token (SENTRY_AUTH_TOKEN, build-
+  // time only) enables source-map upload so production stack traces are readable.
+  org: "maosa-em",
+  project: "triplan",
+  sentryUrl: "https://de.sentry.io",
+  // Quieter build output; only logs upload issues.
+  silent: !process.env.CI,
+  // Upload a wider set of source maps for better stack traces.
+  widenClientFileUpload: true,
+});

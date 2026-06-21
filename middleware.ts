@@ -32,8 +32,8 @@ export async function middleware(request: NextRequest) {
         // to inject a <style>/style attribute in the first place.
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data: https:",
-        // Supabase API + realtime WS, GA collection endpoints
-        "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com",
+        // Supabase API + realtime WS, GA collection endpoints, Sentry ingest (EU region)
+        "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://*.ingest.de.sentry.io",
         "frame-ancestors 'none'",
         // The app embeds no <object>/<embed> and no <iframe>s of its own
         "object-src 'none'",
