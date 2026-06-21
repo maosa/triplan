@@ -41,10 +41,12 @@ export function LandingPage() {
                     />
                     {showCanvas && <HeroCanvas />}
                     {/* Center scrim: mutes the particle field behind the copy so
-                        the headline stays crisp while particles read at the edges. */}
+                        the headline stays crisp while particles read at the edges.
+                        Stronger/larger on phones — the copy block is taller and the
+                        particles bigger there, so the desktop scrim isn't enough. */}
                     <div
                         aria-hidden
-                        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_55%_45%_at_50%_50%,var(--background)_28%,transparent_72%)]"
+                        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_92%_60%_at_50%_50%,var(--background)_55%,transparent_92%)] sm:bg-[radial-gradient(ellipse_55%_45%_at_50%_50%,var(--background)_28%,transparent_72%)]"
                     />
 
                     <div className="container relative z-10 mx-auto px-4 py-24 sm:px-8">
