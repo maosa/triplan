@@ -19,9 +19,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Read theme from cookie — no DB query needed on every navigation
+  // Read theme from cookie — no DB query needed on every navigation.
+  // When no cookie exists (logged-out visitors on the landing/auth pages), we
+  // leave the class unset and let the inline pre-paint script below resolve it
+  // from the OS preference. Logged-in users always have the cookie (set on
+  // login / profile change), so their pages keep matching their account theme.
   const cookieStore = await cookies()
-  const theme = cookieStore.get('theme')?.value || 'dark'
+  const theme = cookieStore.get('theme')?.value
 
   // Read the per-request nonce injected by middleware.ts.
   // Passing it to <Script> causes Next.js to render <script nonce="..."> tags,
@@ -30,8 +34,18 @@ export default async function RootLayout({
   const nonce = headersList.get('x-nonce') ?? ''
 
   return (
-    <html lang="en" className={theme}>
+    <html lang="en" className={theme} suppressHydrationWarning>
       <head>
+        {/* Resolve theme (cookie ?? OS preference) before paint to avoid a
+            light/dark flash. A raw nonce'd inline <script> in <head> runs
+            synchronously during HTML parsing (before first paint); the nonce
+            satisfies the strict CSP without needing 'unsafe-inline'. */}
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var m=document.cookie.match(/(?:^|;\\s*)theme=(dark|light)/);var t=m?m[1]:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');if(t==='dark'){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}}catch(e){}})();`,
+          }}
+        />
         {/* Load the GA library — nonce authorises this script tag */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-HD03HER1E2"
