@@ -26,7 +26,7 @@ export function HeroCanvas() {
         )
         // Pull the camera further back on narrow portrait screens so the whole
         // knot fits within the viewport instead of being cropped at the sides.
-        camera.position.z = isSmall ? 44 : 28
+        camera.position.z = isSmall ? 44 : 38
 
         const renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -82,7 +82,7 @@ export function HeroCanvas() {
         const material = new THREE.PointsMaterial({
             // Fine dots — round sprites cover less area than the old squares, so
             // the dense knot stays a delicate field at this small size.
-            size: isSmall ? 0.22 : 0.11,
+            size: isSmall ? 0.22 : 0.14,
             sizeAttenuation: true,
             map: sprite,
             // Discard fully-transparent fragments so the square quad never shows.
