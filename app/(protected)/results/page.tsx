@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import * as Sentry from '@sentry/nextjs'
 import { Header } from '@/components/app/header'
 import { ResultsList } from '@/components/app/results-list'
 import type { Database } from '@/types/database'
@@ -25,6 +26,7 @@ export default async function ResultsPage() {
 
   if (error) {
     console.error('Error fetching races:', error)
+    Sentry.captureException(error, { tags: { context: 'results_page.fetch_races' } })
   }
 
   const units = profile?.units || 'metric'

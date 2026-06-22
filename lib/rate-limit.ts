@@ -1,5 +1,6 @@
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
+import * as Sentry from '@sentry/nextjs'
 
 // Rate limiting for auth endpoints, backed by Upstash Redis.
 //
@@ -52,6 +53,7 @@ export async function checkRateLimit(name: RateLimitName, identifier: string): P
         return success
     } catch (error) {
         console.error(`[rate-limit] ${name} check failed; allowing request:`, error)
+        Sentry.captureException(error, { tags: { context: `rate-limit.${name}` } })
         return true // fail open
     }
 }

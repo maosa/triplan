@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import * as Sentry from '@sentry/nextjs'
 import { RaceList } from '@/components/app/race-list'
 import { Header } from '@/components/app/header'
 
@@ -19,9 +20,11 @@ export default async function RacesPage() {
 
   if (error) {
     console.error('Error fetching races:', error)
+    Sentry.captureException(error, { tags: { context: 'races_page.fetch_races' } })
   }
   if (workoutsError) {
     console.error('Error fetching workouts:', workoutsError)
+    Sentry.captureException(workoutsError, { tags: { context: 'races_page.fetch_workouts' } })
   }
 
   // Build workout counts per race: { raceId: { Swim: 3, Run: 5, ... } }

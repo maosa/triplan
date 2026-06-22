@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import * as Sentry from '@sentry/nextjs'
 import { Header } from '@/components/app/header'
 import { MaintenanceWeekView } from '@/components/app/maintenance-week-view'
 import { getWeekStart, parseDateString, toDateString } from '@/lib/date-utils'
@@ -49,6 +50,7 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
 
   if (entriesError) {
     console.error('Error fetching maintenance entries:', entriesError)
+    Sentry.captureException(entriesError, { tags: { context: 'maintenance_page.fetch_entries' } })
   }
 
   const defaults = (profile?.maintenance_defaults || {}) as MaintenanceDefaults

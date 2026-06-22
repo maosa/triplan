@@ -77,8 +77,10 @@ export async function logFailedLogin(
         })
         if (error) {
             console.error('[security_events] log_failed_login rpc failed:', error)
+            Sentry.captureException(error, { tags: { context: 'logFailedLogin.rpc' } })
         }
     } catch (err) {
         console.error('[security_events] unexpected error in logFailedLogin:', err)
+        Sentry.captureException(err, { tags: { context: 'logFailedLogin' } })
     }
 }

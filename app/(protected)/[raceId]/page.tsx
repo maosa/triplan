@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
+import * as Sentry from '@sentry/nextjs'
 import { WorkoutList } from '@/components/app/workout-list'
 import { MapPin, Calendar } from 'lucide-react'
 import { format, differenceInCalendarDays } from 'date-fns'
@@ -58,6 +59,7 @@ export default async function RacePage({ params }: PageProps) {
 
     if (workoutError) {
         console.error(workoutError)
+        Sentry.captureException(workoutError, { tags: { context: 'race_page.fetch_workouts' } })
     }
 
     // A race is completed once its date is in the past (calendar-day comparison).

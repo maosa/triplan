@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { format, addWeeks, subWeeks, isSameWeek, isSameDay } from 'date-fns'
 import { ChevronLeft, ChevronRight, ClipboardPaste, Eraser, CalendarCheck, BedDouble } from 'lucide-react'
+import * as Sentry from '@sentry/nextjs'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { useToast } from '@/components/ui/toast'
@@ -130,6 +131,7 @@ export function MaintenanceWeekView({
         .lte('date', chunkTo)
       if (error) {
         console.error('Maintenance window extend failed:', error)
+        Sentry.captureException(error, { tags: { context: 'maintenance.window_extend' } })
       } else if (data) {
         setStore((s) => {
           const next = { ...s }
