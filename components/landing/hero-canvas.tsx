@@ -109,6 +109,9 @@ export function HeroCanvas() {
         })
 
         const points = new THREE.Points(geometry, material)
+        // On phones, lift the shape so its dense body sits above the headline
+        // rather than directly behind it, for a more balanced composition.
+        if (isSmall) points.position.y = 6
         scene.add(points)
 
         // Pointer parallax (lerped for smoothness).
