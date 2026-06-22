@@ -16,6 +16,7 @@ export function HeroCanvas() {
         if (!mount) return
 
         const scene = new THREE.Scene()
+        const isSmall = window.innerWidth < 640
 
         const camera = new THREE.PerspectiveCamera(
             55,
@@ -23,7 +24,9 @@ export function HeroCanvas() {
             0.1,
             1000
         )
-        camera.position.z = 28
+        // Pull the camera further back on narrow portrait screens so the whole
+        // knot fits within the viewport instead of being cropped at the sides.
+        camera.position.z = isSmall ? 44 : 28
 
         const renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -36,7 +39,6 @@ export function HeroCanvas() {
         // Flowing torus-knot of points — its sweeping curves read as motion /
         // momentum without depicting any specific sport. Fewer points on small
         // screens to keep phones smooth.
-        const isSmall = window.innerWidth < 640
         const geometry = new THREE.TorusKnotGeometry(
             9,
             2.6,
@@ -80,7 +82,7 @@ export function HeroCanvas() {
         const material = new THREE.PointsMaterial({
             // Fine dots — round sprites cover less area than the old squares, so
             // the dense knot stays a delicate field at this small size.
-            size: isSmall ? 0.14 : 0.11,
+            size: isSmall ? 0.22 : 0.11,
             sizeAttenuation: true,
             map: sprite,
             // Discard fully-transparent fragments so the square quad never shows.
