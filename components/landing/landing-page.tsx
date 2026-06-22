@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Footer } from "@/components/app/footer"
 import { LandingNav } from "./landing-nav"
 import { Features } from "./features"
+import { ScrollHint } from "./scroll-hint"
 
 // Lazy, browser-only — three.js never runs on the server and never blocks
 // first paint. While it loads (or when motion is reduced) the gradient backdrop
@@ -33,7 +34,7 @@ export function LandingPage() {
 
             <main className="flex-1">
                 {/* Hero */}
-                <section className="relative flex min-h-[88vh] items-center overflow-hidden sm:min-h-screen">
+                <section className="relative flex min-h-screen items-center overflow-hidden">
                     {/* Subtle ambient glow — also the reduced-motion fallback */}
                     <div
                         aria-hidden
@@ -80,6 +81,8 @@ export function LandingPage() {
                             </div>
                         </div>
                     </div>
+
+                    <ScrollHint />
                 </section>
 
                 <Features />
