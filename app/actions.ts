@@ -122,12 +122,15 @@ export async function createWorkout(raceId: string, formData: FormData): Promise
     const intensity = formData.get('intensity') ? Number(formData.get('intensity')) : null
     const details = ((formData.get('details') as string) || '').trim()
 
+    if (!isValidDateString(date)) return { error: 'Invalid date.' }
+    if (!WORKOUT_TYPE_SET.has(type)) return { error: 'Invalid workout type.' }
+    if (distance !== null && (!Number.isFinite(distance) || distance < 0 || distance > LIMITS.DISTANCE)) return { error: 'Distance must be between 0 and 999.9.' }
     if (details.length > LIMITS.DETAILS) return { error: 'Details must be under 5000 characters.' }
     if (intensity !== null && (intensity < 0 || intensity > 10)) return { error: 'Intensity must be between 0 and 10.' }
 
     const { supabase, user } = await getAuthenticatedUser()
 
-    const dateCheck = await validateWorkoutDate(supabase, raceId, date)
+    const dateCheck = await validateWorkoutDate(supabase, raceId, date, user.id)
     if (dateCheck.error) return { error: dateCheck.error }
 
     // Force intensity to 0 if Rest
@@ -159,12 +162,15 @@ export async function updateWorkout(workoutId: string, raceId: string, formData:
     const intensity = formData.get('intensity') ? Number(formData.get('intensity')) : null
     const details = ((formData.get('details') as string) || '').trim()
 
+    if (!isValidDateString(date)) return { error: 'Invalid date.' }
+    if (!WORKOUT_TYPE_SET.has(type)) return { error: 'Invalid workout type.' }
+    if (distance !== null && (!Number.isFinite(distance) || distance < 0 || distance > LIMITS.DISTANCE)) return { error: 'Distance must be between 0 and 999.9.' }
     if (details.length > LIMITS.DETAILS) return { error: 'Details must be under 5000 characters.' }
     if (intensity !== null && (intensity < 0 || intensity > 10)) return { error: 'Intensity must be between 0 and 10.' }
 
     const { supabase, user } = await getAuthenticatedUser()
 
-    const dateCheck = await validateWorkoutDate(supabase, raceId, date)
+    const dateCheck = await validateWorkoutDate(supabase, raceId, date, user.id)
     if (dateCheck.error) return { error: dateCheck.error }
 
     const finalIntensity = type === 'Rest' ? 0 : intensity
@@ -202,7 +208,7 @@ export async function duplicateWorkout(workout: Database['public']['Tables']['wo
     // Clone with date = today
     const finalDate = new Date().toISOString().split('T')[0]
 
-    const dateCheck = await validateWorkoutDate(supabase, workout.race_id, finalDate)
+    const dateCheck = await validateWorkoutDate(supabase, workout.race_id, finalDate, user.id)
     if (dateCheck.error) {
         return { error: 'Cannot duplicate: Today is after the race date.' }
     }
@@ -551,19 +557,16 @@ export async function fillRestWeek(weekStartDate: string): Promise<ActionResult>
 }
 
 export async function deleteAccount() {
-    const supabase = await createClient()
+    // Fail closed: throws if there is no authenticated session.
+    const { supabase, user } = await getAuthenticatedUser()
 
-    // Fetch the user first so we can log the event with their ID before deletion.
-    // After delete_user() runs, the auth.users row is gone and user_id would be NULL.
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (user) {
-        await logSecurityEvent({
-            userId: user.id,
-            eventType: 'account_deleted',
-            metadata: { email_hash: hashEmail(user.email ?? '') },
-        })
-    }
+    // Log the event with the user's ID before deletion — after delete_user()
+    // runs, the auth.users row is gone and user_id would be NULL.
+    await logSecurityEvent({
+        userId: user.id,
+        eventType: 'account_deleted',
+        metadata: { email_hash: hashEmail(user.email ?? '') },
+    })
 
     const { error } = await supabase.rpc('delete_user')
 
@@ -872,11 +875,12 @@ function parseDate(dateStr: string): string | null {
     return null
 }
 
-async function validateWorkoutDate(supabase: Awaited<ReturnType<typeof createClient>>, raceId: string, workoutDate: string) {
+async function validateWorkoutDate(supabase: Awaited<ReturnType<typeof createClient>>, raceId: string, workoutDate: string, userId: string) {
     const { data: race, error: raceError } = await supabase
         .from('races')
         .select('date')
         .eq('id', raceId)
+        .eq('user_id', userId)
         .single()
 
     if (raceError || !race) {

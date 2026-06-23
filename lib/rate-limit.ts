@@ -37,6 +37,7 @@ const limiters = {
     login: makeLimiter(5, '15 m', 'rl:login'),
     signup: makeLimiter(3, '1 h', 'rl:signup'),
     resetPassword: makeLimiter(3, '1 h', 'rl:reset'),
+    export: makeLimiter(10, '1 h', 'rl:export'),
 }
 
 export type RateLimitName = keyof typeof limiters

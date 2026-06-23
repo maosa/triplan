@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import Papa from 'papaparse'
 import { logSecurityEvent } from '@/lib/security-events'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 // Prevent CSV formula injection: spreadsheet apps treat cells starting with
 // =, +, -, @, \t, or \r as formulas. Prefix them with a single-quote so the
@@ -21,6 +22,12 @@ export async function GET() {
 
     if (!user) {
         return new NextResponse('Unauthorized', { status: 401 })
+    }
+
+    // Throttle per user to prevent export spam / data-exfil hammering.
+    const allowed = await checkRateLimit('export', user.id)
+    if (!allowed) {
+        return new NextResponse('Too many requests. Please try again later.', { status: 429 })
     }
 
     // Fetch races and workouts efficiently using join
