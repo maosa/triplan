@@ -26,7 +26,7 @@ export function HeroCanvas() {
         )
         // Pull the camera further back on narrow portrait screens so the whole
         // knot fits within the viewport instead of being cropped at the sides.
-        camera.position.z = isSmall ? 44 : 38
+        camera.position.z = isSmall ? 44 : 36
 
         const renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -82,7 +82,7 @@ export function HeroCanvas() {
         const material = new THREE.PointsMaterial({
             // Fine dots — round sprites cover less area than the old squares, so
             // the dense knot stays a delicate field at this small size.
-            size: isSmall ? 0.22 : 0.14,
+            size: isSmall ? 0.22 : 0.11,
             sizeAttenuation: true,
             map: sprite,
             // Discard fully-transparent fragments so the square quad never shows.
@@ -179,7 +179,16 @@ export function HeroCanvas() {
         }
     }, [])
 
-    return <div ref={mountRef} className="absolute inset-0 h-full w-full" />
+    // On desktop the canvas extends below the hero (sm:-bottom-40) so the larger
+    // shape's lower portion fills the gap above the features section. It's
+    // absolutely positioned, so it adds no layout height and doesn't push the
+    // page down. Mobile keeps the hero-sized canvas (bottom-0) — unchanged.
+    return (
+        <div
+            ref={mountRef}
+            className="absolute inset-x-0 top-0 bottom-0 sm:-bottom-40"
+        />
+    )
 }
 
 export default HeroCanvas

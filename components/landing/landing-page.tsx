@@ -34,7 +34,7 @@ export function LandingPage() {
 
             <main className="flex-1">
                 {/* Hero */}
-                <section className="relative flex min-h-svh items-center overflow-hidden">
+                <section className="relative flex min-h-svh items-center">
                     {/* Subtle ambient glow — also the reduced-motion fallback */}
                     <div
                         aria-hidden
