@@ -4,23 +4,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { updateSecuritySettings } from "@/app/actions"
-import { useToast } from "@/components/ui/toast"
-import { useTransition, useRef } from "react"
+import { useFormAction } from "@/components/ui/use-form-action"
+import { useRef } from "react"
 
 export function SecurityForm({ currentEmail }: { currentEmail: string }) {
-    const [isPending, startTransition] = useTransition()
     const passwordRef = useRef<HTMLInputElement>(null)
-    const { toast } = useToast()
+    const { isPending, run } = useFormAction()
 
     const handleSubmit = (formData: FormData) => {
-        startTransition(async () => {
-            const result = await updateSecuritySettings(formData)
-            if (result?.error) {
-                toast(result.error, 'error')
-            } else if (result?.success) {
-                if (passwordRef.current) passwordRef.current.value = ''
-                toast(typeof result.success === 'string' ? result.success : 'Security settings updated successfully.', 'success')
-            }
+        run(() => updateSecuritySettings(formData), {
+            successMessage: 'Security settings updated successfully.',
+            onSuccess: () => { if (passwordRef.current) passwordRef.current.value = '' },
         })
     }
 

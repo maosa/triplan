@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { MaintenanceGrid } from './maintenance-grid'
-import { useToast } from '@/components/ui/toast'
+import { useFormAction } from '@/components/ui/use-form-action'
 import { updateMaintenanceDefaults } from '@/app/actions'
 import { type WorkoutCellType } from '@/lib/maintenance-colors'
 import { type MaintenanceDefaults, type MaintenanceSession } from '@/types/database'
@@ -33,8 +33,7 @@ function seedFromDefaults(defaults: MaintenanceDefaults): MaintenanceDefaults {
 
 export function MaintenanceDefaultsForm({ initialDefaults }: { initialDefaults: MaintenanceDefaults }) {
   const [schedule, setSchedule] = useState<MaintenanceDefaults>(() => seedFromDefaults(initialDefaults))
-  const [isPending, startTransition] = useTransition()
-  const { toast } = useToast()
+  const { isPending, run } = useFormAction()
 
   const handleChange = (key: string, session: MaintenanceSession, value: WorkoutCellType | null) => {
     setSchedule((prev) => ({
@@ -46,13 +45,9 @@ export function MaintenanceDefaultsForm({ initialDefaults }: { initialDefaults: 
   const handleClear = () => setSchedule(emptySchedule())
 
   const handleSave = () => {
-    startTransition(async () => {
-      const formData = new FormData()
-      formData.set('schedule', JSON.stringify(schedule))
-      const result = await updateMaintenanceDefaults(formData)
-      if (result?.error) toast(result.error, 'error')
-      else toast('Schedule saved.', 'success')
-    })
+    const formData = new FormData()
+    formData.set('schedule', JSON.stringify(schedule))
+    run(() => updateMaintenanceDefaults(formData), { successMessage: 'Schedule saved.' })
   }
 
   return (

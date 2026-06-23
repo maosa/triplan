@@ -1,21 +1,17 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/toast"
+import { useFormAction } from "@/components/ui/use-form-action"
 import { deleteAccount } from "@/app/actions"
 
 export function DeleteAccountSection() {
     const [showConfirm, setShowConfirm] = useState(false)
-    const [isPending, startTransition] = useTransition()
-    const { toast } = useToast()
+    const { isPending, run } = useFormAction()
 
     const handleDelete = () => {
-        startTransition(async () => {
-            // On success this redirects; only a failure returns here.
-            const result = await deleteAccount()
-            if (result?.error) toast(result.error, 'error')
-        })
+        // On success this redirects; only a failure returns here (toasted by the hook).
+        run(() => deleteAccount())
     }
 
     return (

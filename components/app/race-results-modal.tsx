@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useTransition, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Modal } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { upsertRaceResult } from "@/app/actions"
-import { useToast } from "@/components/ui/toast"
+import { useFormAction } from "@/components/ui/use-form-action"
 import type { Database } from "@/types/database"
 import {
     formatSecondsToHMS,
@@ -49,9 +49,8 @@ export function RaceResultsModal({
     existingResult,
     units,
 }: RaceResultsModalProps) {
-    const [isPending, startTransition] = useTransition()
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
-    const { toast } = useToast()
+    const { isPending, run } = useFormAction()
 
     const isMetric = units !== 'imperial'
 
@@ -191,7 +190,7 @@ export function RaceResultsModal({
         setFieldErrors({})
     }
 
-    async function handleSubmit() {
+    function handleSubmit() {
         // Validate all fields before submitting.
         const errs: Record<string, string> = {}
         for (const section of sections) {
@@ -210,14 +209,9 @@ export function RaceResultsModal({
             formData.set(key, value.trim())
         }
 
-        startTransition(async () => {
-            const result = await upsertRaceResult(raceId, formData)
-            if (result?.error) {
-                toast(result.error, 'error')
-            } else {
-                toast('Race results saved.', 'success')
-                handleClose()
-            }
+        run(() => upsertRaceResult(raceId, formData), {
+            successMessage: 'Race results saved.',
+            onSuccess: handleClose,
         })
     }
 

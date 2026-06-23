@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { Modal } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/components/ui/toast"
+import { useFormAction } from "@/components/ui/use-form-action"
 import { createRace, deleteRace, updateRace } from "@/app/actions"
 import type { RaceListItem } from "@/components/app/race-card"
 
@@ -17,43 +17,25 @@ interface AddEditRaceModalProps {
 }
 
 export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceModalProps) {
-    const [isPending, startTransition] = useTransition()
     const [confirmAction, setConfirmAction] = useState<'delete' | null>(null)
-    const { toast } = useToast()
+    const { isPending, run } = useFormAction()
 
     const handleClose = () => {
         setConfirmAction(null)
         onClose()
     }
 
-    async function handleSubmit(formData: FormData) {
-        startTransition(async () => {
-            let result
-            if (existingRace) {
-                result = await updateRace(existingRace.id, formData)
-            } else {
-                result = await createRace(formData)
-            }
-
-            if (result?.error) {
-                toast(result.error, 'error')
-            } else {
-                handleClose()
-            }
+    function handleSubmit(formData: FormData) {
+        run(() => (existingRace ? updateRace(existingRace.id, formData) : createRace(formData)), {
+            onSuccess: handleClose,
         })
     }
 
-    async function handleDeleteConfirm() {
+    function handleDeleteConfirm() {
         if (!existingRace) return
-
-        startTransition(async () => {
-            const result = await deleteRace(existingRace.id)
-            if (result?.error) {
-                toast(result.error, 'error')
-                setConfirmAction(null)
-            } else {
-                handleClose()
-            }
+        run(() => deleteRace(existingRace.id), {
+            onSuccess: handleClose,
+            onError: () => setConfirmAction(null),
         })
     }
 

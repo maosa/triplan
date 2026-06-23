@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { Modal } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/components/ui/toast"
+import { useFormAction } from "@/components/ui/use-form-action"
 import { createWorkout, updateWorkout, deleteWorkout, duplicateWorkout } from "@/app/actions"
 import type { Database, WorkoutType } from "@/types/database"
 import { getDiscreteGradient } from "@/lib/colors"
@@ -25,10 +25,9 @@ interface AddEditWorkoutModalProps {
 }
 
 export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, raceDate, units }: AddEditWorkoutModalProps) {
-    const [isPending, startTransition] = useTransition()
     const [durationError, setDurationError] = useState<string | null>(null)
     const [confirmAction, setConfirmAction] = useState<'delete' | null>(null)
-    const { toast } = useToast()
+    const { isPending, run, toast } = useFormAction()
 
     // Local state for Type to handle Rest logic. These initialize from
     // existingWorkout on mount; the modal is keyed by workout id at the call
@@ -65,7 +64,7 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
         }
     }
 
-    async function handleSubmit(formData: FormData) {
+    function handleSubmit(formData: FormData) {
         const date = formData.get("date") as string
         const duration = ((formData.get("duration") as string) || '').trim()
 
@@ -81,47 +80,22 @@ export function AddEditWorkoutModal({ isOpen, onClose, existingWorkout, raceId, 
             return
         }
 
-        startTransition(async () => {
-            let result
-            if (existingWorkout) {
-                result = await updateWorkout(existingWorkout.id, raceId, formData)
-            } else {
-                result = await createWorkout(raceId, formData)
-            }
-
-            if (result?.error) {
-                toast(result.error, 'error')
-            } else {
-                handleClose()
-            }
+        run(() => (existingWorkout ? updateWorkout(existingWorkout.id, raceId, formData) : createWorkout(raceId, formData)), {
+            onSuccess: handleClose,
         })
     }
 
-    async function handleDeleteConfirm() {
+    function handleDeleteConfirm() {
         if (!existingWorkout) return
-
-        startTransition(async () => {
-            const result = await deleteWorkout(existingWorkout.id, raceId)
-            if (result?.error) {
-                toast(result.error, 'error')
-                setConfirmAction(null)
-            } else {
-                handleClose()
-            }
+        run(() => deleteWorkout(existingWorkout.id, raceId), {
+            onSuccess: handleClose,
+            onError: () => setConfirmAction(null),
         })
     }
 
-    async function handleDuplicate() {
+    function handleDuplicate() {
         if (!existingWorkout) return
-
-        startTransition(async () => {
-            const result = await duplicateWorkout(existingWorkout)
-            if (result?.error) {
-                toast(result.error, 'error')
-            } else {
-                handleClose()
-            }
-        })
+        run(() => duplicateWorkout(existingWorkout), { onSuccess: handleClose })
     }
 
     return (
