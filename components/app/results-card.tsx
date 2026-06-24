@@ -68,6 +68,7 @@ export function ResultsCard({ race, result, units, onEdit }: ResultsCardProps) {
             section: 'Run',
             fields: [
                 { label: `Distance (${u.dist})`, value: result?.run_distance != null ? String(result.run_distance) : EMPTY },
+                { label: `Elevation (${u.elev})`, value: result?.run_elevation != null ? String(result.run_elevation) : EMPTY },
                 { label: 'Time', value: time(result?.run_time_seconds) },
                 { label: `Pace (${u.runPace})`, value: pace(result?.run_pace_seconds) },
             ],
@@ -188,7 +189,7 @@ function hasAnyValue(result: RaceResult): boolean {
         't1_time_seconds',
         'bike_distance', 'bike_elevation', 'bike_time_seconds', 'bike_speed',
         't2_time_seconds',
-        'run_distance', 'run_time_seconds', 'run_pace_seconds',
+        'run_distance', 'run_elevation', 'run_time_seconds', 'run_pace_seconds',
         'total_time_seconds',
     ]
     return keys.some((k) => result[k] != null)

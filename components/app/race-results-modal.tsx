@@ -98,6 +98,7 @@ export function RaceResultsModal({
             title: 'Run',
             fields: [
                 { name: 'run_distance', label: `Distance (${u.dist})`, kind: 'number' },
+                { name: 'run_elevation', label: `Elevation Gain (${u.elev})`, kind: 'number' },
                 { name: 'run_time', label: 'Time (HH:MM:SS)', kind: 'time' },
                 { name: 'run_pace', label: `Pace (MM:SS${u.runPace})`, kind: 'pace' },
             ],
@@ -122,6 +123,7 @@ export function RaceResultsModal({
         bike_speed: existingResult?.bike_speed?.toString() ?? '',
         t2_time: formatSecondsToHMS(existingResult?.t2_time_seconds ?? null),
         run_distance: existingResult?.run_distance?.toString() ?? '',
+        run_elevation: existingResult?.run_elevation?.toString() ?? '',
         run_time: formatSecondsToHMS(existingResult?.run_time_seconds ?? null),
         run_pace: formatSecondsToPace(existingResult?.run_pace_seconds ?? null),
         total_time: formatSecondsToHMS(existingResult?.total_time_seconds ?? null),

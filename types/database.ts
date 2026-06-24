@@ -169,6 +169,7 @@ export interface Database {
                     bike_speed: number | null
                     t2_time_seconds: number | null
                     run_distance: number | null
+                    run_elevation: number | null
                     run_time_seconds: number | null
                     run_pace_seconds: number | null
                     total_time_seconds: number | null
@@ -188,6 +189,7 @@ export interface Database {
                     bike_speed?: number | null
                     t2_time_seconds?: number | null
                     run_distance?: number | null
+                    run_elevation?: number | null
                     run_time_seconds?: number | null
                     run_pace_seconds?: number | null
                     total_time_seconds?: number | null
@@ -207,6 +209,7 @@ export interface Database {
                     bike_speed?: number | null
                     t2_time_seconds?: number | null
                     run_distance?: number | null
+                    run_elevation?: number | null
                     run_time_seconds?: number | null
                     run_pace_seconds?: number | null
                     total_time_seconds?: number | null
