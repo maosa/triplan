@@ -149,7 +149,7 @@ export function ResultsCard({ race, result, units, onEdit }: ResultsCardProps) {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="text-muted-foreground transition-opacity hover:text-foreground sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                                    className="text-muted-foreground transition-opacity hover:text-foreground [@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
                                     onClick={() => onEdit(race)}
                                     title="Edit results"
                                 >
