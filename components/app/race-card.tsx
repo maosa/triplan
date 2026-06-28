@@ -5,13 +5,14 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import type { Database } from "@/types/database"
 import { WORKOUT_TYPES } from "@/lib/workout-constants"
+import { RACE_TYPE_LABELS, effectiveRaceType } from "@/lib/race-constants"
 import { MouseEvent } from "react"
 
 // Only the columns the list, card, and edit modal actually use — lets the
 // races query select these explicitly instead of `*`.
 export type RaceListItem = Pick<
     Database['public']['Tables']['races']['Row'],
-    'id' | 'name' | 'location' | 'date' | 'details'
+    'id' | 'name' | 'location' | 'date' | 'details' | 'race_type'
 >
 
 const WORKOUT_TYPE_ICONS: Record<string, typeof Waves> = {
@@ -47,7 +48,7 @@ export function RaceCard({ race, onEdit, workoutCounts }: RaceCardProps) {
             className="group relative flex flex-col justify-between rounded-lg border border-border bg-card p-5 sm:p-6 transition-all hover:bg-muted/50 hover:border-border/80"
         >
             <div className="space-y-4">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
                     <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
                         <Link href={`/${race.id}`} className="focus:outline-none">
                             <span className="absolute inset-0" aria-hidden="true" />
@@ -55,16 +56,23 @@ export function RaceCard({ race, onEdit, workoutCounts }: RaceCardProps) {
                         </Link>
                     </h3>
 
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="z-10 relative opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity -mr-2 -mt-2 text-muted-foreground hover:text-foreground"
-                        onClick={handleEditClick}
-                        title="Edit Race"
-                    >
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">Edit race</span>
-                    </Button>
+                    <div className="flex flex-shrink-0 items-center gap-1">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="z-10 relative opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity -mt-2 text-muted-foreground hover:text-foreground"
+                            onClick={handleEditClick}
+                            title="Edit Race"
+                        >
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Edit race</span>
+                        </Button>
+                        {race.race_type && (
+                            <span className="relative z-10 whitespace-nowrap text-sm font-normal text-muted-foreground">
+                                {RACE_TYPE_LABELS[effectiveRaceType(race.race_type)]}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <div className="space-y-2 text-sm text-muted-foreground">

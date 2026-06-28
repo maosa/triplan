@@ -2,9 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import * as Sentry from '@sentry/nextjs'
 import { WorkoutList } from '@/components/app/workout-list'
-import { MapPin, Calendar } from 'lucide-react'
+import { MapPin, Calendar, LayoutGrid } from 'lucide-react'
 import { format, differenceInCalendarDays } from 'date-fns'
 import { Header } from '@/components/app/header'
+import { RACE_TYPE_LABELS, effectiveRaceType } from '@/lib/race-constants'
 
 interface PageProps {
     params: Promise<{ raceId: string }>;
@@ -75,7 +76,13 @@ export default async function RacePage({ params }: PageProps) {
                 <div className="space-y-2">
                     <h1 className="flex h-10 items-center text-lg font-semibold text-foreground">{race.name}</h1>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 text-muted-foreground">
-                        <div className="flex items-center">
+                        {race.race_type && (
+                            <div className="flex items-center">
+                                <LayoutGrid className="mr-2 h-4 w-4" />
+                                {RACE_TYPE_LABELS[effectiveRaceType(race.race_type)]}
+                            </div>
+                        )}
+                        <div className="flex items-center mt-1 sm:mt-0">
                             <Calendar className="mr-2 h-4 w-4" />
                             {format(new Date(race.date), "MMMM d, yyyy")}
                         </div>
