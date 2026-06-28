@@ -29,7 +29,7 @@ No test framework is configured.
 Tables with Row Level Security — users only access their own data:
 
 - **profiles** — user preferences (units: metric/imperial, theme: dark/light, `landing_page`: races/maintenance/results, `maintenance_defaults`: JSONB weekly schedule template). Auto-created by DB trigger on signup.
-- **races** — user's races (name, location, date, details).
+- **races** — user's races (name, location, date, details, `race_type`: swim/bike/run/triathlon — nullable for legacy rows, required on create/edit; a null type is treated as triathlon for display). Constants in `lib/race-constants.ts`.
 - **workouts** — training sessions belonging to a race. Types: Swim, Bike, Run, Strength, Rest, Other. Duration stored as HH:MM text, intensity 0–10 with 0.5 steps.
 - **maintenance_entries** — one row per populated cell on the Maintenance Training calendar (`date`, `session` first/second, `type`). Empty cells have no row; unique on (user_id, date, session).
 - **race_results** — one row per race (PK = `race_id`), fully manual entry of 13 result fields. Times stored as integer seconds; the UI converts to/from HH:MM:SS / MM:SS. Distances/units follow `profiles.units` (no per-row unit).
@@ -80,6 +80,6 @@ CSS variables defined in `app/globals.css` map to Tailwind's `@theme` block. Use
 
 ### CSV Import/Export
 
-Export: `/api/export` joins races+workouts into a flat CSV with headers: Race Name, Race Location, Race Date, Race Details, Workout Date, Workout Type, Workout Duration, Workout Distance, Workout Intensity, Workout Details.
+Export: `/api/export` joins races+workouts into a flat CSV with headers: Race Type, Race Name, Race Location, Race Date, Race Details, Workout Date, Workout Type, Workout Duration, Workout Distance, Workout Intensity, Workout Details.
 
-Import: `importCsvData` in `app/actions.ts` validates headers, date formats (DD/MM/YYYY for workouts), workout types, and checks for duplicate races by name+date before inserting.
+Import: `importCsvData` in `app/actions.ts` validates headers, race type (required, must be swim/bike/run/triathlon), date formats (DD/MM/YYYY for workouts), workout types, and checks for duplicate races by name+date before inserting.

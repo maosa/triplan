@@ -661,7 +661,7 @@ export async function importCsvData(formData: FormData): Promise<ActionResult> {
 
     // 1. Validate Headers
     const expectedHeaders = [
-        "Race Name", "Race Location", "Race Date", "Race Details",
+        "Race Type", "Race Name", "Race Location", "Race Date", "Race Details",
         "Workout Date", "Workout Type", "Workout Duration",
         "Workout Distance", "Workout Intensity", "Workout Details"
     ]
@@ -672,7 +672,7 @@ export async function importCsvData(formData: FormData): Promise<ActionResult> {
         headers.every((h, i) => h.trim() === expectedHeaders[i])
 
     if (!isValidHeaders) {
-        return { error: `CSV columns should be: "Race Name, Race Location, Race Date, Race Details, Workout Date, Workout Type, Workout Duration, Workout Distance, Workout Intensity, Workout Details."` }
+        return { error: `CSV columns should be: "Race Type, Race Name, Race Location, Race Date, Race Details, Workout Date, Workout Type, Workout Duration, Workout Distance, Workout Intensity, Workout Details."` }
     }
 
     // Detect Date Trend and Reverse if needed
@@ -709,10 +709,15 @@ export async function importCsvData(formData: FormData): Promise<ActionResult> {
 
     // 2. Race Consistency Check
     const firstRow = rows[0]
+    const raceTypeRef = firstRow['Race Type']?.trim().toLowerCase()
     const raceNameRef = firstRow['Race Name']?.trim()
     const raceLocationRef = firstRow['Race Location']?.trim()
     const raceDateRef = firstRow['Race Date']?.trim()
     const raceDetailsRef = firstRow['Race Details']?.trim()
+
+    // Validate race type (mandatory, must be one of the supported values)
+    if (!raceTypeRef) return { error: 'Race Type is not provided.' }
+    if (!RACE_TYPE_SET.has(raceTypeRef)) return { error: 'Race Type is not supported. Use one of: Swim, Bike, Run, Triathlon.' }
 
     // Validate race field lengths
     if (!raceNameRef || raceNameRef.length > LIMITS.NAME) return { error: 'Race Name is required and must be under 255 characters.' }
@@ -720,6 +725,7 @@ export async function importCsvData(formData: FormData): Promise<ActionResult> {
     if (raceDetailsRef && raceDetailsRef.length > LIMITS.DETAILS) return { error: 'Race Details must be under 5000 characters.' }
 
     for (const row of rows) {
+        if (row['Race Type']?.trim().toLowerCase() !== raceTypeRef) return { error: "Race Type should be the same across all rows." }
         if (row['Race Name']?.trim() !== raceNameRef) return { error: "Race Name should be the same across all rows." }
         if (row['Race Location']?.trim() !== raceLocationRef) return { error: "Race Location should be the same across all rows." }
         if (row['Race Date']?.trim() !== raceDateRef) return { error: "Race Date should be the same across all rows" }
@@ -807,6 +813,7 @@ export async function importCsvData(formData: FormData): Promise<ActionResult> {
         location: raceLocationRef,
         date: raceDate,
         details: raceDetailsRef,
+        race_type: raceTypeRef as RaceType,
     }).select().single()
 
     if (raceError || !race) {

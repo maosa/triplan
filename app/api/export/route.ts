@@ -49,6 +49,7 @@ export async function GET() {
 
         if (workouts.length === 0) {
             rows.push({
+                "Race Type": race.race_type || '',
                 "Race Name": sanitizeCsvField(race.name),
                 "Race Location": sanitizeCsvField(race.location || ''),
                 "Race Date": race.date,
@@ -63,6 +64,7 @@ export async function GET() {
         } else {
             for (const workout of workouts) {
                 rows.push({
+                    "Race Type": race.race_type || '',
                     "Race Name": sanitizeCsvField(race.name),
                     "Race Location": sanitizeCsvField(race.location || ''),
                     "Race Date": race.date,
