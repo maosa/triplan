@@ -5,10 +5,12 @@ import { Modal } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useFormAction } from "@/components/ui/use-form-action"
 import { createRace, deleteRace, updateRace } from "@/app/actions"
 import type { RaceListItem } from "@/components/app/race-card"
+import { RACE_TYPES, RACE_TYPE_LABELS } from "@/lib/race-constants"
 
 interface AddEditRaceModalProps {
     isOpen: boolean
@@ -57,6 +59,25 @@ export function AddEditRaceModal({ isOpen, onClose, existingRace }: AddEditRaceM
                 </div>
             ) : (
                 <form action={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="race_type">Race Type</Label>
+                        <Select
+                            id="race_type"
+                            name="race_type"
+                            required
+                            aria-required="true"
+                            defaultValue={existingRace?.race_type ?? ''}
+                        >
+                            <option value="" disabled>
+                                Select race type
+                            </option>
+                            {RACE_TYPES.map((t) => (
+                                <option key={t} value={t}>
+                                    {RACE_TYPE_LABELS[t]}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="name">Race Name</Label>
                         <Input

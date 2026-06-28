@@ -7,6 +7,8 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { Database, WorkoutType, MaintenanceSession } from '@/types/database'
 import { WORKOUT_TYPES, WORKOUT_TYPE_SET, MAINTENANCE_SESSIONS, DAY_KEYS } from '@/lib/workout-constants'
+import { RACE_TYPE_SET } from '@/lib/race-constants'
+import type { RaceType } from '@/types/database'
 import Papa from 'papaparse'
 import * as Sentry from '@sentry/nextjs'
 import { logSecurityEvent, hashEmail } from '@/lib/security-events'
@@ -47,11 +49,13 @@ export async function createRace(formData: FormData): Promise<ActionResult> {
     const location = (formData.get('location') as string)?.trim()
     const date = (formData.get('date') as string)?.trim()
     const details = (formData.get('details') as string)?.trim()
+    const raceType = (formData.get('race_type') as string)?.trim()
 
     if (!name || name.length > LIMITS.NAME) return { error: 'Race name is required and must be under 255 characters.' }
     if (location && location.length > LIMITS.LOCATION) return { error: 'Location must be under 255 characters.' }
     if (details && details.length > LIMITS.DETAILS) return { error: 'Details must be under 5000 characters.' }
     if (!date) return { error: 'Race date is required.' }
+    if (!raceType || !RACE_TYPE_SET.has(raceType)) return { error: 'Race type is required.' }
 
     const { supabase, user } = await getAuthenticatedUser()
 
@@ -61,6 +65,7 @@ export async function createRace(formData: FormData): Promise<ActionResult> {
         location,
         date, // YYYY-MM-DD
         details,
+        race_type: raceType as RaceType,
     })
 
     if (error) return dbError('createRace', error)
@@ -88,11 +93,13 @@ export async function updateRace(raceId: string, formData: FormData): Promise<Ac
     const location = (formData.get('location') as string)?.trim()
     const date = (formData.get('date') as string)?.trim()
     const details = (formData.get('details') as string)?.trim()
+    const raceType = (formData.get('race_type') as string)?.trim()
 
     if (!name || name.length > LIMITS.NAME) return { error: 'Race name is required and must be under 255 characters.' }
     if (location && location.length > LIMITS.LOCATION) return { error: 'Location must be under 255 characters.' }
     if (details && details.length > LIMITS.DETAILS) return { error: 'Details must be under 5000 characters.' }
     if (!date) return { error: 'Race date is required.' }
+    if (!raceType || !RACE_TYPE_SET.has(raceType)) return { error: 'Race type is required.' }
 
     const { supabase, user } = await getAuthenticatedUser()
 
@@ -101,6 +108,7 @@ export async function updateRace(raceId: string, formData: FormData): Promise<Ac
         location,
         date,
         details,
+        race_type: raceType as RaceType,
     }).eq('id', raceId).eq('user_id', user.id)
 
     if (error) return dbError('updateRace', error)
