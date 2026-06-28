@@ -68,7 +68,7 @@ export interface Database {
                     location: string | null
                     date: string
                     details: string | null
-                    race_type: RaceType | null
+                    race_type: RaceType
                     created_at: string
                 }
                 Insert: {
@@ -78,7 +78,7 @@ export interface Database {
                     location?: string | null
                     date: string
                     details?: string | null
-                    race_type?: RaceType | null
+                    race_type: RaceType
                     created_at?: string
                 }
                 Update: {
@@ -88,7 +88,7 @@ export interface Database {
                     location?: string | null
                     date?: string
                     details?: string | null
-                    race_type?: RaceType | null
+                    race_type?: RaceType
                     created_at?: string
                 }
             }
