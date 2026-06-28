@@ -98,7 +98,7 @@ export function ResultsCard({ race, result, units, onEdit }: ResultsCardProps) {
         )
 
     return (
-        <div className="rounded-lg border border-border bg-card">
+        <div className="group rounded-lg border border-border bg-card">
             {/* Header */}
             <div className="flex items-center justify-between gap-3 p-4 sm:p-5">
                 <div className="min-w-0 flex-1">
@@ -149,7 +149,7 @@ export function ResultsCard({ race, result, units, onEdit }: ResultsCardProps) {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="text-muted-foreground hover:text-foreground"
+                                    className="text-muted-foreground transition-opacity hover:text-foreground sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
                                     onClick={() => onEdit(race)}
                                     title="Edit results"
                                 >
