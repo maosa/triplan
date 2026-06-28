@@ -125,13 +125,13 @@ export function WorkoutList({ initialWorkouts, raceId, raceName, raceDate, raceT
 
             {sortedWorkouts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-12 text-center">
-                    <p className="text-muted-foreground">No workouts tracked</p>
+                    <p className="text-muted-foreground">No workouts planned</p>
                     <Button
                         variant="ghost"
                         className="mt-4 text-primary hover:text-primary/80"
                         onClick={() => setIsAddModalOpen(true)}
                     >
-                        Log your first session
+                        Add your first workout
                     </Button>
                 </div>
             ) : (

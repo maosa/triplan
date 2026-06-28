@@ -122,7 +122,7 @@ export default async function DashboardPage({ params }: PageProps) {
                 {/* Charts */}
                 {safeWorkouts.length === 0 ? (
                     <div className="rounded-lg border border-dashed border-border p-12 text-center">
-                        <p className="text-muted-foreground">No workouts tracked yet. Add workouts to see your training dashboard.</p>
+                        <p className="text-muted-foreground">No workouts planned yet. Add workouts to see your training dashboard.</p>
                     </div>
                 ) : (
                     <div className="rounded-lg border border-border bg-card p-6">
