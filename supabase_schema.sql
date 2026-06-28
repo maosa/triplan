@@ -20,6 +20,7 @@ create table races (
   location text,
   date date not null,
   details text,
+  race_type text check (race_type in ('swim', 'bike', 'run', 'triathlon')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

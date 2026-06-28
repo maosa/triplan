@@ -8,6 +8,10 @@ export type Json =
 
 export type WorkoutType = 'Swim' | 'Bike' | 'Run' | 'Strength' | 'Rest' | 'Other'
 
+// The discipline a race belongs to. Single-sport races (swim/bike/run) plus full
+// triathlon. Stored lowercase in races.race_type (nullable for legacy rows).
+export type RaceType = 'swim' | 'bike' | 'run' | 'triathlon'
+
 // The two daily training sessions. Stored decoupled from time of day (the UI shows
 // "1st"/"2nd"); these tokens are used both as maintenance_entries.session values and
 // as the per-day keys in profiles.maintenance_defaults.
@@ -64,6 +68,7 @@ export interface Database {
                     location: string | null
                     date: string
                     details: string | null
+                    race_type: RaceType | null
                     created_at: string
                 }
                 Insert: {
@@ -73,6 +78,7 @@ export interface Database {
                     location?: string | null
                     date: string
                     details?: string | null
+                    race_type?: RaceType | null
                     created_at?: string
                 }
                 Update: {
@@ -82,6 +88,7 @@ export interface Database {
                     location?: string | null
                     date?: string
                     details?: string | null
+                    race_type?: RaceType | null
                     created_at?: string
                 }
             }
