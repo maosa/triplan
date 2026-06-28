@@ -5,6 +5,7 @@ import { format } from "date-fns"
 import { ChevronDown, ChevronUp, Pencil, Waves, Bike, Footprints } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatSecondsToHMS, formatSecondsToPace } from "@/lib/time-format"
+import { effectiveRaceType, sectionsForRaceType } from "@/lib/race-constants"
 import type { Database } from "@/types/database"
 
 type Race = Database['public']['Tables']['races']['Row']
@@ -34,6 +35,12 @@ export function ResultsCard({ race, result, units, onEdit }: ResultsCardProps) {
     }
 
     const hasResults = !!result && hasAnyValue(result)
+
+    // Single-sport races (swim/bike/run) collapse to a single Total time and a
+    // trimmed breakdown; triathlon (and legacy null-type) keeps the full layout.
+    const rt = effectiveRaceType(race.race_type)
+    const isSingleSport = rt !== 'triathlon'
+    const relevantSections = new Set(sectionsForRaceType(rt))
 
     const time = (s: number | null | undefined) => (s != null ? formatSecondsToHMS(s) : EMPTY)
     const pace = (s: number | null | undefined) => (s != null ? formatSecondsToPace(s) : EMPTY)
@@ -79,6 +86,17 @@ export function ResultsCard({ race, result, units, onEdit }: ResultsCardProps) {
         },
     ]
 
+    // Keep only sections relevant to the race type (Total always shown). For
+    // single-sport races, also drop the discipline's own "Time" row — the time
+    // lives in Total, so showing it here would be redundant/empty.
+    const visibleBreakdown = breakdown
+        .filter((g) => g.section === 'Total' || relevantSections.has(g.section.toLowerCase()))
+        .map((g) =>
+            isSingleSport && g.section !== 'Total'
+                ? { ...g, fields: g.fields.filter((f) => f.label !== 'Time') }
+                : g
+        )
+
     return (
         <div className="rounded-lg border border-border bg-card">
             {/* Header */}
@@ -92,8 +110,10 @@ export function ResultsCard({ race, result, units, onEdit }: ResultsCardProps) {
                         {format(new Date(race.date), 'd MMM yyyy')}
                     </p>
 
-                    {/* Collapsed summary: Swim/Bike/Run sub-times. */}
-                    {hasResults && !expanded && (
+                    {/* Collapsed summary: Swim/Bike/Run sub-times. Hidden for
+                        single-sport races, where the sub-time equals the Total
+                        shown on the right. */}
+                    {hasResults && !expanded && !isSingleSport && (
                         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                             {result?.swim_time_seconds != null && (
                                 <span className="flex items-center gap-1">
@@ -165,7 +185,7 @@ export function ResultsCard({ race, result, units, onEdit }: ResultsCardProps) {
             {hasResults && expanded && (
                 <div className="border-t border-border p-4 sm:p-5">
                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                        {breakdown.flatMap((group) =>
+                        {visibleBreakdown.flatMap((group) =>
                             group.fields.map((f) => (
                                 <div key={`${group.section}-${f.label}`}>
                                     <p className="text-xs text-muted-foreground">
