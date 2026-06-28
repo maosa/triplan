@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { upsertRaceResult } from "@/app/actions"
 import { useFormAction } from "@/components/ui/use-form-action"
+import { effectiveRaceType } from "@/lib/race-constants"
 import type { Database } from "@/types/database"
 import {
     formatSecondsToHMS,
@@ -27,6 +28,7 @@ interface RaceResultsModalProps {
     onClose: () => void
     raceId: string
     raceName: string
+    raceType: string | null
     existingResult?: RaceResult | null
     units: string // 'metric' or 'imperial'
 }
@@ -46,6 +48,7 @@ export function RaceResultsModal({
     onClose,
     raceId,
     raceName,
+    raceType,
     existingResult,
     units,
 }: RaceResultsModalProps) {
@@ -64,52 +67,52 @@ export function RaceResultsModal({
         runPace: isMetric ? '/km' : '/mi',
     }
 
-    const sections: { title: string; fields: FieldDef[] }[] = [
-        {
-            title: 'Swim',
-            fields: [
-                { name: 'swim_distance', label: `Distance (${u.swimDist})`, kind: 'number' },
-                { name: 'swim_time', label: 'Time (HH:MM:SS)', kind: 'time' },
-                { name: 'swim_pace', label: `Pace (MM:SS${u.swimPace})`, kind: 'pace' },
-            ],
-        },
-        {
-            title: 'Transition 1',
-            fields: [
-                { name: 't1_time', label: 'T1 Time (HH:MM:SS)', kind: 'time' },
-            ],
-        },
-        {
-            title: 'Bike',
-            fields: [
-                { name: 'bike_distance', label: `Distance (${u.dist})`, kind: 'number' },
-                { name: 'bike_elevation', label: `Elevation Gain (${u.elev})`, kind: 'number' },
-                { name: 'bike_time', label: 'Time (HH:MM:SS)', kind: 'time' },
-                { name: 'bike_speed', label: `Speed (${u.speed})`, kind: 'number' },
-            ],
-        },
-        {
-            title: 'Transition 2',
-            fields: [
-                { name: 't2_time', label: 'T2 Time (HH:MM:SS)', kind: 'time' },
-            ],
-        },
-        {
-            title: 'Run',
-            fields: [
-                { name: 'run_distance', label: `Distance (${u.dist})`, kind: 'number' },
-                { name: 'run_elevation', label: `Elevation Gain (${u.elev})`, kind: 'number' },
-                { name: 'run_time', label: 'Time (HH:MM:SS)', kind: 'time' },
-                { name: 'run_pace', label: `Pace (MM:SS${u.runPace})`, kind: 'pace' },
-            ],
-        },
-        {
-            title: 'Total',
-            fields: [
-                { name: 'total_time', label: 'Total Time (HH:MM:SS)', kind: 'time' },
-            ],
-        },
+    const rt = effectiveRaceType(raceType)
+
+    // Reusable discipline field defs. Single-sport races omit the per-sport time
+    // field — the canonical time lives in the shared "Total" section instead.
+    const swimFields: FieldDef[] = [
+        { name: 'swim_distance', label: `Distance (${u.swimDist})`, kind: 'number' },
+        { name: 'swim_time', label: 'Time (HH:MM:SS)', kind: 'time' },
+        { name: 'swim_pace', label: `Pace (MM:SS${u.swimPace})`, kind: 'pace' },
     ]
+    const bikeFields: FieldDef[] = [
+        { name: 'bike_distance', label: `Distance (${u.dist})`, kind: 'number' },
+        { name: 'bike_elevation', label: `Elevation Gain (${u.elev})`, kind: 'number' },
+        { name: 'bike_time', label: 'Time (HH:MM:SS)', kind: 'time' },
+        { name: 'bike_speed', label: `Speed (${u.speed})`, kind: 'number' },
+    ]
+    const runFields: FieldDef[] = [
+        { name: 'run_distance', label: `Distance (${u.dist})`, kind: 'number' },
+        { name: 'run_elevation', label: `Elevation Gain (${u.elev})`, kind: 'number' },
+        { name: 'run_time', label: 'Time (HH:MM:SS)', kind: 'time' },
+        { name: 'run_pace', label: `Pace (MM:SS${u.runPace})`, kind: 'pace' },
+    ]
+    const totalSection = {
+        title: 'Total',
+        fields: [{ name: 'total_time', label: 'Total Time (HH:MM:SS)', kind: 'time' as const }],
+    }
+
+    // Drop the discipline's own time field for single-sport races.
+    const withoutTime = (fields: FieldDef[]) => fields.filter((f) => f.kind !== 'time')
+
+    let sections: { title: string; fields: FieldDef[] }[]
+    if (rt === 'swim') {
+        sections = [{ title: 'Swim', fields: withoutTime(swimFields) }, totalSection]
+    } else if (rt === 'bike') {
+        sections = [{ title: 'Bike', fields: withoutTime(bikeFields) }, totalSection]
+    } else if (rt === 'run') {
+        sections = [{ title: 'Run', fields: withoutTime(runFields) }, totalSection]
+    } else {
+        sections = [
+            { title: 'Swim', fields: swimFields },
+            { title: 'Transition 1', fields: [{ name: 't1_time', label: 'T1 Time (HH:MM:SS)', kind: 'time' }] },
+            { title: 'Bike', fields: bikeFields },
+            { title: 'Transition 2', fields: [{ name: 't2_time', label: 'T2 Time (HH:MM:SS)', kind: 'time' }] },
+            { title: 'Run', fields: runFields },
+            totalSection,
+        ]
+    }
 
     // Initial display values derived from the existing result row.
     const initialValues = (): Record<string, string> => ({
@@ -206,9 +209,14 @@ export function RaceResultsModal({
             return
         }
 
+        // Only submit fields for the active sections. Fields not sent are parsed
+        // as null server-side, so switching to a single-sport type clears any
+        // stale swim/bike/transition columns from a previous triathlon entry.
         const formData = new FormData()
-        for (const [key, value] of Object.entries(values)) {
-            formData.set(key, value.trim())
+        for (const section of sections) {
+            for (const field of section.fields) {
+                formData.set(field.name, (values[field.name] || '').trim())
+            }
         }
 
         run(() => upsertRaceResult(raceId, formData), {

@@ -28,12 +28,13 @@ interface WorkoutListProps {
     raceId: string
     raceName: string
     raceDate: string
+    raceType: string | null
     units: string // 'metric' or 'imperial'
     isCompleted: boolean
     raceResult: RaceResult | null
 }
 
-export function WorkoutList({ initialWorkouts, raceId, raceName, raceDate, units, isCompleted, raceResult }: WorkoutListProps) {
+export function WorkoutList({ initialWorkouts, raceId, raceName, raceDate, raceType, units, isCompleted, raceResult }: WorkoutListProps) {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
     const [editingWorkout, setEditingWorkout] = useState<Workout | undefined>(undefined)
     const [detailsPopupWorkout, setDetailsPopupWorkout] = useState<Workout | null>(null)
@@ -274,6 +275,7 @@ export function WorkoutList({ initialWorkouts, raceId, raceName, raceDate, units
                     onClose={() => setIsResultsModalOpen(false)}
                     raceId={raceId}
                     raceName={raceName}
+                    raceType={raceType}
                     existingResult={raceResult}
                     units={units}
                 />

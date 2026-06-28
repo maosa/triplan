@@ -103,6 +103,7 @@ export default async function RacePage({ params }: PageProps) {
                     raceId={raceId}
                     raceName={race.name}
                     raceDate={race.date}
+                    raceType={race.race_type}
                     units={userUnits}
                     isCompleted={isCompleted}
                     raceResult={raceResult || null}

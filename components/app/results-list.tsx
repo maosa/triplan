@@ -77,6 +77,7 @@ export function ResultsList({ races, results, units }: ResultsListProps) {
                     onClose={handleClose}
                     raceId={editingRace.id}
                     raceName={editingRace.name}
+                    raceType={editingRace.race_type}
                     existingResult={results[editingRace.id] ?? null}
                     units={units}
                 />
