@@ -6,11 +6,8 @@ import { headers, cookies } from 'next/headers'
 import { logFailedLogin, logSecurityEvent, hashEmail } from '@/lib/security-events'
 import { REMEMBER_ME_COOKIE } from '@/lib/supabase/remember-me'
 import { validatePassword } from '@/lib/validation'
-import { checkRateLimit } from '@/lib/rate-limit'
 
 type ActionResult = { error?: string; success?: boolean | string }
-
-const RATE_LIMITED = 'Too many attempts. Please try again in a few minutes.'
 
 export async function login(formData: FormData): Promise<ActionResult> {
     const email = formData.get('email') as string
@@ -20,10 +17,6 @@ export async function login(formData: FormData): Promise<ActionResult> {
     // IP/UA are best-effort — proxies may strip them.
     const h = await headers()
     const ip = h.get('x-forwarded-for') ?? h.get('x-real-ip')
-
-    // Throttle by email + IP to blunt brute-force / credential stuffing.
-    const allowed = await checkRateLimit('login', `${hashEmail(email ?? '')}:${ip ?? 'unknown'}`)
-    if (!allowed) return { error: RATE_LIMITED }
 
     // Pass the choice so the auth cookies are written with the right lifetime:
     // persistent when "Remember me" is checked, session-only otherwise.
@@ -85,12 +78,6 @@ export async function signup(formData: FormData): Promise<{ error?: string; succ
     const passwordError = validatePassword(password)
     if (passwordError) return { error: passwordError }
 
-    // Throttle by IP to blunt mass account creation / enumeration.
-    const h = await headers()
-    const ip = h.get('x-forwarded-for') ?? h.get('x-real-ip') ?? 'unknown'
-    const allowed = await checkRateLimit('signup', ip)
-    if (!allowed) return { error: RATE_LIMITED }
-
     const supabase = await createClient()
 
     const { data, error } = await supabase.auth.signUp({
@@ -139,11 +126,6 @@ export async function resetPassword(formData: FormData): Promise<{ error?: strin
     const email = formData.get('email') as string
 
     const headersList = await headers()
-    const ip = headersList.get('x-forwarded-for') ?? headersList.get('x-real-ip')
-
-    // Throttle by email + IP to blunt reset-email spam.
-    const allowed = await checkRateLimit('resetPassword', `${hashEmail(email ?? '')}:${ip ?? 'unknown'}`)
-    if (!allowed) return { error: RATE_LIMITED }
 
     const supabase = await createClient()
     const origin = headersList.get('origin') || 'https://triathlonplan.vercel.app'
