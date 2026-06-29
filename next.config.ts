@@ -19,6 +19,12 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
+  // Re-export Vercel's VERCEL_ENV to the browser bundle so the client-side
+  // Sentry init can tag events with the environment (it only inlines
+  // NEXT_PUBLIC_* vars). Resolved at build time; undefined off-Vercel.
+  env: {
+    NEXT_PUBLIC_VERCEL_ENV: process.env.VERCEL_ENV,
+  },
   headers: async () => [
     {
       source: '/:path*',
