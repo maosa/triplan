@@ -17,6 +17,74 @@ interface ModalProps {
 const FOCUSABLE =
     'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
+// ---------------------------------------------------------------------------
+// Reference-counted body scroll lock (module-level, shared by all modals).
+//
+// We pin the body with `position: fixed` (not just `overflow: hidden`) because
+// iOS Safari ignores overflow:hidden when the on-screen keyboard opens and
+// scrolls the document to reveal a focused input — leaving the page shifted
+// after close. Capturing the scroll position and restoring it on unlock keeps
+// the user exactly where they opened the modal.
+//
+// The reference count is what makes this safe: only the FIRST lock captures the
+// (clean) body styles and applies the pin; only the LAST unlock restores them.
+// Without it, two modals open at once would leak — the second would capture the
+// first's already-pinned styles as its "previous" state and restore *those* on
+// close, permanently stranding `position: fixed; top: -<scrollY>px` on the body.
+// Because <body> is never remounted across App Router client navigations, that
+// leak follows the user from page to page: content shifts up by <scrollY>,
+// leaving a tall blank gap below and a misbehaving fixed bottom nav.
+let scrollLockCount = 0
+let savedScrollY = 0
+let savedBodyStyle: {
+    position: string
+    top: string
+    left: string
+    right: string
+    width: string
+    overflow: string
+} | null = null
+
+function lockBodyScroll() {
+    if (typeof document === "undefined") return
+    scrollLockCount += 1
+    if (scrollLockCount > 1) return // already locked by another modal
+    const body = document.body
+    savedScrollY = window.scrollY
+    savedBodyStyle = {
+        position: body.style.position,
+        top: body.style.top,
+        left: body.style.left,
+        right: body.style.right,
+        width: body.style.width,
+        overflow: body.style.overflow,
+    }
+    body.style.position = "fixed"
+    body.style.top = `-${savedScrollY}px`
+    body.style.left = "0"
+    body.style.right = "0"
+    body.style.width = "100%"
+    body.style.overflow = "hidden"
+}
+
+function unlockBodyScroll() {
+    if (typeof document === "undefined") return
+    if (scrollLockCount === 0) return // guard against a stray unlock
+    scrollLockCount -= 1
+    if (scrollLockCount > 0) return // other modals still open
+    const body = document.body
+    if (savedBodyStyle) {
+        body.style.position = savedBodyStyle.position
+        body.style.top = savedBodyStyle.top
+        body.style.left = savedBodyStyle.left
+        body.style.right = savedBodyStyle.right
+        body.style.width = savedBodyStyle.width
+        body.style.overflow = savedBodyStyle.overflow
+        savedBodyStyle = null
+    }
+    window.scrollTo(0, savedScrollY)
+}
+
 export function Modal({ isOpen, onClose, title, children, size = 'default', footer }: ModalProps) {
     const titleId = React.useId()
     const panelRef = React.useRef<HTMLDivElement>(null)
@@ -68,39 +136,13 @@ export function Modal({ isOpen, onClose, title, children, size = 'default', foot
         return () => previouslyFocused?.focus?.()
     }, [isOpen])
 
-    // Lock background page scroll while the modal is open. We pin the body with
-    // `position: fixed` (not just `overflow: hidden`) because iOS Safari ignores
-    // overflow:hidden when the on-screen keyboard opens and scrolls the document
-    // to reveal a focused input — leaving the page shifted after close. Capturing
-    // the scroll position and restoring it on close keeps the user exactly where
-    // they opened the modal (e.g. the top of the page).
+    // Lock background page scroll while the modal is open. Delegated to the
+    // reference-counted helpers above so overlapping modals share a single lock
+    // and never strand pinning styles on <body> (see comment there).
     React.useEffect(() => {
         if (!isOpen) return
-        const scrollY = window.scrollY
-        const body = document.body
-        const prev = {
-            position: body.style.position,
-            top: body.style.top,
-            left: body.style.left,
-            right: body.style.right,
-            width: body.style.width,
-            overflow: body.style.overflow,
-        }
-        body.style.position = "fixed"
-        body.style.top = `-${scrollY}px`
-        body.style.left = "0"
-        body.style.right = "0"
-        body.style.width = "100%"
-        body.style.overflow = "hidden"
-        return () => {
-            body.style.position = prev.position
-            body.style.top = prev.top
-            body.style.left = prev.left
-            body.style.right = prev.right
-            body.style.width = prev.width
-            body.style.overflow = prev.overflow
-            window.scrollTo(0, scrollY)
-        }
+        lockBodyScroll()
+        return () => unlockBodyScroll()
     }, [isOpen])
 
     if (!isOpen) return null
