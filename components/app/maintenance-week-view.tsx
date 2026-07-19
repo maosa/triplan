@@ -181,15 +181,26 @@ export function MaintenanceWeekView({
       return next
     })
     startSave(async () => {
-      const result = await upsertMaintenanceEntry(columnKey, session, value)
-      if (result?.error) {
+      const revert = () =>
         setStore((s) => {
           const next = { ...s }
           if (previous) next[key] = previous
           else delete next[key]
           return next
         })
-        toast(`${result.error}. Your change wasn't saved — please try again.`, 'error')
+      try {
+        const result = await upsertMaintenanceEntry(columnKey, session, value)
+        if (result?.error) {
+          revert()
+          toast(`${result.error}. Your change wasn't saved — please try again.`, 'error')
+        }
+      } catch {
+        // The fetch threw before the server replied (offline, or a stale/
+        // backgrounded tab surfacing as "Load failed"). Without this the
+        // optimistic edit would linger on screen looking saved, then vanish on
+        // the next reload since it never persisted.
+        revert()
+        toast("Couldn't save — you may be offline or the page went stale. Refresh and try again.", 'error')
       }
     })
   }
@@ -209,10 +220,17 @@ export function MaintenanceWeekView({
     })
     close()
     startSave(async () => {
-      const result = await persist()
-      if (result?.error) {
+      try {
+        const result = await persist()
+        if (result?.error) {
+          setStore(snapshot)
+          toast(`${result.error}. Your change wasn't saved — please try again.`, 'error')
+        }
+      } catch {
+        // Thrown fetch failure (offline / stale tab). Revert so the week doesn't
+        // stay showing changes that were never persisted.
         setStore(snapshot)
-        toast(`${result.error}. Your change wasn't saved — please try again.`, 'error')
+        toast("Couldn't save — you may be offline or the page went stale. Refresh and try again.", 'error')
       }
     })
   }
