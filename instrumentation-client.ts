@@ -1,5 +1,6 @@
 // Sentry init for the browser. Next.js loads this automatically (15.3+/16).
 import * as Sentry from '@sentry/nextjs'
+import { dropBenignNetworkErrors } from '@/lib/sentry-filter'
 
 Sentry.init({
     dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -9,6 +10,9 @@ Sentry.init({
     // the browser by default, so next.config.ts re-exports it as
     // NEXT_PUBLIC_VERCEL_ENV at build time.
     environment: process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.NODE_ENV,
+    // Drop unactionable network-abort noise (dropped mobile connections) — this
+    // is where the client-side "Load failed" events originate.
+    beforeSend: dropBenignNetworkErrors,
     // Errors only — no performance/tracing and no Session Replay (each is a
     // separate free-tier quota).
     tracesSampleRate: 0,

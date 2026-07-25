@@ -36,6 +36,20 @@ const BUFFER_WEEKS = 4 // extend when the displayed week comes within this of an
 // Master store key for a single session slot.
 const slotKey = (date: string, session: MaintenanceSession) => `${date}|${session}`
 
+// Run a background save, retrying once after a short delay if the call *throws*
+// (a network-layer failure like a dropped mobile connection). The maintenance
+// upserts are idempotent — unique on (user_id, date, session) — so re-running is
+// safe, and a transient blip recovers silently instead of surfacing an error.
+// A returned { error } is a real validation failure and is never retried here.
+async function saveWithRetry<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn()
+  } catch {
+    await new Promise((resolve) => setTimeout(resolve, 400))
+    return await fn()
+  }
+}
+
 export function MaintenanceWeekView({
   initialWeekStart,
   entries,
@@ -189,16 +203,16 @@ export function MaintenanceWeekView({
           return next
         })
       try {
-        const result = await upsertMaintenanceEntry(columnKey, session, value)
+        const result = await saveWithRetry(() => upsertMaintenanceEntry(columnKey, session, value))
         if (result?.error) {
           revert()
           toast(`${result.error}. Your change wasn't saved — please try again.`, 'error')
         }
       } catch {
-        // The fetch threw before the server replied (offline, or a stale/
-        // backgrounded tab surfacing as "Load failed"). Without this the
-        // optimistic edit would linger on screen looking saved, then vanish on
-        // the next reload since it never persisted.
+        // Still threw after a retry (offline, or a stale/backgrounded tab
+        // surfacing as "Load failed"). Without this the optimistic edit would
+        // linger on screen looking saved, then vanish on the next reload since
+        // it never persisted.
         revert()
         toast("Couldn't save — you may be offline or the page went stale. Refresh and try again.", 'error')
       }
@@ -221,14 +235,14 @@ export function MaintenanceWeekView({
     close()
     startSave(async () => {
       try {
-        const result = await persist()
+        const result = await saveWithRetry(persist)
         if (result?.error) {
           setStore(snapshot)
           toast(`${result.error}. Your change wasn't saved — please try again.`, 'error')
         }
       } catch {
-        // Thrown fetch failure (offline / stale tab). Revert so the week doesn't
-        // stay showing changes that were never persisted.
+        // Still threw after a retry (offline / stale tab). Revert so the week
+        // doesn't stay showing changes that were never persisted.
         setStore(snapshot)
         toast("Couldn't save — you may be offline or the page went stale. Refresh and try again.", 'error')
       }

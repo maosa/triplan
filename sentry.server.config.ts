@@ -1,5 +1,6 @@
 // Sentry init for the Node.js (server) runtime. Loaded via instrumentation.ts.
 import * as Sentry from '@sentry/nextjs'
+import { dropBenignNetworkErrors } from '@/lib/sentry-filter'
 
 Sentry.init({
     dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -10,6 +11,8 @@ Sentry.init({
     // preview-deploy noise can be filtered out from the real error feed in the
     // Sentry UI. Falls back to NODE_ENV off-Vercel (e.g. local prod builds).
     environment: process.env.VERCEL_ENV || process.env.NODE_ENV,
+    // Drop unactionable network-abort noise (dropped mobile connections).
+    beforeSend: dropBenignNetworkErrors,
     // Errors only — no performance/tracing (separate quota) and no replay.
     tracesSampleRate: 0,
 })
