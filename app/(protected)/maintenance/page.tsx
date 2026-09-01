@@ -11,6 +11,24 @@ import type { MaintenanceDefaults } from '@/types/database'
 // more than anyone navigates). The client lazily extends this as needed.
 const WINDOW_WEEKS = 52
 
+type ServerClient = Awaited<ReturnType<typeof createClient>>
+
+// Fetch the window of maintenance entries, retrying once on error. Transient
+// Supabase failures — notably PGRST303 "JWT issued at future", a brief auth
+// clock-skew between Supabase nodes — clear on an immediate retry. Without this,
+// a one-off skew renders a blank calendar (an error path falls through to
+// `entries || []`), which is indistinguishable from "you have no entries".
+async function fetchEntriesWithRetry(supabase: ServerClient, from: string, to: string) {
+  const runQuery = () =>
+    supabase.from('maintenance_entries').select('*').gte('date', from).lte('date', to).order('date')
+
+  const result = await runQuery()
+  if (!result.error) return result
+
+  await new Promise((resolve) => setTimeout(resolve, 300))
+  return runQuery()
+}
+
 interface PageProps {
   searchParams: Promise<{ week?: string }>
 }
@@ -40,15 +58,11 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
 
   const [{ data: profile }, { data: entries, error: entriesError }] = await Promise.all([
     supabase.from('profiles').select('maintenance_defaults').eq('id', user.id).single(),
-    supabase
-      .from('maintenance_entries')
-      .select('*')
-      .gte('date', loadedFrom)
-      .lte('date', loadedTo)
-      .order('date'),
+    fetchEntriesWithRetry(supabase, loadedFrom, loadedTo),
   ])
 
   if (entriesError) {
+    // Only reached when the retry also failed — a persistent problem, not a blip.
     console.error('Error fetching maintenance entries:', entriesError)
     Sentry.captureException(entriesError, { tags: { context: 'maintenance_page.fetch_entries' } })
   }
