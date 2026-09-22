@@ -9,13 +9,13 @@ export function Footer() {
                 </div>
                 <div className="flex items-center space-x-6 text-muted-foreground">
                     <a
-                        href="https://www.instagram.com/maos.andreas"
+                        href="https://andreasmaos.com"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:text-foreground transition-colors"
-                        aria-label="Instagram"
+                        aria-label="Andreas Maos — personal website"
                     >
-                        <Instagram className="h-4 w-4" />
+                        <Globe className="h-4 w-4" />
                     </a>
                     <a
                         href="https://www.linkedin.com/in/andreas-maos/"
@@ -27,6 +27,15 @@ export function Footer() {
                         <Linkedin className="h-4 w-4" />
                     </a>
                     <a
+                        href="https://www.instagram.com/maos.andreas"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-foreground transition-colors"
+                        aria-label="Instagram"
+                    >
+                        <Instagram className="h-4 w-4" />
+                    </a>
+                    <a
                         href="https://github.com/maosa/triplan"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -34,15 +43,6 @@ export function Footer() {
                         aria-label="GitHub"
                     >
                         <Github className="h-4 w-4" />
-                    </a>
-                    <a
-                        href="https://andreasmaos.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-foreground transition-colors"
-                        aria-label="Andreas Maos — personal website"
-                    >
-                        <Globe className="h-4 w-4" />
                     </a>
                 </div>
             </div>
