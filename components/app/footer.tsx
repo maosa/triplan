@@ -1,4 +1,4 @@
-import { Instagram, Linkedin, Github } from "lucide-react"
+import { Instagram, Linkedin, Github, Globe } from "lucide-react"
 
 export function Footer() {
     return (
@@ -34,6 +34,15 @@ export function Footer() {
                         aria-label="GitHub"
                     >
                         <Github className="h-4 w-4" />
+                    </a>
+                    <a
+                        href="https://andreasmaos.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-foreground transition-colors"
+                        aria-label="Andreas Maos — personal website"
+                    >
+                        <Globe className="h-4 w-4" />
                     </a>
                 </div>
             </div>
