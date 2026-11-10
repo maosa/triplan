@@ -78,7 +78,10 @@ export const config = {
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
+         * - robots.txt, sitemap.xml, llms.txt (static public files in /public).
+         *   Anchored with $ so only these exact paths skip middleware — e.g.
+         *   /robots.txtx or /robots.txt/foo still hit the auth redirect.
          */
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        '/((?!_next/static|_next/image|favicon.ico|robots\\.txt$|sitemap\\.xml$|llms\\.txt$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 }

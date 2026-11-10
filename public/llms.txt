@@ -1,0 +1,25 @@
+# TriPlan
+
+> TriPlan is a free, race-centric training planner for triathletes and endurance athletes. Users organise upcoming races (swim, bike, run or triathlon), plan the workouts leading up to each one, keep a weekly maintenance schedule between races, and record race results.
+
+An account is required to use the app. All training data is private to the signed-in user.
+
+## Getting started
+
+- [Home](https://triathlonplan.vercel.app/): overview of the product
+- [Sign up](https://triathlonplan.vercel.app/signup): create a free account (first name, last name, email, password)
+- [Log in](https://triathlonplan.vercel.app/login): sign in with email and password
+
+## Main areas (after signing in)
+
+- Races: a list of the user's races. Each race has a name, type (swim, bike, run or triathlon), location, date and optional details. Opening a race shows its workouts.
+- Workouts: training sessions belonging to a race. Each has a date, type (Swim, Bike, Run, Strength, Rest or Other), duration (HH:MM), optional distance, intensity from 0 to 10 in steps of 0.5, and optional details.
+- Maintenance Training: a weekly grid with two sessions per day (1st and 2nd). Each cell is set to a session type from a dropdown. Users can paste a saved default week, fill empty cells with Rest, or clear the week.
+- Results: one entry per completed race, with times and distances shown in the user's chosen units (metric or imperial).
+- Account: preferences (units, theme, landing page), the default maintenance week, CSV import/export of races and workouts, and security settings.
+
+## Tips for assistants
+
+- Navigation is via tabs labelled Races, Maintenance, Results and Account.
+- Forms use standard labelled fields; dialogs can be closed with Escape or the "Close dialog" button.
+- For adding many workouts at once, CSV import in Account settings is faster than adding them one by one.
