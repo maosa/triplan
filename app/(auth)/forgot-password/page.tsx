@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
                     <form action={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" name="email" type="email" required placeholder="email@domain.com" />
+                            <Input id="email" name="email" type="email" autoComplete="email" required placeholder="email@domain.com" />
                         </div>
 
                         {error && <Alert type="error">{error}</Alert>}

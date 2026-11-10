@@ -7,9 +7,11 @@ interface MaintenanceCellProps {
   value: WorkoutCellType | null
   onChange: (value: WorkoutCellType | null) => void
   disabled?: boolean
+  /** Day/session context for the accessible name, e.g. "Mon 10 Nov, 1st session". */
+  label?: string
 }
 
-export function MaintenanceCell({ value, onChange, disabled }: MaintenanceCellProps) {
+export function MaintenanceCell({ value, onChange, disabled, label }: MaintenanceCellProps) {
   const style = value ? MAINTENANCE_TYPE_STYLES[value] : null
   const Icon = style?.icon
 
@@ -35,7 +37,11 @@ export function MaintenanceCell({ value, onChange, disabled }: MaintenanceCellPr
           value={value ?? ''}
           onChange={(e) => onChange((e.target.value || null) as WorkoutCellType | null)}
           className="absolute inset-0 opacity-0 cursor-pointer w-full"
-          aria-label={value ? `Change session type (currently ${value})` : 'Set session type'}
+          aria-label={
+            label
+              ? `${label}: ${value ?? 'empty'}`
+              : value ? `Change session type (currently ${value})` : 'Set session type'
+          }
         >
           <option value="">—</option>
           {MAINTENANCE_TYPE_ORDER.map((type) => (

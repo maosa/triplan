@@ -30,6 +30,10 @@ const SESSION_LABELS: Record<MaintenanceSession, string> = { first_session: '1st
 
 export function MaintenanceGrid({ columns, values, onChange, readOnly }: MaintenanceGridProps) {
   const getValue = (key: string, session: MaintenanceSession) => values[key]?.[session] ?? null
+  // Accessible name for a cell, e.g. "Mon 10 Nov, 1st session" — gives screen
+  // readers and browser agents the day/session context the visual grid conveys.
+  const cellLabel = (col: GridColumn, session: MaintenanceSession) =>
+    `${[col.label, col.sublabel].filter(Boolean).join(' ')}, ${SESSION_LABELS[session]} session`
   const handleChange = (key: string, session: MaintenanceSession, value: WorkoutCellType | null) => {
     onChange?.(key, session, value)
   }
@@ -69,6 +73,7 @@ export function MaintenanceGrid({ columns, values, onChange, readOnly }: Mainten
             <MaintenanceCell
               key={col.key}
               value={getValue(col.key, 'first_session')}
+              label={cellLabel(col, 'first_session')}
               onChange={(val) => handleChange(col.key, 'first_session', val)}
               disabled={readOnly}
             />
@@ -84,6 +89,7 @@ export function MaintenanceGrid({ columns, values, onChange, readOnly }: Mainten
             <MaintenanceCell
               key={col.key}
               value={getValue(col.key, 'second_session')}
+              label={cellLabel(col, 'second_session')}
               onChange={(val) => handleChange(col.key, 'second_session', val)}
               disabled={readOnly}
             />
@@ -116,11 +122,13 @@ export function MaintenanceGrid({ columns, values, onChange, readOnly }: Mainten
             </div>
             <MaintenanceCell
               value={getValue(col.key, 'first_session')}
+              label={cellLabel(col, 'first_session')}
               onChange={(val) => handleChange(col.key, 'first_session', val)}
               disabled={readOnly}
             />
             <MaintenanceCell
               value={getValue(col.key, 'second_session')}
+              label={cellLabel(col, 'second_session')}
               onChange={(val) => handleChange(col.key, 'second_session', val)}
               disabled={readOnly}
             />

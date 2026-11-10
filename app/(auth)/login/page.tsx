@@ -41,12 +41,12 @@ export default function LoginPage() {
                 <form action={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" name="email" type="email" required placeholder="Please enter your email" />
+                        <Input id="email" name="email" type="email" autoComplete="email" required placeholder="Please enter your email" />
                     </div>
 
                     <div className="space-y-2">
                         <Label htmlFor="password">Password</Label>
-                        <Input id="password" name="password" type="password" required />
+                        <Input id="password" name="password" type="password" autoComplete="current-password" required />
                     </div>
 
                     <div className="flex items-center justify-between">

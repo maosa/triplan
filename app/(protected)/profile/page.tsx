@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Header } from '@/components/app/header'
@@ -69,3 +70,5 @@ export default async function ProfilePage() {
         </div>
     )
 }
+
+export const metadata: Metadata = { title: 'Account' }

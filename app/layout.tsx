@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "TriPlan",
+  title: { default: "TriPlan", template: "%s · TriPlan" },
   description: "Plan and track your triathlon training for Ironman, T100, and other races with TriPlan. Built for serious endurance athletes to organise races, track workouts, and stay race-ready.",
 };
 

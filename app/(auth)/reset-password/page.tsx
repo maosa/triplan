@@ -39,12 +39,12 @@ export default function ResetPasswordPage() {
                 <form action={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="password">New Password</Label>
-                        <Input id="password" name="password" type="password" required placeholder="At least 8 characters" />
+                        <Input id="password" name="password" type="password" autoComplete="new-password" required placeholder="At least 8 characters" />
                     </div>
 
                     <div className="space-y-2">
                         <Label htmlFor="confirmPassword">Confirm Password</Label>
-                        <Input id="confirmPassword" name="confirmPassword" type="password" required />
+                        <Input id="confirmPassword" name="confirmPassword" type="password" autoComplete="new-password" required />
                     </div>
 
                     {error && <Alert type="error">{error}</Alert>}

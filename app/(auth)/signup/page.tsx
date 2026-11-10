@@ -48,22 +48,22 @@ export default function SignupPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="firstName">First name</Label>
-                                <Input id="firstName" name="firstName" required />
+                                <Input id="firstName" name="firstName" autoComplete="given-name" required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="lastName">Last name</Label>
-                                <Input id="lastName" name="lastName" required />
+                                <Input id="lastName" name="lastName" autoComplete="family-name" required />
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" name="email" type="email" required placeholder="email@domain.com" />
+                            <Input id="email" name="email" type="email" autoComplete="email" required placeholder="email@domain.com" />
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
-                            <Input id="password" name="password" type="password" required placeholder="At least 8 characters" />
+                            <Input id="password" name="password" type="password" autoComplete="new-password" required placeholder="At least 8 characters" />
                         </div>
 
                         {error && <Alert type="error">{error}</Alert>}

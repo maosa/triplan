@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import * as Sentry from '@sentry/nextjs'
@@ -89,3 +90,5 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
     </div>
   )
 }
+
+export const metadata: Metadata = { title: 'Maintenance Training' }
